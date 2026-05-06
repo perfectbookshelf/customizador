@@ -575,16 +575,12 @@ export function BookshelfConfigurator() {
         </div>
       )}
       <div className="absolute inset-0">
-        {isLegacyType ? (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-6 px-8">
-            <img src={activeType.icon} alt={activeType.label} className="h-40 w-40 object-contain opacity-80" />
-            <div className="text-center max-w-sm">
-              <div className="font-display text-2xl tracking-[0.15em] uppercase text-foreground">{activeType.label}</div>
-              <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-                Continue to configure your {activeType.label.toLowerCase()} — full 3D preview opens on the next step.
-              </p>
-            </div>
-          </div>
+        {mainType === "portal" ? (
+          <PortalDefaultPreview finish={selectedFinish} />
+        ) : mainType === "cathedral" ? (
+          <CathedralDefaultPreview finish={selectedFinish} />
+        ) : mainType === "usurround" ? (
+          <USurroundDefaultPreview finish={selectedFinish} />
         ) : result ? (
           <Bookshelf3DView
             ref={bookshelf3DRef}
