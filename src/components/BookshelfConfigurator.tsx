@@ -556,9 +556,9 @@ export function BookshelfConfigurator() {
   /* ─── Preview ─── */
 
   const preview = (
-    <div ref={mainPreviewRef} className="relative w-full h-full flex items-center justify-center p-4 lg:p-10">
+    <div ref={mainPreviewRef} className="relative w-full h-full min-h-[45vh] lg:min-h-screen flex items-center justify-center">
       {/* Dimension badge */}
-      <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-10 text-right">
+      <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-10 text-right pointer-events-none">
         <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">Dimensions</div>
         <div className="text-sm font-medium text-foreground mt-1">
           {mainType === "corner"
@@ -566,24 +566,27 @@ export function BookshelfConfigurator() {
             : <>{toFraction(width)} × {toFraction(totalHeight)}</>}
         </div>
       </div>
-      {result ? (
-        <Bookshelf3DView
-          ref={bookshelf3DRef}
-          style={bookshelfType}
-          width={width}
-          width2={mainType === "corner" ? width2 : undefined}
-          shelves={shelves}
-          shelves2={mainType === "corner" ? shelves2 : undefined}
-          finish={selectedFinish}
-          modules={mainType === "corner" ? corner3DModules.arm1 : result.shelves.map((s) => s.modules)}
-          modules2={mainType === "corner" ? corner3DModules.arm2 : undefined}
-          cornerVariant={mainType === "corner" ? cornerVariant : undefined}
-          isMobile={false}
-          hideTooltip
-        />
-      ) : (
-        <div className="text-muted-foreground">Configure to see preview</div>
-      )}
+      <div className="absolute inset-0">
+        {result ? (
+          <Bookshelf3DView
+            ref={bookshelf3DRef}
+            style={bookshelfType}
+            width={width}
+            width2={mainType === "corner" ? width2 : undefined}
+            shelves={shelves}
+            shelves2={mainType === "corner" ? shelves2 : undefined}
+            finish={selectedFinish}
+            modules={mainType === "corner" ? corner3DModules.arm1 : result.shelves.map((s) => s.modules)}
+            modules2={mainType === "corner" ? corner3DModules.arm2 : undefined}
+            cornerVariant={mainType === "corner" ? cornerVariant : undefined}
+            isMobile={false}
+            hideTooltip
+            fillContainer
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">Configure to see preview</div>
+        )}
+      </div>
       {isMobileDevice && result && <FloatingPreview mainPreviewRef={mainPreviewRef} />}
     </div>
   )
