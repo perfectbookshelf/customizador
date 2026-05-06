@@ -13,7 +13,7 @@ interface Cathedral3DViewProps {
   direction: string
   rows: Array<{ yPosition: number; availableWidth: number; shelves: { height: number; depth: number }[] }>
   modulesPerRow: Array<Array<{ width: number }>>
-  finish: string; isMobile?: boolean; hideTooltip?: boolean
+  finish: string; isMobile?: boolean; hideTooltip?: boolean; fillContainer?: boolean
 }
 
 const getWoodColor = (finish: string): string => {
