@@ -20,6 +20,10 @@ import { PortalConfigurator } from "./PortalConfigurator"
 import { CathedralConfigurator } from "./CathedralConfigurator"
 import { USurroundConfigurator } from "./USurroundConfigurator"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
+import { Portal3DView } from "./Portal3DView"
+import { Cathedral3DView } from "./Cathedral3DView"
+import { USurround3DView } from "./USurround3DView"
+import { computeCathedralRows, calculateCathedral } from "@/lib/cathedral-calculator"
 import { cn } from "@/lib/utils"
 
 type MainType = "rack" | "bookshelf" | "corner" | "portal" | "cathedral" | "usurround"
@@ -571,16 +575,12 @@ export function BookshelfConfigurator() {
         </div>
       )}
       <div className="absolute inset-0">
-        {isLegacyType ? (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-6 px-8">
-            <img src={activeType.icon} alt={activeType.label} className="h-40 w-40 object-contain opacity-80" />
-            <div className="text-center max-w-sm">
-              <div className="font-display text-2xl tracking-[0.15em] uppercase text-foreground">{activeType.label}</div>
-              <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-                Continue to configure your {activeType.label.toLowerCase()} — full 3D preview opens on the next step.
-              </p>
-            </div>
-          </div>
+        {mainType === "portal" ? (
+          <PortalDefaultPreview finish={selectedFinish} />
+        ) : mainType === "cathedral" ? (
+          <CathedralDefaultPreview finish={selectedFinish} />
+        ) : mainType === "usurround" ? (
+          <USurroundDefaultPreview finish={selectedFinish} />
         ) : result ? (
           <Bookshelf3DView
             ref={bookshelf3DRef}
@@ -623,5 +623,64 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <span className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">{label}</span>
       <span className="text-sm font-medium text-foreground mt-1">{value}</span>
     </div>
+  )
+}
+
+/* ─── Default 3D previews for legacy types on Step 1 ─── */
+
+function PortalDefaultPreview({ finish }: { finish: string }) {
+  const wallWidth = 100, wallHeight = 96
+  const objectWidth = 36, objectHeight = 82, floorToObject = 0
+  const rightGap = 32, leftGap = wallWidth - objectWidth - rightGap
+  const topHeight = wallHeight - floorToObject - objectHeight
+  const shelves: ShelfConfig[] = Array(6).fill(null).map(() => ({ height: 14, depth: 10 }))
+  const sideRes = useMemo(() => {
+    try { return calculateBookshelf({ type: "bookshelf", totalWidth: leftGap, shelves, finish }) } catch { return null }
+  }, [leftGap, finish])
+  const rightRes = useMemo(() => {
+    try { return calculateBookshelf({ type: "bookshelf", totalWidth: rightGap, shelves, finish }) } catch { return null }
+  }, [rightGap, finish])
+  const topRes = useMemo(() => {
+    try { return calculateBookshelf({ type: "bookshelf", totalWidth: objectWidth, shelves: [{ height: 14, depth: 10 }], finish }) } catch { return null }
+  }, [finish])
+  return (
+    <Portal3DView
+      wallWidth={wallWidth} wallHeight={wallHeight}
+      objectWidth={objectWidth} objectHeight={objectHeight}
+      floorToObject={floorToObject} rightGap={rightGap}
+      leftGap={leftGap} topHeight={topHeight}
+      shelves={shelves}
+      leftModules={sideRes?.shelves.map(s => s.modules)}
+      rightModules={rightRes?.shelves.map(s => s.modules)}
+      topModules={topRes?.shelves.map(s => s.modules)}
+      bottomModules={undefined}
+      finish={finish} hideTooltip fillContainer
+    />
+  )
+}
+
+function CathedralDefaultPreview({ finish }: { finish: string }) {
+  const W = 100, H = 60, H1 = 96
+  const shelves: ShelfConfig[] = Array(5).fill(null).map(() => ({ height: 14, depth: 10 }))
+  const data = useMemo(() => calculateCathedral(W, H, H1, shelves, "left", finish), [finish])
+  return (
+    <Cathedral3DView
+      W={W} H={H} H1={H1} direction="left"
+      rows={data.rows}
+      modulesPerRow={data.modulesPerRow}
+      finish={finish} hideTooltip fillContainer
+    />
+  )
+}
+
+function USurroundDefaultPreview({ finish }: { finish: string }) {
+  const w1 = 50, w = 70, w2 = 50
+  const shelves: ShelfConfig[] = Array(4).fill(null).map(() => ({ height: 14, depth: 10 }))
+  return (
+    <USurround3DView
+      w1={w1} w={w} w2={w2}
+      shelvesLeft={shelves} shelvesFront={shelves} shelvesRight={shelves}
+      finish={finish} hideTooltip fillContainer
+    />
   )
 }

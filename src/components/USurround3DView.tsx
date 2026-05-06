@@ -16,7 +16,7 @@ export interface USurround3DViewProps {
   modulesLeft?: Array<Array<{ width: number }>>
   modulesFront?: Array<Array<{ width: number }>>
   modulesRight?: Array<Array<{ width: number }>>
-  finish: string; isMobile?: boolean; hideTooltip?: boolean
+  finish: string; isMobile?: boolean; hideTooltip?: boolean; fillContainer?: boolean
 }
 
 function CanvasCapture({ onReady }: { onReady: (fn: () => Promise<string>) => void }) {
@@ -99,13 +99,18 @@ function USurroundScene({ props, intF, frameF, backF }: { props: USurround3DView
 
 export const USurround3DView = forwardRef<USurround3DViewRef, USurround3DViewProps>(
   function USurround3DView(props, ref) {
-    const { w1, w, w2, shelvesLeft, shelvesFront, shelvesRight, finish, isMobile, hideTooltip } = props
+    const { w1, w, w2, shelvesLeft, shelvesFront, shelvesRight, finish, isMobile, hideTooltip, fillContainer } = props
     const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
     const isTwoToneBlack = parts && parts[1] === "Black"
     const intF = isTwoToneBlack ? parts[0] : parts ? parts[1] : finish
     const frameF = isTwoToneBlack ? "Black" : parts ? parts[0] : finish
     const backF = parts ? parts[0] : finish
     const [resetCount, setResetCount] = useState(0)
+
+    useEffect(() => {
+      const timers = [200, 600, 1200, 2000].map((d) => setTimeout(() => setResetCount((c) => c + 1), d))
+      return () => timers.forEach(clearTimeout)
+    }, [])
 
     let captureFn: (() => Promise<string>) | null = null
     useImperativeHandle(ref, () => ({
@@ -122,7 +127,11 @@ export const USurround3DView = forwardRef<USurround3DViewRef, USurround3DViewPro
     const camDist = Math.max(spread * 1.2, totalHeight * 1.2, maxDepth * 5)
 
     return (
-      <div className={`relative w-full overflow-hidden rounded-lg border-2 border-border bg-gradient-to-b from-secondary to-muted ${isMobile ? "h-[35vh]" : "min-h-[500px] aspect-[4/3]"}`}>
+      <div className={
+        fillContainer
+          ? "relative w-full h-full overflow-hidden bg-transparent"
+          : `relative w-full overflow-hidden rounded-lg border-2 border-border bg-gradient-to-b from-secondary to-muted ${isMobile ? "h-[35vh]" : "min-h-[500px] aspect-[4/3]"}`
+      }>
         <Canvas
           camera={{ position: [0, totalHeight * 0.5, camDist], fov: 60 }}
           shadows
