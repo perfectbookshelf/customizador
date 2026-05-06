@@ -1,3 +1,4 @@
+import * as React from "react"
 interface PortalSchematicProps {
   wallWidth: number
   wallHeight: number
@@ -90,7 +91,7 @@ export function PortalSchematic({
   const cutoutY = wallY + h - floorToObject * scale - cutoutH
 
   const drawShelfLines = (zoneX: number, zoneY: number, zoneW: number, zoneH: number, count: number) => {
-    const lines: JSX.Element[] = []
+    const lines: React.ReactElement[] = []
     if (count <= 0 || zoneH <= 0) return lines
     const spacing = zoneH / (count + 1)
     for (let i = 1; i <= count; i++) {

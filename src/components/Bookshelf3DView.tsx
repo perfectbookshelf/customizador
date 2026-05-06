@@ -1,3 +1,4 @@
+import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useLoader } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
@@ -316,7 +317,7 @@ export function Bookshelf3D({
   }, [shelves, maxDepth])
 
   const moduleElements = useMemo(() => {
-    const elements: JSX.Element[] = []
+    const elements: React.ReactElement[] = []
 
     shelves.forEach((shelf, shelfIndex) => {
       const shelfZOffset = -(maxDepth - shelf.depth)

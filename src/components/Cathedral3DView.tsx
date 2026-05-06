@@ -1,3 +1,4 @@
+import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useLoader } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
@@ -110,7 +111,7 @@ function CathedralShelf3D({ rows, modulesPerRow, maxWidth, internalFinish, frame
   const maxDepth = Math.max(...rows.flatMap(r => r.shelves.map(s => s.depth)), 7)
 
   const elements = useMemo(() => {
-    const els: JSX.Element[] = []
+    const els: React.ReactElement[] = []
 
     rows.forEach((row, rowIndex) => {
       const shelf = row.shelves[0]

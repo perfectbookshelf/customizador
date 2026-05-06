@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 
 interface FloatingPreviewProps {
-  mainPreviewRef: React.RefObject<HTMLDivElement>
+  mainPreviewRef: React.RefObject<HTMLDivElement | null>
 }
 
 export function FloatingPreview({ mainPreviewRef }: FloatingPreviewProps) {

@@ -1,6 +1,6 @@
 export interface ShelfConfig {
-  height: 12 | 14
-  depth: 7 | 10 | 13
+  height: number
+  depth: number
 }
 
 export type BookshelfType = "rack" | "bookshelf" | "corner"
@@ -16,8 +16,8 @@ export interface BookshelfConfig {
 
 export interface ModuleConfig {
   width: number
-  height: 12 | 14
-  depth: 7 | 10 | 13
+  height: number
+  depth: number
 }
 
 export interface SKU {
@@ -28,15 +28,15 @@ export interface SKU {
 
 export interface BoardResult {
   width: number
-  depth: 7 | 10 | 13
+  depth: number
   quantity: number
   shelfIndex: number
   skus: SKU[]
 }
 
 export interface ShelfResult {
-  height: 12 | 14
-  depth: 7 | 10 | 13
+  height: number
+  depth: number
   modules: {
     width: number
     skus: SKU[]
