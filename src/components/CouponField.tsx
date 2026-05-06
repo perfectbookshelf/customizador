@@ -28,11 +28,13 @@ export function CouponField({ appliedDiscount, onApply, onRemove }: CouponFieldP
     setError(null)
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke("pbs-validate-coupon", {
-        body: { code: trimmed },
+      const res = await fetch("/api/shopify/validate-coupon", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: trimmed }),
       })
-
-      if (fnError) throw new Error(fnError.message)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error || `Request failed (${res.status})`)
 
       if (!data?.valid) {
         setError(data?.error || "Invalid coupon code")
