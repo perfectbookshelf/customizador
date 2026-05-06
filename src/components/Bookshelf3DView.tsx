@@ -604,6 +604,14 @@ export const Bookshelf3DView = forwardRef<
   const backFinish = parts ? parts[0] : finish
   const [resetCount, setResetCount] = useState(0)
 
+  // Auto-fit camera once after the scene mounts (OrbitControls' default `target`
+  // overrides CameraController on the very first frame, leaving the model
+  // off-screen until the user clicks Reset View).
+  useEffect(() => {
+    const t = setTimeout(() => setResetCount((c) => c + 1), 50)
+    return () => clearTimeout(t)
+  }, [])
+
   let captureFunction: (() => Promise<string>) | null = null
 
   useImperativeHandle(ref, () => ({
