@@ -24,6 +24,7 @@ interface Portal3DViewProps {
   finish: string
   isMobile?: boolean
   hideTooltip?: boolean
+  fillContainer?: boolean
 }
 
 // ─── CONSTANTS ───
