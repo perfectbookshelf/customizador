@@ -10,33 +10,58 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiShopifyValidateCouponRouteImport } from './routes/api/shopify/validate-coupon'
+import { Route as ApiShopifyCheckoutRouteImport } from './routes/api/shopify/checkout'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShopifyValidateCouponRoute =
+  ApiShopifyValidateCouponRouteImport.update({
+    id: '/api/shopify/validate-coupon',
+    path: '/api/shopify/validate-coupon',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiShopifyCheckoutRoute = ApiShopifyCheckoutRouteImport.update({
+  id: '/api/shopify/checkout',
+  path: '/api/shopify/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/api/shopify/checkout' | '/api/shopify/validate-coupon'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/api/shopify/checkout' | '/api/shopify/validate-coupon'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/shopify/checkout'
+    | '/api/shopify/validate-coupon'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiShopifyCheckoutRoute: typeof ApiShopifyCheckoutRoute
+  ApiShopifyValidateCouponRoute: typeof ApiShopifyValidateCouponRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,12 +73,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/shopify/validate-coupon': {
+      id: '/api/shopify/validate-coupon'
+      path: '/api/shopify/validate-coupon'
+      fullPath: '/api/shopify/validate-coupon'
+      preLoaderRoute: typeof ApiShopifyValidateCouponRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shopify/checkout': {
+      id: '/api/shopify/checkout'
+      path: '/api/shopify/checkout'
+      fullPath: '/api/shopify/checkout'
+      preLoaderRoute: typeof ApiShopifyCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiShopifyCheckoutRoute: ApiShopifyCheckoutRoute,
+  ApiShopifyValidateCouponRoute: ApiShopifyValidateCouponRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
