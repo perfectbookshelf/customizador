@@ -236,13 +236,18 @@ function CameraController({ width, totalHeight, maxDepth, isMobile, resetKey }: 
 }
 
 export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewProps>(
-  function Cathedral3DView({ W, H, H1, direction, rows, modulesPerRow, finish, isMobile, hideTooltip }, ref) {
+  function Cathedral3DView({ W, H, H1, direction, rows, modulesPerRow, finish, isMobile, hideTooltip, fillContainer }, ref) {
     const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
     const isTwoToneBlack = parts && parts[1] === "Black"
     const internalFinish = isTwoToneBlack ? parts[0] : parts ? parts[1] : finish
     const frameFinish = isTwoToneBlack ? "Black" : parts ? parts[0] : finish
     const backFinish = parts ? parts[0] : finish
     const [resetCount, setResetCount] = useState(0)
+
+    useEffect(() => {
+      const timers = [200, 600, 1200, 2000].map((d) => setTimeout(() => setResetCount((c) => c + 1), d))
+      return () => timers.forEach(clearTimeout)
+    }, [])
 
     let captureFunction: (() => Promise<string>) | null = null
     useImperativeHandle(ref, () => ({
@@ -259,7 +264,11 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
     const cameraDistance = Math.max(W * 1.2, totalHeight * 1.2, maxDepth * 5)
 
     return (
-      <div className={`relative w-full overflow-hidden rounded-lg border-2 border-border bg-gradient-to-b from-secondary to-muted ${isMobile ? "h-[35vh]" : "min-h-[500px] aspect-[4/3]"}`}>
+      <div className={
+        fillContainer
+          ? "relative w-full h-full overflow-hidden bg-transparent"
+          : `relative w-full overflow-hidden rounded-lg border-2 border-border bg-gradient-to-b from-secondary to-muted ${isMobile ? "h-[35vh]" : "min-h-[500px] aspect-[4/3]"}`
+      }>
         <Canvas
           camera={{ position: [0, totalHeight * 0.5, cameraDistance], fov: 60 }}
           shadows
