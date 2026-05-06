@@ -608,11 +608,9 @@ export const Bookshelf3DView = forwardRef<
   // overrides CameraController on the very first frame, leaving the model
   // off-screen until the user clicks Reset View).
   useEffect(() => {
-    const timers = [
-      setTimeout(() => setResetCount((c) => c + 1), 100),
-      setTimeout(() => setResetCount((c) => c + 1), 400),
-      setTimeout(() => setResetCount((c) => c + 1), 800),
-    ]
+    const timers = [200, 600, 1200, 2000].map((d) =>
+      setTimeout(() => setResetCount((c) => c + 1), d),
+    )
     return () => timers.forEach(clearTimeout)
   }, [])
 
