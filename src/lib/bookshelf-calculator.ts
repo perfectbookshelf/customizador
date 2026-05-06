@@ -70,7 +70,7 @@ function calculateStraightBookshelf(config: BookshelfConfig): BookshelfResult {
     const shelf = config.shelves[i]
     const groupKey = `${shelf.height}-${shelf.depth}`
     const currentModuleIndex = groupModuleIndex.get(groupKey) || 0
-    const result = calculateShelfModules(config.totalWidth, shelf.height, shelf.depth, i, currentModuleIndex)
+    const result = calculateShelfModules(config.totalWidth, shelf.height as 12 | 14, shelf.depth as 7 | 10 | 13, i, currentModuleIndex)
     shelves.push(result.shelf)
     let nextIndex = result.nextModuleIndex
     if (nextIndex >= MODULE_WIDTHS.length) nextIndex = 0

@@ -494,7 +494,7 @@ export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
               <div className="space-y-4">
                 <div className="grid grid-cols-5 gap-2">
                   {PRESET_ICONS.map(preset => {
-                    const Icon = preset.icon
+                    const Icon = preset.icon as React.ComponentType<{ className?: string }>
                     return (
                       <button key={preset.id} onClick={() => applyPreset(preset.id)}
                         className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all border ${objectType === preset.id ? "border-accent bg-accent/5 shadow-sm" : "border-border bg-card hover:border-accent/40"}`}>
