@@ -555,19 +555,33 @@ export function BookshelfConfigurator() {
 
   /* ─── Preview ─── */
 
+  const isLegacyType = mainType === "portal" || mainType === "cathedral" || mainType === "usurround"
+
   const preview = (
     <div ref={mainPreviewRef} className="relative w-full h-full min-h-[45vh] lg:min-h-screen flex items-center justify-center">
       {/* Dimension badge */}
-      <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-10 text-right pointer-events-none">
-        <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">Dimensions</div>
-        <div className="text-sm font-medium text-foreground mt-1">
-          {mainType === "corner"
-            ? <>{toFraction(width)} × {toFraction(width2)} × {toFraction(totalHeight)}</>
-            : <>{toFraction(width)} × {toFraction(totalHeight)}</>}
+      {!isLegacyType && (
+        <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-10 text-right pointer-events-none">
+          <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">Dimensions</div>
+          <div className="text-sm font-medium text-foreground mt-1">
+            {mainType === "corner"
+              ? <>{toFraction(width)} × {toFraction(width2)} × {toFraction(totalHeight)}</>
+              : <>{toFraction(width)} × {toFraction(totalHeight)}</>}
+          </div>
         </div>
-      </div>
+      )}
       <div className="absolute inset-0">
-        {result ? (
+        {isLegacyType ? (
+          <div className="w-full h-full flex flex-col items-center justify-center gap-6 px-8">
+            <img src={activeType.icon} alt={activeType.label} className="h-40 w-40 object-contain opacity-80" />
+            <div className="text-center max-w-sm">
+              <div className="font-display text-2xl tracking-[0.15em] uppercase text-foreground">{activeType.label}</div>
+              <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
+                Continue to configure your {activeType.label.toLowerCase()} — full 3D preview opens on the next step.
+              </p>
+            </div>
+          </div>
+        ) : result ? (
           <Bookshelf3DView
             ref={bookshelf3DRef}
             style={bookshelfType}
@@ -587,7 +601,7 @@ export function BookshelfConfigurator() {
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">Configure to see preview</div>
         )}
       </div>
-      {isMobileDevice && result && <FloatingPreview mainPreviewRef={mainPreviewRef} />}
+      {isMobileDevice && result && !isLegacyType && <FloatingPreview mainPreviewRef={mainPreviewRef} />}
     </div>
   )
 
