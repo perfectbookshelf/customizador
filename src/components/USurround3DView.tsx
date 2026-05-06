@@ -16,7 +16,7 @@ export interface USurround3DViewProps {
   modulesLeft?: Array<Array<{ width: number }>>
   modulesFront?: Array<Array<{ width: number }>>
   modulesRight?: Array<Array<{ width: number }>>
-  finish: string; isMobile?: boolean; hideTooltip?: boolean
+  finish: string; isMobile?: boolean; hideTooltip?: boolean; fillContainer?: boolean
 }
 
 function CanvasCapture({ onReady }: { onReady: (fn: () => Promise<string>) => void }) {
