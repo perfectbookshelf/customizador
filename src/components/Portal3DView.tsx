@@ -335,13 +335,18 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
 // ─── EXPORTED COMPONENT ───
 export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
   function Portal3DView(props, ref) {
-    const { wallWidth, wallHeight, finish, isMobile, hideTooltip } = props
+    const { wallWidth, wallHeight, finish, isMobile, hideTooltip, fillContainer } = props
     const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
     const isTwoToneBlack = parts && parts[1] === "Black"
     const intF = isTwoToneBlack ? parts[0] : parts ? parts[1] : finish
     const frameF = isTwoToneBlack ? "Black" : parts ? parts[0] : finish
     const backF = parts ? parts[0] : finish
     const [resetCount, setResetCount] = useState(0)
+
+    useEffect(() => {
+      const timers = [200, 600, 1200, 2000].map((d) => setTimeout(() => setResetCount((c) => c + 1), d))
+      return () => timers.forEach(clearTimeout)
+    }, [])
 
     let captureFn: (() => Promise<string>) | null = null
     useImperativeHandle(ref, () => ({
@@ -352,7 +357,11 @@ export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
     const camDist = Math.max(wallWidth * 1.2, wallHeight * 1.2, maxDepth * 5)
 
     return (
-      <div className={`relative w-full overflow-hidden rounded-lg border-2 border-border bg-gradient-to-b from-secondary to-muted ${isMobile ? "h-[35vh]" : "min-h-[500px] aspect-[4/3]"}`}>
+      <div className={
+        fillContainer
+          ? "relative w-full h-full overflow-hidden bg-transparent"
+          : `relative w-full overflow-hidden rounded-lg border-2 border-border bg-gradient-to-b from-secondary to-muted ${isMobile ? "h-[35vh]" : "min-h-[500px] aspect-[4/3]"}`
+      }>
         <Canvas
           camera={{ position: [0, wallHeight * 0.5, camDist], fov: 60 }}
           shadows
