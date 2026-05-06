@@ -34,6 +34,8 @@
   --color-wood-walnut: var(--wood-walnut);
   --color-wood-ash: var(--wood-ash);
   --color-wood-maple: var(--wood-maple);
+  --color-brand-walnut: var(--brand-walnut);
+  --color-brand-walnut-foreground: var(--brand-walnut-foreground);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -67,6 +69,8 @@
   --border: hsl(0 0% 85%);
   --input: hsl(0 0% 85%);
   --ring: hsl(0 0% 0%);
+  --brand-walnut: oklch(0.42 0.08 50);
+  --brand-walnut-foreground: oklch(0.98 0 0);
   --wood-oak: hsl(38 60% 65%);
   --wood-walnut: hsl(20 55% 28%);
   --wood-ash: hsl(35 25% 85%);
