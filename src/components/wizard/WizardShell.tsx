@@ -60,7 +60,7 @@ export function WizardShell({
 
         {/* Preview */}
         <div className="lg:w-[58%] xl:w-[62%] flex-shrink-0 bg-secondary/40 configurator-preview relative">
-          <div className="relative h-full min-h-[45vh] lg:min-h-screen lg:sticky lg:top-0 lg:h-screen flex items-center justify-center">
+          <div className="relative w-full h-[45vh] lg:h-screen lg:sticky lg:top-0">
             {preview}
           </div>
         </div>
