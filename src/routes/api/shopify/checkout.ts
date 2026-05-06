@@ -13,7 +13,7 @@ function toFraction(decimal: number): string {
 export const Route = createFileRoute("/api/shopify/checkout")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
+      POST: async ({ request }: { request: Request }) => {
         try {
           let SHOPIFY_STORE = process.env.SHOPIFY_STORE
           if (!SHOPIFY_STORE) throw new Error("SHOPIFY_STORE is not configured")

@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router"
 export const Route = createFileRoute("/api/shopify/validate-coupon")({
   server: {
     handlers: {
-      POST: async ({ request }) => {
+      POST: async ({ request }: { request: Request }) => {
         try {
           let SHOPIFY_STORE = process.env.SHOPIFY_STORE
           if (!SHOPIFY_STORE) throw new Error("SHOPIFY_STORE is not configured")
