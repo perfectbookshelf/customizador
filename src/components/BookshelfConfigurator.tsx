@@ -306,12 +306,12 @@ export function BookshelfConfigurator() {
     setCornerVariant("outside")
   }
 
-  // Delegate to legacy configurators for advanced types we haven't ported yet —
-  // but only AFTER the user has progressed past the type step in the new wizard.
-  // Otherwise a previously-saved type would skip the wizard entirely.
-  if (mainType === "portal") return <PortalConfigurator onTypeChange={(t) => { setMainType(t as MainType); setStepIndex(0) }} />
-  if (mainType === "cathedral") return <CathedralConfigurator onTypeChange={(t) => { setMainType(t as MainType); setStepIndex(0) }} />
-  if (mainType === "usurround") return <USurroundConfigurator onTypeChange={(t) => { setMainType(t as MainType); setStepIndex(0) }} />
+  // Delegate to legacy configurators only AFTER user advances past Step 1 (Type).
+  // On Step 1 we always show the new wizard so the user can switch types within
+  // the unified Banyan-style layout.
+  if (stepIndex > 0 && mainType === "portal") return <PortalConfigurator onTypeChange={(t) => { setMainType(t as MainType); setStepIndex(0) }} />
+  if (stepIndex > 0 && mainType === "cathedral") return <CathedralConfigurator onTypeChange={(t) => { setMainType(t as MainType); setStepIndex(0) }} />
+  if (stepIndex > 0 && mainType === "usurround") return <USurroundConfigurator onTypeChange={(t) => { setMainType(t as MainType); setStepIndex(0) }} />
 
   const finishOption = FINISH_OPTIONS.find((f) => f.id === selectedFinish)
   const activeType = TYPE_OPTIONS.find(t => t.id === mainType)!
