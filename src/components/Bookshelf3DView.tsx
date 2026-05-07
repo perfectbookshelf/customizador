@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useLoader } from "@react-three/fiber"
-import { OrbitControls, ContactShadows } from "@react-three/drei"
+import { OrbitControls, ContactShadows, Environment } from "@react-three/drei"
 import * as THREE from "three"
 
 interface Shelf {
@@ -670,8 +670,8 @@ export const Bookshelf3DView = forwardRef<
             position={[15, 20, 10]}
             intensity={1.2}
             castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+            shadow-mapSize-width={4096}
+            shadow-mapSize-height={4096}
             shadow-bias={-0.00001}
             shadow-camera-left={-width}
             shadow-camera-right={width}
@@ -719,6 +719,8 @@ export const Bookshelf3DView = forwardRef<
               modules={modules}
             />
           )}
+
+          <Environment preset="studio" />
 
           <ContactShadows
             position={[0, -0.1, 0]}
