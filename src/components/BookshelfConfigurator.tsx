@@ -24,6 +24,7 @@ import { Portal3DView } from "./Portal3DView"
 import { Cathedral3DView } from "./Cathedral3DView"
 import { USurround3DView } from "./USurround3DView"
 import { computeCathedralRows, calculateCathedral } from "@/lib/cathedral-calculator"
+import { calculateUSurround } from "@/lib/usurround-calculator"
 import { cn } from "@/lib/utils"
 
 type MainType = "rack" | "bookshelf" | "corner" | "portal" | "cathedral" | "usurround"
