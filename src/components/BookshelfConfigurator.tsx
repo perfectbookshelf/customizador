@@ -676,10 +676,21 @@ function CathedralDefaultPreview({ finish }: { finish: string }) {
 function USurroundDefaultPreview({ finish }: { finish: string }) {
   const w1 = 50, w = 70, w2 = 50
   const shelves: ShelfConfig[] = Array(4).fill(null).map(() => ({ height: 14, depth: 10 }))
+  const data = useMemo(() => {
+    try {
+      const res = calculateUSurround({ w1, w, w2, shelvesLeft: shelves, shelvesFront: shelves, shelvesRight: shelves, finish })
+      return {
+        modulesLeft: res.leftResult.shelves.map(s => s.modules),
+        modulesFront: res.frontResult.shelves.map(s => s.modules),
+        modulesRight: res.rightResult.shelves.map(s => s.modules),
+      }
+    } catch { return { modulesLeft: undefined, modulesFront: undefined, modulesRight: undefined } }
+  }, [finish])
   return (
     <USurround3DView
       w1={w1} w={w} w2={w2}
       shelvesLeft={shelves} shelvesFront={shelves} shelvesRight={shelves}
+      modulesLeft={data.modulesLeft} modulesFront={data.modulesFront} modulesRight={data.modulesRight}
       finish={finish} hideTooltip fillContainer
     />
   )
