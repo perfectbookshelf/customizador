@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useLoader } from "@react-three/fiber"
-import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
+import { OrbitControls, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 
 export interface Cathedral3DViewRef {
@@ -279,7 +279,7 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
             <CameraController width={W} totalHeight={totalHeight} maxDepth={maxDepth} isMobile={isMobile} resetKey={resetCount} />
 
             <ambientLight intensity={0.6} />
-            <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow shadow-mapSize-width={4096} shadow-mapSize-height={4096} shadow-bias={-0.00001} shadow-camera-left={-W} shadow-camera-right={W} shadow-camera-top={totalHeight} shadow-camera-bottom={-5} />
+            <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} shadow-bias={-0.00001} shadow-camera-left={-W} shadow-camera-right={W} shadow-camera-top={totalHeight} shadow-camera-bottom={-5} />
             <directionalLight position={[-10, 10, -8]} intensity={0.4} />
             <pointLight position={[0, totalHeight * 0.7, maxDepth * 1.5]} intensity={0.8} distance={maxDepth * 4} />
             <pointLight position={[0, totalHeight * 0.5, -maxDepth * 0.3]} intensity={0.7} distance={maxDepth * 3} />
@@ -294,7 +294,6 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
               direction={direction}
             />
 
-            <Environment preset="studio" environmentIntensity={0.5} />
             <ContactShadows position={[0, -0.1, 0]} opacity={0.3} scale={W * 1.8} blur={2.8} far={totalHeight * 1.5} resolution={1024} />
             <OrbitControls enableZoom enablePan enableRotate minDistance={20} maxDistance={200} target={[0, totalHeight / 2, 0]} enableDamping dampingFactor={0.05} rotateSpeed={0.5} zoomSpeed={0.5} />
           </Suspense>
