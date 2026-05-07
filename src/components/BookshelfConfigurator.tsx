@@ -141,6 +141,27 @@ export function BookshelfConfigurator() {
     { height: 14, depth: 14 }, { height: 14, depth: 14 },
   ])
 
+  // U-Surround widths (left arm / front / right arm)
+  const [uW1, setUW1] = useState<number>(50)
+  const [uW, setUW] = useState<number>(70)
+  const [uW2, setUW2] = useState<number>(50)
+
+  // Cathedral dims (W width, H low height, H1 high height, slope direction)
+  const [cathW, setCathW] = useState<number>(100)
+  const [cathH, setCathH] = useState<number>(60)
+  const [cathH1, setCathH1] = useState<number>(96)
+  const [cathDir, setCathDir] = useState<"left" | "right" | "both">("left")
+
+  // Portal dims
+  type PortalObject = "door" | "window" | "tv" | "fireplace" | "other"
+  const [portalWallW, setPortalWallW] = useState<number>(100)
+  const [portalWallH, setPortalWallH] = useState<number>(96)
+  const [portalObjW, setPortalObjW] = useState<number>(36)
+  const [portalObjH, setPortalObjH] = useState<number>(82)
+  const [portalFloorToObj, setPortalFloorToObj] = useState<number>(0)
+  const [portalRightGap, setPortalRightGap] = useState<number>(32)
+  const [portalObjType, setPortalObjType] = useState<PortalObject>("door")
+
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
