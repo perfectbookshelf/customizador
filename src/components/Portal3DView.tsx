@@ -386,6 +386,7 @@ export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
             <directionalLight position={[-10, 10, -8]} intensity={0.4} />
             <pointLight position={[0, wallHeight * 0.7, maxDepth * 1.5]} intensity={0.8} distance={maxDepth * 4} />
             <PortalScene props={props} intF={intF} frameF={frameF} backF={backF} />
+            <Environment preset="studio" />
             <ContactShadows position={[0, -0.1, 0]} opacity={0.3} scale={wallWidth * 1.8} blur={2.8} far={wallHeight * 1.5} resolution={1024} />
             <OrbitControls enableZoom enablePan enableRotate minDistance={20} maxDistance={300} target={[0, wallHeight / 2, 0]} enableDamping dampingFactor={0.05} rotateSpeed={0.5} zoomSpeed={0.5} />
           </Suspense>

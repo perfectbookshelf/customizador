@@ -720,6 +720,8 @@ export const Bookshelf3DView = forwardRef<
             />
           )}
 
+          <Environment preset="studio" />
+
           <ContactShadows
             position={[0, -0.1, 0]}
             opacity={0.3}
