@@ -45,9 +45,8 @@ describe("BookshelfConfigurator — legacy types stay in unified wizard", () => 
       clickButtonByText(type)
       expectUnifiedWizard(1)
 
-      // Walk forward through remaining steps (Type → Dimensions → Shelves → Finish → Review = 5)
-      for (let n = 2; n <= 5; n++) {
-        // Find Next button (renders as "Next" or "Review" on the finish step)
+      // Walk steps 2..4 (Dimensions, Shelves, Finish) — each shows the Step counter.
+      for (let n = 2; n <= 4; n++) {
         const nav = screen
           .getAllByRole("button")
           .find((b) => /^next$|^review$/i.test(b.textContent?.trim() ?? ""))
@@ -55,6 +54,15 @@ describe("BookshelfConfigurator — legacy types stay in unified wizard", () => 
         fireEvent.click(nav!)
         expectUnifiedWizard(n)
       }
+
+      // Step 5 (Review) hides the step nav. Assert unified review markers instead.
+      const toReview = screen
+        .getAllByRole("button")
+        .find((b) => /^review$/i.test(b.textContent?.trim() ?? ""))
+      expect(toReview, "Review button on Finish step").toBeTruthy()
+      fireEvent.click(toReview!)
+      expect(screen.getByRole("button", { name: /checkout|processing/i })).toBeInTheDocument()
+      expect(screen.getByText(/^Total$/i)).toBeInTheDocument()
     })
   }
 })
