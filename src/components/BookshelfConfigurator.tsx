@@ -173,6 +173,10 @@ export function BookshelfConfigurator() {
     setPortalObjH(h => Math.min(h, Math.max(12, portalWallH - 12)))
     setPortalFloorToObj(f => Math.min(f, Math.max(0, portalWallH - Math.min(portalObjH, portalWallH - 12))))
   }, [portalWallH]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Doors must sit on the floor — never let saved/in-flight state lift them.
+  useEffect(() => {
+    if (portalObjType === "door" && portalFloorToObj !== 0) setPortalFloorToObj(0)
+  }, [portalObjType, portalFloorToObj])
 
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
@@ -719,6 +723,7 @@ export function BookshelfConfigurator() {
             wallWidth={portalWallW} wallHeight={portalWallH}
             objectWidth={portalObjW} objectHeight={portalObjH}
             floorToObject={portalFloorToObj} rightGap={portalRightGap}
+            objectType={portalObjType}
             shelves={shelves}
           />
         ) : mainType === "cathedral" ? (
@@ -780,11 +785,12 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 
 /* ─── Live 3D previews for Portal / Cathedral / U-Surround ─── */
 
-function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, shelves }: {
+function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, objectType, shelves }: {
   finish: string
   wallWidth: number; wallHeight: number
   objectWidth: number; objectHeight: number
   floorToObject: number; rightGap: number
+  objectType: "door" | "window" | "tv" | "fireplace" | "other"
   shelves: ShelfConfig[]
 }) {
   // Defensive clamp: state updates are async, so a wall-shrink can briefly
@@ -810,6 +816,7 @@ function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectH
       objectWidth={safeObjW} objectHeight={safeObjH}
       floorToObject={safeFloorToObj} rightGap={safeRightGap}
       leftGap={leftGap} topHeight={topHeight}
+      objectType={objectType}
       shelves={shelves}
       leftModules={sideRes?.shelves.map(s => s.modules)}
       rightModules={rightRes?.shelves.map(s => s.modules)}
@@ -981,7 +988,13 @@ function PortalDimsContent(props: {
         setObjH(clamped)
         if (floorToObj + clamped > wallH) setFloorToObj(Math.max(0, wallH - clamped))
       }} min={12} max={Math.max(12, wallH - 12)} />
-      <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH)} />
+      {objType !== "door" ? (
+        <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH)} />
+      ) : (
+        <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground italic">
+          Door sits on the floor — no shelf runs underneath
+        </div>
+      )}
       <LabeledSlider label="Right gap" value={rightGap} onChange={setRightGap} min={0} max={Math.max(0, wallW - objW)}
         hint={`Left gap auto: ${toFraction(leftGap)}`} />
     </div>

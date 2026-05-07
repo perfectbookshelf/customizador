@@ -21,6 +21,7 @@ interface Portal3DViewProps {
   rightModules?: Array<Array<{ width: number }>>
   topModules?: Array<Array<{ width: number }>>
   bottomModules?: Array<Array<{ width: number }>>
+  objectType?: "door" | "window" | "tv" | "fireplace" | "other"
   finish: string
   isMobile?: boolean
   hideTooltip?: boolean
@@ -176,11 +177,15 @@ function CameraController({ wallWidth, wallHeight, maxDepth, isMobile, resetKey 
 
 // ─── MAIN SCENE ───
 function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps; intF: string; frameF: string; backF: string }) {
-  const { wallWidth, wallHeight, shelves } = props
+  const { wallWidth, wallHeight, shelves, objectType } = props
+  const isDoor = objectType === "door"
   // Defensive clamp — never let the object render outside the wall, regardless of saved/in-flight state.
   const objectWidth = Math.max(0, Math.min(props.objectWidth, wallWidth))
   const objectHeight = Math.max(0, Math.min(props.objectHeight, wallHeight))
-  const floorToObject = Math.max(0, Math.min(props.floorToObject, Math.max(0, wallHeight - objectHeight)))
+  // Doors always sit on the floor — force floorToObject = 0 regardless of upstream state.
+  const floorToObject = isDoor
+    ? 0
+    : Math.max(0, Math.min(props.floorToObject, Math.max(0, wallHeight - objectHeight)))
   const rightGap = Math.max(0, Math.min(props.rightGap, Math.max(0, wallWidth - objectWidth)))
   const leftGap = Math.max(0, Math.min(props.leftGap, Math.max(0, wallWidth - objectWidth - rightGap)))
   const maxDepth = shelves.length > 0 ? Math.max(...shelves.map(s => s.depth)) : 7
