@@ -981,7 +981,13 @@ function PortalDimsContent(props: {
         setObjH(clamped)
         if (floorToObj + clamped > wallH) setFloorToObj(Math.max(0, wallH - clamped))
       }} min={12} max={Math.max(12, wallH - 12)} />
-      <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH)} />
+      {objType !== "door" ? (
+        <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH)} />
+      ) : (
+        <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground italic">
+          Door sits on the floor — no shelf runs underneath
+        </div>
+      )}
       <LabeledSlider label="Right gap" value={rightGap} onChange={setRightGap} min={0} max={Math.max(0, wallW - objW)}
         hint={`Left gap auto: ${toFraction(leftGap)}`} />
     </div>
