@@ -785,11 +785,12 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 
 /* ─── Live 3D previews for Portal / Cathedral / U-Surround ─── */
 
-function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, shelves }: {
+function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, objectType, shelves }: {
   finish: string
   wallWidth: number; wallHeight: number
   objectWidth: number; objectHeight: number
   floorToObject: number; rightGap: number
+  objectType: "door" | "window" | "tv" | "fireplace" | "other"
   shelves: ShelfConfig[]
 }) {
   // Defensive clamp: state updates are async, so a wall-shrink can briefly
