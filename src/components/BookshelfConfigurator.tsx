@@ -312,7 +312,7 @@ export function BookshelfConfigurator() {
   // Runtime guard: assert we never delegate to a legacy *Configurator from here.
   if (import.meta.env.DEV) {
     const LEGACY_TYPES = ["portal", "cathedral", "usurround"] as const
-    const renderingLegacy = false // we no longer return <PortalConfigurator/> etc. from this component
+    const renderingLegacy = false // legacy Portal/Cathedral/USurround configurator delegation removed
     console.assert(
       !renderingLegacy,
       `[BookshelfConfigurator] Legacy configurator rendered for type=${mainType} step=${stepIndex}`,
