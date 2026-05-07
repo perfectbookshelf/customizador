@@ -82,7 +82,7 @@ describe("Portal Step 2: object never overflows the wall (randomized)", () => {
   it("forward random edits never produce an overflowing 3D-view prop snapshot", () => {
     const rand = mulberry32(20260507)
     render(<BookshelfConfigurator />)
-    clickButtonByText("Portal"); clickNav(/^next$/i); clickButtonByText("WINDOW"); — REPLACE
+    clickButtonByText("Portal")
     clickNav(/^next$/i)
 
     // Run 30 random "moves": pick a random slider, press arrow keys a random number of times.
@@ -99,7 +99,7 @@ describe("Portal Step 2: object never overflows the wall (randomized)", () => {
 
   it("shrinking wall after maxing out object dims still keeps object inside wall", () => {
     render(<BookshelfConfigurator />)
-    clickButtonByText("Portal"); clickNav(/^next$/i); clickButtonByText("WINDOW"); — REPLACE
+    clickButtonByText("Portal")
     clickNav(/^next$/i)
 
     // Slider DOM order on Portal Step 2 is: WallW, WallH, ObjW, ObjH, Floor→Obj, RightGap.
@@ -133,7 +133,7 @@ describe("Portal Step 2: object never overflows the wall (randomized)", () => {
   it("randomized interleaving of wall-shrink and object-grow stays bounded", () => {
     const rand = mulberry32(42)
     render(<BookshelfConfigurator />)
-    clickButtonByText("Portal"); clickNav(/^next$/i); clickButtonByText("WINDOW"); — REPLACE
+    clickButtonByText("Portal")
     clickNav(/^next$/i)
 
     for (let move = 0; move < 60; move++) {
