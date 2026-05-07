@@ -24,6 +24,7 @@ import { Portal3DView } from "./Portal3DView"
 import { Cathedral3DView } from "./Cathedral3DView"
 import { USurround3DView } from "./USurround3DView"
 import { computeCathedralRows, calculateCathedral } from "@/lib/cathedral-calculator"
+import { calculateUSurround } from "@/lib/usurround-calculator"
 import { cn } from "@/lib/utils"
 
 type MainType = "rack" | "bookshelf" | "corner" | "portal" | "cathedral" | "usurround"
@@ -676,10 +677,21 @@ function CathedralDefaultPreview({ finish }: { finish: string }) {
 function USurroundDefaultPreview({ finish }: { finish: string }) {
   const w1 = 50, w = 70, w2 = 50
   const shelves: ShelfConfig[] = Array(4).fill(null).map(() => ({ height: 14, depth: 10 }))
+  const data = useMemo(() => {
+    try {
+      const res = calculateUSurround({ w1, w, w2, shelvesLeft: shelves, shelvesFront: shelves, shelvesRight: shelves, finish })
+      return {
+        modulesLeft: res.leftResult.shelves.map((s: any) => s.modules),
+        modulesFront: res.frontResult.shelves.map((s: any) => s.modules),
+        modulesRight: res.rightResult.shelves.map((s: any) => s.modules),
+      }
+    } catch { return { modulesLeft: undefined, modulesFront: undefined, modulesRight: undefined } }
+  }, [finish])
   return (
     <USurround3DView
       w1={w1} w={w} w2={w2}
       shelvesLeft={shelves} shelvesFront={shelves} shelvesRight={shelves}
+      modulesLeft={data.modulesLeft} modulesFront={data.modulesFront} modulesRight={data.modulesRight}
       finish={finish} hideTooltip fillContainer
     />
   )
