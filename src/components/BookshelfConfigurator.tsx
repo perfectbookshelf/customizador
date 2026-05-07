@@ -173,6 +173,10 @@ export function BookshelfConfigurator() {
     setPortalObjH(h => Math.min(h, Math.max(12, portalWallH - 12)))
     setPortalFloorToObj(f => Math.min(f, Math.max(0, portalWallH - Math.min(portalObjH, portalWallH - 12))))
   }, [portalWallH]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Doors must sit on the floor — never let saved/in-flight state lift them.
+  useEffect(() => {
+    if (portalObjType === "door" && portalFloorToObj !== 0) setPortalFloorToObj(0)
+  }, [portalObjType, portalFloorToObj])
 
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
