@@ -757,3 +757,123 @@ function USurroundDefaultPreview({ finish }: { finish: string }) {
     />
   )
 }
+
+/* ─── Per-type Step 2 (Dimensions) sub-bodies ─── */
+
+function LabeledSlider({ label, value, onChange, min, max, step = 0.25, hint }: {
+  label: string; value: number; onChange: (v: number) => void; min: number; max: number; step?: number; hint?: string
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-3">
+        <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{label}</span>
+        <span className="text-sm font-medium">{toFraction(value)}</span>
+      </div>
+      <Slider value={[value]} onValueChange={([v]) => onChange(v)} min={min} max={max} step={step} />
+      <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
+        <span>{min}"</span><span>{max}"</span>
+      </div>
+      {hint && <p className="text-[11px] text-muted-foreground mt-2 italic">{hint}</p>}
+    </div>
+  )
+}
+
+function USurroundDimsContent({ w1, setW1, w, setW, w2, setW2 }: {
+  w1: number; setW1: (v: number) => void; w: number; setW: (v: number) => void; w2: number; setW2: (v: number) => void
+}) {
+  return (
+    <div className="space-y-8">
+      <LabeledSlider label="Left arm (W1)" value={w1} onChange={setW1} min={25} max={200} />
+      <LabeledSlider label="Front (W)" value={w} onChange={setW} min={25} max={200} />
+      <LabeledSlider label="Right arm (W2)" value={w2} onChange={setW2} min={25} max={200}
+        hint="Deduct ~1” from each wall measurement to allow for wall imperfections." />
+    </div>
+  )
+}
+
+function CathedralDimsContent({ W, setW, H, setH, H1, setH1, direction, setDirection }: {
+  W: number; setW: (v: number) => void; H: number; setH: (v: number) => void; H1: number; setH1: (v: number) => void
+  direction: "left" | "right" | "both"; setDirection: (d: "left" | "right" | "both") => void
+}) {
+  const tooSmall = H1 - H < 14
+  return (
+    <div className="space-y-8">
+      <LabeledSlider label="Width (W)" value={W} onChange={setW} min={25} max={240} />
+      <LabeledSlider label="Low side (H)" value={H} onChange={setH} min={20} max={Math.max(20, H1 - 14)} />
+      <LabeledSlider label="High side (H1)" value={H1} onChange={setH1} min={H + 14} max={120}
+        hint={tooSmall ? "H1 must be at least 14” taller than H." : "Slope rises from H on one side to H1 on the other."} />
+      <div>
+        <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground block mb-3">Slope direction</span>
+        <div className="grid grid-cols-3 gap-3">
+          {(["left", "right", "both"] as const).map(d => (
+            <button key={d} onClick={() => setDirection(d)}
+              className={cn(
+                "py-3 text-[11px] tracking-[0.2em] uppercase font-medium border transition-all",
+                direction === d ? "border-brand-walnut text-foreground" : "border-border text-muted-foreground hover:border-foreground/40",
+              )}>
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const PORTAL_OBJECT_PRESETS: { id: "door" | "window" | "tv" | "fireplace" | "other"; label: string; icon: React.ElementType }[] = [
+  { id: "door", label: "Door", icon: DoorOpen },
+  { id: "window", label: "Window", icon: HelpCircle },
+  { id: "tv", label: "TV", icon: Monitor },
+  { id: "fireplace", label: "Fireplace", icon: Flame },
+  { id: "other", label: "Other", icon: HelpCircle },
+]
+
+function PortalDimsContent(props: {
+  wallW: number; setWallW: (v: number) => void
+  wallH: number; setWallH: (v: number) => void
+  objW: number; setObjW: (v: number) => void
+  objH: number; setObjH: (v: number) => void
+  floorToObj: number; setFloorToObj: (v: number) => void
+  rightGap: number; setRightGap: (v: number) => void
+  objType: "door" | "window" | "tv" | "fireplace" | "other"
+  setObjType: (t: "door" | "window" | "tv" | "fireplace" | "other") => void
+}) {
+  const { wallW, setWallW, wallH, setWallH, objW, setObjW, objH, setObjH, floorToObj, setFloorToObj, rightGap, setRightGap, objType, setObjType } = props
+  const leftGap = Math.max(0, wallW - objW - rightGap)
+  return (
+    <div className="space-y-8">
+      <div>
+        <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground block mb-3">Object type</span>
+        <div className="grid grid-cols-5 gap-2">
+          {PORTAL_OBJECT_PRESETS.map(p => {
+            const Icon = p.icon
+            const selected = objType === p.id
+            return (
+              <button key={p.id} onClick={() => {
+                setObjType(p.id)
+                if (p.id === "door") { setObjW(36); setObjH(82); setFloorToObj(0) }
+                if (p.id === "window") { setObjW(36); setObjH(48); setFloorToObj(36) }
+                if (p.id === "tv") { setObjW(55); setObjH(31); setFloorToObj(30) }
+                if (p.id === "fireplace") { setObjW(48); setObjH(40); setFloorToObj(0) }
+              }}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 py-3 px-1 border transition-all",
+                  selected ? "border-brand-walnut text-foreground" : "border-border text-muted-foreground hover:border-foreground/40",
+                )}>
+                <Icon className="h-5 w-5" />
+                <span className="text-[10px] tracking-[0.15em] uppercase">{p.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      <LabeledSlider label="Wall width" value={wallW} onChange={setWallW} min={48} max={240} />
+      <LabeledSlider label="Wall height" value={wallH} onChange={setWallH} min={60} max={144} />
+      <LabeledSlider label="Object width" value={objW} onChange={setObjW} min={12} max={Math.max(12, wallW - 14)} />
+      <LabeledSlider label="Object height" value={objH} onChange={setObjH} min={12} max={Math.max(12, wallH - 12)} />
+      <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH - 12)} />
+      <LabeledSlider label="Right gap" value={rightGap} onChange={setRightGap} min={0} max={Math.max(0, wallW - objW)}
+        hint={`Left gap auto: ${toFraction(leftGap)}`} />
+    </div>
+  )
+}
