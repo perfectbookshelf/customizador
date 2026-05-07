@@ -713,23 +713,26 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-/* ─── Default 3D previews for legacy types on Step 1 ─── */
+/* ─── Live 3D previews for Portal / Cathedral / U-Surround ─── */
 
-function PortalDefaultPreview({ finish }: { finish: string }) {
-  const wallWidth = 100, wallHeight = 96
-  const objectWidth = 36, objectHeight = 82, floorToObject = 0
-  const rightGap = 32, leftGap = wallWidth - objectWidth - rightGap
-  const topHeight = wallHeight - floorToObject - objectHeight
-  const shelves: ShelfConfig[] = Array(6).fill(null).map(() => ({ height: 14, depth: 10 }))
+function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, shelves }: {
+  finish: string
+  wallWidth: number; wallHeight: number
+  objectWidth: number; objectHeight: number
+  floorToObject: number; rightGap: number
+  shelves: ShelfConfig[]
+}) {
+  const leftGap = Math.max(0, wallWidth - objectWidth - rightGap)
+  const topHeight = Math.max(0, wallHeight - floorToObject - objectHeight)
   const sideRes = useMemo(() => {
     try { return calculateBookshelf({ type: "bookshelf", totalWidth: leftGap, shelves, finish }) } catch { return null }
-  }, [leftGap, finish])
+  }, [leftGap, shelves, finish])
   const rightRes = useMemo(() => {
     try { return calculateBookshelf({ type: "bookshelf", totalWidth: rightGap, shelves, finish }) } catch { return null }
-  }, [rightGap, finish])
+  }, [rightGap, shelves, finish])
   const topRes = useMemo(() => {
-    try { return calculateBookshelf({ type: "bookshelf", totalWidth: objectWidth, shelves: [{ height: 14, depth: 10 }], finish }) } catch { return null }
-  }, [finish])
+    try { return calculateBookshelf({ type: "bookshelf", totalWidth: objectWidth, shelves: [{ height: 14, depth: shelves[0]?.depth ?? 10 }], finish }) } catch { return null }
+  }, [objectWidth, shelves, finish])
   return (
     <Portal3DView
       wallWidth={wallWidth} wallHeight={wallHeight}
@@ -746,13 +749,16 @@ function PortalDefaultPreview({ finish }: { finish: string }) {
   )
 }
 
-function CathedralDefaultPreview({ finish }: { finish: string }) {
-  const W = 100, H = 60, H1 = 96
-  const shelves: ShelfConfig[] = Array(5).fill(null).map(() => ({ height: 14, depth: 10 }))
-  const data = useMemo(() => calculateCathedral(W, H, H1, shelves, "left", finish), [finish])
+function CathedralLivePreview({ finish, W, H, H1, direction, shelves }: {
+  finish: string; W: number; H: number; H1: number; direction: "left" | "right" | "both"; shelves: ShelfConfig[]
+}) {
+  const data = useMemo(() => {
+    try { return calculateCathedral(W, H, H1, shelves, direction, finish) }
+    catch { return { rows: [], modulesPerRow: [], totalArea: 0, allSkus: [] as any[] } }
+  }, [W, H, H1, shelves, direction, finish])
   return (
     <Cathedral3DView
-      W={W} H={H} H1={H1} direction="left"
+      W={W} H={H} H1={H1} direction={direction}
       rows={data.rows}
       modulesPerRow={data.modulesPerRow}
       finish={finish} hideTooltip fillContainer
@@ -760,9 +766,9 @@ function CathedralDefaultPreview({ finish }: { finish: string }) {
   )
 }
 
-function USurroundDefaultPreview({ finish }: { finish: string }) {
-  const w1 = 50, w = 70, w2 = 50
-  const shelves: ShelfConfig[] = Array(4).fill(null).map(() => ({ height: 14, depth: 10 }))
+function USurroundLivePreview({ finish, w1, w, w2, shelves }: {
+  finish: string; w1: number; w: number; w2: number; shelves: ShelfConfig[]
+}) {
   const data = useMemo(() => {
     try {
       const res = calculateUSurround({ w1, w, w2, shelvesLeft: shelves, shelvesFront: shelves, shelvesRight: shelves, finish })
@@ -772,7 +778,7 @@ function USurroundDefaultPreview({ finish }: { finish: string }) {
         modulesRight: res.rightResult.shelves.map((s: any) => s.modules),
       }
     } catch { return { modulesLeft: undefined, modulesFront: undefined, modulesRight: undefined } }
-  }, [finish])
+  }, [w1, w, w2, shelves, finish])
   return (
     <USurround3DView
       w1={w1} w={w} w2={w2}
