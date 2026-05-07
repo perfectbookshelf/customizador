@@ -732,22 +732,28 @@ function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectH
   floorToObject: number; rightGap: number
   shelves: ShelfConfig[]
 }) {
-  const leftGap = Math.max(0, wallWidth - objectWidth - rightGap)
-  const topHeight = Math.max(0, wallHeight - floorToObject - objectHeight)
+  // Defensive clamp: state updates are async, so a wall-shrink can briefly
+  // leave object dims oversized. Always render with values that fit the wall.
+  const safeObjW = Math.max(0, Math.min(objectWidth, wallWidth))
+  const safeObjH = Math.max(0, Math.min(objectHeight, wallHeight))
+  const safeRightGap = Math.max(0, Math.min(rightGap, Math.max(0, wallWidth - safeObjW)))
+  const safeFloorToObj = Math.max(0, Math.min(floorToObject, Math.max(0, wallHeight - safeObjH)))
+  const leftGap = Math.max(0, wallWidth - safeObjW - safeRightGap)
+  const topHeight = Math.max(0, wallHeight - safeFloorToObj - safeObjH)
   const sideRes = useMemo(() => {
     try { return calculateBookshelf({ type: "bookshelf", totalWidth: leftGap, shelves, finish }) } catch { return null }
   }, [leftGap, shelves, finish])
   const rightRes = useMemo(() => {
-    try { return calculateBookshelf({ type: "bookshelf", totalWidth: rightGap, shelves, finish }) } catch { return null }
-  }, [rightGap, shelves, finish])
+    try { return calculateBookshelf({ type: "bookshelf", totalWidth: safeRightGap, shelves, finish }) } catch { return null }
+  }, [safeRightGap, shelves, finish])
   const topRes = useMemo(() => {
-    try { return calculateBookshelf({ type: "bookshelf", totalWidth: objectWidth, shelves: [{ height: 14, depth: shelves[0]?.depth ?? 10 }], finish }) } catch { return null }
-  }, [objectWidth, shelves, finish])
+    try { return calculateBookshelf({ type: "bookshelf", totalWidth: safeObjW, shelves: [{ height: 14, depth: shelves[0]?.depth ?? 10 }], finish }) } catch { return null }
+  }, [safeObjW, shelves, finish])
   return (
     <Portal3DView
       wallWidth={wallWidth} wallHeight={wallHeight}
-      objectWidth={objectWidth} objectHeight={objectHeight}
-      floorToObject={floorToObject} rightGap={rightGap}
+      objectWidth={safeObjW} objectHeight={safeObjH}
+      floorToObject={safeFloorToObj} rightGap={safeRightGap}
       leftGap={leftGap} topHeight={topHeight}
       shelves={shelves}
       leftModules={sideRes?.shelves.map(s => s.modules)}
