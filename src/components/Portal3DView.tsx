@@ -21,6 +21,7 @@ interface Portal3DViewProps {
   rightModules?: Array<Array<{ width: number }>>
   topModules?: Array<Array<{ width: number }>>
   bottomModules?: Array<Array<{ width: number }>>
+  objectType?: "door" | "window" | "tv" | "fireplace" | "other"
   finish: string
   isMobile?: boolean
   hideTooltip?: boolean
