@@ -816,6 +816,7 @@ function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectH
       objectWidth={safeObjW} objectHeight={safeObjH}
       floorToObject={safeFloorToObj} rightGap={safeRightGap}
       leftGap={leftGap} topHeight={topHeight}
+      objectType={objectType}
       shelves={shelves}
       leftModules={sideRes?.shelves.map(s => s.modules)}
       rightModules={rightRes?.shelves.map(s => s.modules)}
