@@ -860,7 +860,7 @@ function PortalDimsContent(props: {
                   "flex flex-col items-center gap-1.5 py-3 px-1 border transition-all",
                   selected ? "border-brand-walnut text-foreground" : "border-border text-muted-foreground hover:border-foreground/40",
                 )}>
-                <Icon className="h-5 w-5" />
+                <Icon className={"h-5 w-5" as any} />
                 <span className="text-[10px] tracking-[0.15em] uppercase">{p.label}</span>
               </button>
             )
