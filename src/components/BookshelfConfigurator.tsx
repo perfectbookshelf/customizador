@@ -174,8 +174,10 @@ export function BookshelfConfigurator() {
   const bookshelfType: BookshelfType =
     (mainType === "portal" || mainType === "cathedral" || mainType === "usurround") ? "bookshelf" : mainType
 
-  // Reset shelf count when type changes (only if user is on/after type step and changes type)
+  // Reset shelf count when user changes type (skip the very first mount so saved state survives)
+  const didMountTypeRef = useRef(false)
   useEffect(() => {
+    if (!didMountTypeRef.current) { didMountTypeRef.current = true; return }
     const defaults: Record<MainType, number> = { rack: 2, bookshelf: 4, corner: 4, portal: 4, cathedral: 5, usurround: 4 }
     const count = defaults[mainType]
     setShelves(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
@@ -183,9 +185,16 @@ export function BookshelfConfigurator() {
   }, [mainType])
 
   useEffect(() => {
-    safeSetItem("bookshelf-config", JSON.stringify({ mainType, width, width2, selectedFinish, shelves, shelves2 }))
+    safeSetItem("bookshelf-config", JSON.stringify({
+      mainType, cornerVariant, width, width2, selectedFinish, shelves, shelves2,
+      uW1, uW, uW2,
+      cathW, cathH, cathH1, cathDir,
+      portalWallW, portalWallH, portalObjW, portalObjH, portalFloorToObj, portalRightGap, portalObjType,
+    }))
     setCheckoutError(null)
-  }, [mainType, width, width2, selectedFinish, shelves, shelves2])
+  }, [mainType, cornerVariant, width, width2, selectedFinish, shelves, shelves2,
+      uW1, uW, uW2, cathW, cathH, cathH1, cathDir,
+      portalWallW, portalWallH, portalObjW, portalObjH, portalFloorToObj, portalRightGap, portalObjType])
 
   useEffect(() => {
     const check = () => setIsMobileDevice(window.innerWidth < 768)
