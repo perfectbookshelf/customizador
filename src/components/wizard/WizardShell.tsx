@@ -66,7 +66,8 @@ export function WizardShell({
         </div>
 
         {/* Step panel */}
-        <div className="lg:w-[42%] xl:w-[38%] flex-shrink-0 configurator-config relative flex flex-col">
+        <div className="lg:w-[42%] xl:w-[38%] flex-shrink-0 configurator-config relative flex flex-col overflow-hidden">
+          <style>{`@media (max-width: 768px) { .configurator-config { overflow: hidden !important; } }`}</style>
           {/* Pinned price/selection bar — stays at top of panel while step body scrolls */}
           <div className="flex-shrink-0 px-6 md:px-10 lg:px-12 pt-6 lg:pt-10 bg-background z-10">
             <div className="flex items-baseline justify-between gap-4 border-b border-border pb-4 min-h-[2.5rem]">
