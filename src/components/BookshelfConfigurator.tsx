@@ -16,9 +16,6 @@ import { Bookshelf3DView, type Bookshelf3DViewRef } from "./Bookshelf3DView"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
-import { PortalConfigurator } from "./PortalConfigurator"
-import { CathedralConfigurator } from "./CathedralConfigurator"
-import { USurroundConfigurator } from "./USurroundConfigurator"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
 import { Portal3DView } from "./Portal3DView"
 import { Cathedral3DView } from "./Cathedral3DView"
@@ -312,6 +309,18 @@ export function BookshelfConfigurator() {
   }
 
   // All types (including portal/cathedral/usurround) use the unified wizard layout.
+  // Runtime guard: assert we never delegate to a legacy *Configurator from here.
+  if (import.meta.env.DEV) {
+    const LEGACY_TYPES = ["portal", "cathedral", "usurround"] as const
+    const renderingLegacy = false // we no longer return <PortalConfigurator/> etc. from this component
+    console.assert(
+      !renderingLegacy,
+      `[BookshelfConfigurator] Legacy configurator rendered for type=${mainType} step=${stepIndex}`,
+    )
+    if ((LEGACY_TYPES as readonly string[]).includes(mainType)) {
+      console.debug(`[BookshelfConfigurator] type=${mainType} step=${stepIndex} → unified wizard (legacy delegation removed)`)
+    }
+  }
 
   const finishOption = FINISH_OPTIONS.find((f) => f.id === selectedFinish)
   const activeType = TYPE_OPTIONS.find(t => t.id === mainType)!
