@@ -90,12 +90,14 @@ describe("Cathedral Step 3: header height equals summed tier heights + caps", ()
     clickNav(/^next$/i)
     clickNav(/^next$/i)
 
-    // Press the "+" Number-of-tiers stepper twice (find by adjacency to the label).
-    const numberRow = Array.from(document.querySelectorAll("div")).find(
-      (d) => d.textContent?.includes("Number of tiers")
-    ) as HTMLElement | undefined
-    expect(numberRow, "number-of-tiers row").toBeTruthy()
-    const plus = within(numberRow!).getAllByRole("button").pop()!
+    // Find the "Number of tiers" label, then walk to its row container and grab the +/- buttons.
+    const labels = Array.from(document.querySelectorAll("span")) as HTMLSpanElement[]
+    const label = labels.find((s) => s.textContent?.trim().toLowerCase() === "number of tiers")
+    expect(label, "Number of tiers label").toBeTruthy()
+    const row = label!.parentElement as HTMLElement
+    const buttons = within(row).getAllByRole("button")
+    expect(buttons.length, "stepper buttons").toBe(2)
+    const plus = buttons[1] // [-, +]
     fireEvent.click(plus)
     fireEvent.click(plus)
 
