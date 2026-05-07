@@ -176,7 +176,13 @@ function CameraController({ wallWidth, wallHeight, maxDepth, isMobile, resetKey 
 
 // ─── MAIN SCENE ───
 function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps; intF: string; frameF: string; backF: string }) {
-  const { wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, leftGap, rightGap, shelves } = props
+  const { wallWidth, wallHeight, shelves } = props
+  // Defensive clamp — never let the object render outside the wall, regardless of saved/in-flight state.
+  const objectWidth = Math.max(0, Math.min(props.objectWidth, wallWidth))
+  const objectHeight = Math.max(0, Math.min(props.objectHeight, wallHeight))
+  const floorToObject = Math.max(0, Math.min(props.floorToObject, Math.max(0, wallHeight - objectHeight)))
+  const rightGap = Math.max(0, Math.min(props.rightGap, Math.max(0, wallWidth - objectWidth)))
+  const leftGap = Math.max(0, Math.min(props.leftGap, Math.max(0, wallWidth - objectWidth - rightGap)))
   const maxDepth = shelves.length > 0 ? Math.max(...shelves.map(s => s.depth)) : 7
   const defDepth = shelves.length > 0 ? shelves[0].depth : maxDepth
 
