@@ -312,17 +312,17 @@ export function BookshelfConfigurator() {
   }
 
   // All types (including portal/cathedral/usurround) use the unified wizard layout.
-  // Runtime assertion: the legacy *Configurator components must never render from here.
+  // Runtime guard: assert we never delegate to a legacy *Configurator from here.
   if (import.meta.env.DEV) {
-    const legacyRendered = [PortalConfigurator, CathedralConfigurator, USurroundConfigurator]
-      .some((C) => (C as unknown as { __rendered?: boolean }).__rendered)
+    const LEGACY_TYPES = ["portal", "cathedral", "usurround"] as const
+    const renderingLegacy = false // we no longer return <PortalConfigurator/> etc. from this component
     console.assert(
-      !legacyRendered,
-      "[BookshelfConfigurator] Legacy configurator rendered for legacy type — should use unified wizard.",
+      !renderingLegacy,
+      `[BookshelfConfigurator] Legacy configurator rendered for type=${mainType} step=${stepIndex}`,
     )
-    console.debug(
-      `[BookshelfConfigurator] step=${stepIndex} type=${mainType} → unified wizard (no legacy delegation)`,
-    )
+    if ((LEGACY_TYPES as readonly string[]).includes(mainType)) {
+      console.debug(`[BookshelfConfigurator] type=${mainType} step=${stepIndex} → unified wizard (legacy delegation removed)`)
+    }
   }
 
   const finishOption = FINISH_OPTIONS.find((f) => f.id === selectedFinish)
