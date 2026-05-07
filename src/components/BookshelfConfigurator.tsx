@@ -164,6 +164,16 @@ export function BookshelfConfigurator() {
   const [portalRightGap, setPortalRightGap] = useState<number>(saved.portalRightGap ?? 32)
   const [portalObjType, setPortalObjType] = useState<PortalObject>(saved.portalObjType ?? "door")
 
+  // Keep portal object dims inside the wall whenever the wall shrinks.
+  useEffect(() => {
+    setPortalObjW(w => Math.min(w, Math.max(12, portalWallW - 14)))
+    setPortalRightGap(g => Math.min(g, Math.max(0, portalWallW - Math.min(portalObjW, portalWallW - 14))))
+  }, [portalWallW]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setPortalObjH(h => Math.min(h, Math.max(12, portalWallH - 12)))
+    setPortalFloorToObj(f => Math.min(f, Math.max(0, portalWallH - Math.min(portalObjH, portalWallH - 12))))
+  }, [portalWallH]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
