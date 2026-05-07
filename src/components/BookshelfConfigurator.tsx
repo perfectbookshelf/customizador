@@ -649,11 +649,25 @@ export function BookshelfConfigurator() {
       )}
       <div className="absolute inset-0">
         {mainType === "portal" ? (
-          <PortalDefaultPreview finish={selectedFinish} />
+          <PortalLivePreview
+            finish={selectedFinish}
+            wallWidth={portalWallW} wallHeight={portalWallH}
+            objectWidth={portalObjW} objectHeight={portalObjH}
+            floorToObject={portalFloorToObj} rightGap={portalRightGap}
+            shelves={shelves}
+          />
         ) : mainType === "cathedral" ? (
-          <CathedralDefaultPreview finish={selectedFinish} />
+          <CathedralLivePreview
+            finish={selectedFinish}
+            W={cathW} H={cathH} H1={cathH1} direction={cathDir}
+            shelves={shelves}
+          />
         ) : mainType === "usurround" ? (
-          <USurroundDefaultPreview finish={selectedFinish} />
+          <USurroundLivePreview
+            finish={selectedFinish}
+            w1={uW1} w={uW} w2={uW2}
+            shelves={shelves}
+          />
         ) : result ? (
           <Bookshelf3DView
             ref={bookshelf3DRef}
