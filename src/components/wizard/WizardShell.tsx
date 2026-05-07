@@ -67,9 +67,9 @@ export function WizardShell({
 
         {/* Step panel */}
         <div className="lg:w-[42%] xl:w-[38%] flex-shrink-0 configurator-config relative flex flex-col">
-          <div className="flex-1 px-6 md:px-10 lg:px-12 pt-8 lg:pt-12 pb-32 configurator-config-inner">
-            {/* Top header: selection name + price delta — sticky so price stays visible while scrolling */}
-            <div className="sticky top-0 z-10 -mx-6 md:-mx-10 lg:-mx-12 px-6 md:px-10 lg:px-12 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 flex items-baseline justify-between gap-4 border-b border-border py-4 min-h-[2.5rem]">
+          {/* Pinned price/selection bar — stays at top of panel while step body scrolls */}
+          <div className="flex-shrink-0 px-6 md:px-10 lg:px-12 pt-6 lg:pt-10 bg-background z-10">
+            <div className="flex items-baseline justify-between gap-4 border-b border-border pb-4 min-h-[2.5rem]">
               <span className="text-xs tracking-[0.2em] font-semibold uppercase text-foreground truncate">
                 {step.selectionName ?? "—"}
               </span>
@@ -77,6 +77,8 @@ export function WizardShell({
                 {step.priceDelta ?? ""}
               </span>
             </div>
+          </div>
+          <div className="flex-1 px-6 md:px-10 lg:px-12 pt-6 lg:pt-8 pb-32 configurator-config-inner overflow-y-auto">
 
             {/* Description */}
             {step.description && (
