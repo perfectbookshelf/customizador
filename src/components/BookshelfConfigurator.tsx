@@ -486,15 +486,49 @@ export function BookshelfConfigurator() {
       ),
   }
 
+  // Cathedral tier rows (height per row is sliced by the slope ceiling).
+  const cathedralRows = mainType === "cathedral"
+    ? computeCathedralRows(cathW, cathH, cathH1, shelves, cathDir)
+    : []
+  const visibleCount = mainType === "cathedral" ? cathedralRows.length : shelves.length
+  const cathedralStackHeight = mainType === "cathedral"
+    ? cathedralRows.reduce((sum, r) => sum + r.shelves[0].height + 0.75, 0)
+    : 0
+
+  const shelvesStepLabel =
+    mainType === "cathedral" ? "Tiers"
+    : mainType === "usurround" ? "Shelves (all walls)"
+    : "Shelves"
+  const shelvesStepUnit =
+    mainType === "cathedral" ? "tiers"
+    : "shelves"
+  const shelvesStepHeight =
+    mainType === "cathedral" ? cathedralStackHeight : totalHeight
+  const shelvesStepDescription =
+    mainType === "cathedral"
+      ? "Each tier sits across the full width available at its height. Higher tiers narrow automatically as the slope cuts in. Depth narrows as you go up."
+      : mainType === "usurround"
+      ? "Shelves are shared across all three walls (left, front, right). Each shelf has its own height and depth — depth narrows as you go up."
+      : mainType === "portal"
+      ? "Shelves run on both sides of the framed object. Each has its own height and depth — depth narrows as you go up."
+      : "Each shelf has its own height and depth. Depth narrows as you go up — perfect for stepped, sculptural shelves."
+  const typePrefix =
+    mainType === "cathedral" ? "Cathedral · "
+    : mainType === "portal" ? "Portal · "
+    : mainType === "usurround" ? "U-Surround · "
+    : ""
+  const numberLabel =
+    mainType === "cathedral" ? "Number of tiers" : "Number of shelves"
+
   const shelvesStep: WizardStep = {
     label: "Shelves",
-    selectionName: `${shelves.length} shelves`,
-    priceDelta: `${toFraction(totalHeight)} tall`,
-    description: "Each shelf has its own height and depth. Depth narrows as you go up — perfect for stepped, sculptural shelves.",
+    selectionName: `${typePrefix}${visibleCount} ${shelvesStepUnit}`,
+    priceDelta: `${toFraction(shelvesStepHeight)} tall`,
+    description: shelvesStepDescription,
     content: (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-y border-border py-4">
-          <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Number of shelves</span>
+          <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{numberLabel}</span>
           <div className="flex items-center gap-3">
             <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={removeShelf} disabled={shelves.length <= 1}>
               <Minus className="h-3 w-3" />
@@ -505,14 +539,25 @@ export function BookshelfConfigurator() {
             </Button>
           </div>
         </div>
+        {mainType === "cathedral" && cathedralRows.length < shelves.length && (
+          <div className="text-[10px] text-muted-foreground italic px-1 -mt-3">
+            {shelves.length - cathedralRows.length} top tier{shelves.length - cathedralRows.length > 1 ? "s" : ""} hidden — wall slope leaves no room. Lower tier heights or raise the wall on Step 2.
+          </div>
+        )}
         <div className="space-y-1.5">
           {[...shelves].reverse().map((shelf, revIndex) => {
             const index = shelves.length - 1 - revIndex
             const transition = index > 0 && shelf.depth < shelves[index - 1].depth
+            const tierRow = mainType === "cathedral" ? cathedralRows.find(r => r.rowIndex === index) : undefined
+            const hiddenTier = mainType === "cathedral" && !tierRow
+            const tierLabel = mainType === "cathedral" ? `Tier ${index + 1}` : `Shelf ${index + 1}`
             return (
               <div key={index}>
-                <div className="grid grid-cols-[auto_1fr_1fr] items-center gap-3 py-2 px-3 bg-secondary/40">
-                  <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground w-14">Shelf {index + 1}</span>
+                <div className={cn(
+                  "grid grid-cols-[auto_1fr_1fr] items-center gap-3 py-2 px-3 bg-secondary/40",
+                  hiddenTier && "opacity-50"
+                )}>
+                  <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground w-14">{tierLabel}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] tracking-widest uppercase text-muted-foreground">H</span>
                     <Select value={shelf.height.toString()} onValueChange={(v) => updateShelf(index, "height", Number.parseInt(v))}>
@@ -532,6 +577,16 @@ export function BookshelfConfigurator() {
                     </Select>
                   </div>
                 </div>
+                {tierRow && (
+                  <div className="text-[10px] text-muted-foreground pl-3 mt-0.5">
+                    Width at this tier: {toFraction(tierRow.availableWidth)}
+                  </div>
+                )}
+                {hiddenTier && (
+                  <div className="text-[10px] text-muted-foreground italic pl-3 mt-0.5">
+                    Hidden — above slope ceiling
+                  </div>
+                )}
                 {transition && (
                   <div className="text-[10px] text-muted-foreground italic pl-3 mt-0.5">↓ Transition board added here</div>
                 )}
