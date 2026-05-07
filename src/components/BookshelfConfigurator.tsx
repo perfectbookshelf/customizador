@@ -464,7 +464,7 @@ export function BookshelfConfigurator() {
   const finishStep: WizardStep = {
     label: "Finish",
     selectionName: finishOption?.label ?? "—",
-    priceDelta: `$${(finishOption?.price ?? 0).toFixed(2)} / sq ft`,
+    priceDelta: `$${totalPrice.toFixed(2)} · $${(finishOption?.price ?? 0).toFixed(2)}/sq ft`,
     description: finishOption?.description ?? "Choose your wood and color combination. The pair (front / interior) is shown on each swatch.",
     nextLabel: "Review",
     content: (
