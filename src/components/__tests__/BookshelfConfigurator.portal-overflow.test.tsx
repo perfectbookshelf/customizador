@@ -84,6 +84,9 @@ describe("Portal Step 2: object never overflows the wall (randomized)", () => {
     render(<BookshelfConfigurator />)
     clickButtonByText("Portal")
     clickNav(/^next$/i)
+    // Default object type is "door" which hides the floor→object slider.
+    // Switch to Window so all 6 dimension sliders are present.
+    clickButtonByText(/^WINDOW$/)
 
     // Run 30 random "moves": pick a random slider, press arrow keys a random number of times.
     for (let move = 0; move < 30; move++) {
@@ -101,6 +104,9 @@ describe("Portal Step 2: object never overflows the wall (randomized)", () => {
     render(<BookshelfConfigurator />)
     clickButtonByText("Portal")
     clickNav(/^next$/i)
+    // Default object type is "door" which hides the floor→object slider.
+    // Switch to Window so all 6 dimension sliders are present.
+    clickButtonByText(/^WINDOW$/)
 
     // Slider DOM order on Portal Step 2 is: WallW, WallH, ObjW, ObjH, Floor→Obj, RightGap.
     const [wallW, wallH, objW, objH, f2o, rGap] = thumbs()
@@ -135,6 +141,9 @@ describe("Portal Step 2: object never overflows the wall (randomized)", () => {
     render(<BookshelfConfigurator />)
     clickButtonByText("Portal")
     clickNav(/^next$/i)
+    // Default object type is "door" which hides the floor→object slider.
+    // Switch to Window so all 6 dimension sliders are present.
+    clickButtonByText(/^WINDOW$/)
 
     for (let move = 0; move < 60; move++) {
       const ts = thumbs()
