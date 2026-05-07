@@ -123,44 +123,46 @@ export function BookshelfConfigurator() {
   const defaultWidth = 69.75
 
   const [stepIndex, setStepIndex] = useState(0)
-  const [mainType, setMainType] = useState<MainType>(() => {
-    const saved = safeGetItem("bookshelf-config")
-    if (saved) { try { return JSON.parse(saved).mainType || "bookshelf" } catch { return "bookshelf" } }
-    return "bookshelf"
-  })
-  const [cornerVariant, setCornerVariant] = useState<CornerVariant>("outside")
-  const [width, setWidth] = useState<number>(defaultWidth)
-  const [width2, setWidth2] = useState<number>(50)
-  const [selectedFinish, setSelectedFinish] = useState<string>("Oak/Oak")
-  const [shelves, setShelves] = useState<ShelfConfig[]>([
+  const saved = useMemo<any>(() => {
+    const raw = safeGetItem("bookshelf-config")
+    if (!raw) return {}
+    try { return JSON.parse(raw) || {} } catch { return {} }
+  }, [])
+
+  const [mainType, setMainType] = useState<MainType>(saved.mainType ?? "bookshelf")
+  const [cornerVariant, setCornerVariant] = useState<CornerVariant>(saved.cornerVariant ?? "outside")
+  const [width, setWidth] = useState<number>(saved.width ?? defaultWidth)
+  const [width2, setWidth2] = useState<number>(saved.width2 ?? 50)
+  const [selectedFinish, setSelectedFinish] = useState<string>(saved.selectedFinish ?? "Oak/Oak")
+  const [shelves, setShelves] = useState<ShelfConfig[]>(saved.shelves ?? [
     { height: 14, depth: 14 }, { height: 14, depth: 14 },
     { height: 14, depth: 14 }, { height: 14, depth: 14 },
   ])
-  const [shelves2, setShelves2] = useState<ShelfConfig[]>([
+  const [shelves2, setShelves2] = useState<ShelfConfig[]>(saved.shelves2 ?? [
     { height: 14, depth: 14 }, { height: 14, depth: 14 },
     { height: 14, depth: 14 }, { height: 14, depth: 14 },
   ])
 
   // U-Surround widths (left arm / front / right arm)
-  const [uW1, setUW1] = useState<number>(50)
-  const [uW, setUW] = useState<number>(70)
-  const [uW2, setUW2] = useState<number>(50)
+  const [uW1, setUW1] = useState<number>(saved.uW1 ?? 50)
+  const [uW, setUW] = useState<number>(saved.uW ?? 70)
+  const [uW2, setUW2] = useState<number>(saved.uW2 ?? 50)
 
   // Cathedral dims (W width, H low height, H1 high height, slope direction)
-  const [cathW, setCathW] = useState<number>(100)
-  const [cathH, setCathH] = useState<number>(60)
-  const [cathH1, setCathH1] = useState<number>(96)
-  const [cathDir, setCathDir] = useState<"left" | "right" | "both">("left")
+  const [cathW, setCathW] = useState<number>(saved.cathW ?? 100)
+  const [cathH, setCathH] = useState<number>(saved.cathH ?? 60)
+  const [cathH1, setCathH1] = useState<number>(saved.cathH1 ?? 96)
+  const [cathDir, setCathDir] = useState<"left" | "right" | "both">(saved.cathDir ?? "left")
 
   // Portal dims
   type PortalObject = "door" | "window" | "tv" | "fireplace" | "other"
-  const [portalWallW, setPortalWallW] = useState<number>(100)
-  const [portalWallH, setPortalWallH] = useState<number>(96)
-  const [portalObjW, setPortalObjW] = useState<number>(36)
-  const [portalObjH, setPortalObjH] = useState<number>(82)
-  const [portalFloorToObj, setPortalFloorToObj] = useState<number>(0)
-  const [portalRightGap, setPortalRightGap] = useState<number>(32)
-  const [portalObjType, setPortalObjType] = useState<PortalObject>("door")
+  const [portalWallW, setPortalWallW] = useState<number>(saved.portalWallW ?? 100)
+  const [portalWallH, setPortalWallH] = useState<number>(saved.portalWallH ?? 96)
+  const [portalObjW, setPortalObjW] = useState<number>(saved.portalObjW ?? 36)
+  const [portalObjH, setPortalObjH] = useState<number>(saved.portalObjH ?? 82)
+  const [portalFloorToObj, setPortalFloorToObj] = useState<number>(saved.portalFloorToObj ?? 0)
+  const [portalRightGap, setPortalRightGap] = useState<number>(saved.portalRightGap ?? 32)
+  const [portalObjType, setPortalObjType] = useState<PortalObject>(saved.portalObjType ?? "door")
 
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
