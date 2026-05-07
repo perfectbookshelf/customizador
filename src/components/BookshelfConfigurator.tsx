@@ -681,9 +681,9 @@ function USurroundDefaultPreview({ finish }: { finish: string }) {
     try {
       const res = calculateUSurround({ w1, w, w2, shelvesLeft: shelves, shelvesFront: shelves, shelvesRight: shelves, finish })
       return {
-        modulesLeft: res.leftResult.shelves.map(s => s.modules),
-        modulesFront: res.frontResult.shelves.map(s => s.modules),
-        modulesRight: res.rightResult.shelves.map(s => s.modules),
+        modulesLeft: res.leftResult.shelves.map((s: any) => s.modules),
+        modulesFront: res.frontResult.shelves.map((s: any) => s.modules),
+        modulesRight: res.rightResult.shelves.map((s: any) => s.modules),
       }
     } catch { return { modulesLeft: undefined, modulesFront: undefined, modulesRight: undefined } }
   }, [finish])
