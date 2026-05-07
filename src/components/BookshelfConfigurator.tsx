@@ -386,47 +386,83 @@ export function BookshelfConfigurator() {
     ),
   }
 
+  const widthStepSelectionName = (() => {
+    if (mainType === "corner") return `${toFraction(width)} × ${toFraction(width2)}`
+    if (mainType === "usurround") return `${toFraction(uW1)} · ${toFraction(uW)} · ${toFraction(uW2)}`
+    if (mainType === "cathedral") return `${toFraction(cathW)} × ${toFraction(cathH)}–${toFraction(cathH1)}`
+    if (mainType === "portal") return `Wall ${toFraction(portalWallW)} × ${toFraction(portalWallH)}`
+    return `${toFeetAndInches(width)} wide`
+  })()
+
+  const widthStepDelta = (() => {
+    if (mainType === "cathedral") return `${toFraction(cathH1 - cathH)} slope`
+    if (mainType === "portal") return `${portalObjType}`
+    return `${toFraction(totalHeight)} tall`
+  })()
+
   const widthStep: WizardStep = {
     label: "Dimensions",
-    selectionName: mainType === "corner"
-      ? `${toFraction(width)} × ${toFraction(width2)}`
-      : `${toFeetAndInches(width)} wide`,
-    priceDelta: `${toFraction(totalHeight)} tall`,
+    selectionName: widthStepSelectionName,
+    priceDelta: widthStepDelta,
     description:
       mainType === "corner"
         ? "Set both arms of the corner. The 3D preview updates live — adjust until it fits your wall."
+        : mainType === "usurround"
+        ? "Three walls — left arm (W1), front (W), and right arm (W2). All share the same shelf layout."
+        : mainType === "cathedral"
+        ? "Set the wall width and the two heights — the low side (H) and the tall side (H1). Then pick the slope direction."
+        : mainType === "portal"
+        ? "Set the wall, then the object you're framing (door, window, TV, fireplace) and where it sits."
         : "Set the total width. Heights are determined by the shelves you add in the next step.",
-    content: (
-      <div className="space-y-8">
-        <div>
-          <div className="flex items-baseline justify-between mb-3">
-            <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{mainType === "corner" ? "Arm 1" : "Width"}</span>
-            <span className="text-sm font-medium">{toFraction(width)}</span>
-          </div>
-          <Slider value={[width]} onValueChange={([v]) => setWidth(v)} min={25} max={200} step={0.25} />
-          <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
-            <span>25"</span><span>200"</span>
-          </div>
-        </div>
-        {mainType === "corner" && (
+    content:
+      mainType === "usurround" ? (
+        <USurroundDimsContent w1={uW1} setW1={setUW1} w={uW} setW={setUW} w2={uW2} setW2={setUW2} />
+      ) : mainType === "cathedral" ? (
+        <CathedralDimsContent
+          W={cathW} setW={setCathW} H={cathH} setH={setCathH} H1={cathH1} setH1={setCathH1}
+          direction={cathDir} setDirection={setCathDir}
+        />
+      ) : mainType === "portal" ? (
+        <PortalDimsContent
+          wallW={portalWallW} setWallW={setPortalWallW}
+          wallH={portalWallH} setWallH={setPortalWallH}
+          objW={portalObjW} setObjW={setPortalObjW}
+          objH={portalObjH} setObjH={setPortalObjH}
+          floorToObj={portalFloorToObj} setFloorToObj={setPortalFloorToObj}
+          rightGap={portalRightGap} setRightGap={setPortalRightGap}
+          objType={portalObjType} setObjType={setPortalObjType}
+        />
+      ) : (
+        <div className="space-y-8">
           <div>
             <div className="flex items-baseline justify-between mb-3">
-              <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Arm 2</span>
-              <span className="text-sm font-medium">{toFraction(width2)}</span>
+              <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{mainType === "corner" ? "Arm 1" : "Width"}</span>
+              <span className="text-sm font-medium">{toFraction(width)}</span>
             </div>
-            <Slider value={[width2]} onValueChange={([v]) => setWidth2(v)} min={25} max={200} step={0.25} />
+            <Slider value={[width]} onValueChange={([v]) => setWidth(v)} min={25} max={200} step={0.25} />
             <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
               <span>25"</span><span>200"</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-3 italic">
-              {cornerVariant === "inside"
-                ? "Inside corner — backs meet flush, no overlap deduction."
-                : "Outside corner — overlap is automatically subtracted from materials and price."}
-            </p>
           </div>
-        )}
-      </div>
-    ),
+          {mainType === "corner" && (
+            <div>
+              <div className="flex items-baseline justify-between mb-3">
+                <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Arm 2</span>
+                <span className="text-sm font-medium">{toFraction(width2)}</span>
+              </div>
+              <Slider value={[width2]} onValueChange={([v]) => setWidth2(v)} min={25} max={200} step={0.25} />
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
+                <span>25"</span><span>200"</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3 italic">
+                {cornerVariant === "inside"
+                  ? "Inside corner — backs meet flush, no overlap deduction."
+                  : "Outside corner — overlap is automatically subtracted from materials and price."}
+              </p>
+            </div>
+          )}
+        </div>
+      ),
   }
 
   const shelvesStep: WizardStep = {
