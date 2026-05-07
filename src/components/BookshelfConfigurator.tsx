@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Plus, Minus, ShoppingCart } from "lucide-react"
+import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -140,6 +140,27 @@ export function BookshelfConfigurator() {
     { height: 14, depth: 14 }, { height: 14, depth: 14 },
     { height: 14, depth: 14 }, { height: 14, depth: 14 },
   ])
+
+  // U-Surround widths (left arm / front / right arm)
+  const [uW1, setUW1] = useState<number>(50)
+  const [uW, setUW] = useState<number>(70)
+  const [uW2, setUW2] = useState<number>(50)
+
+  // Cathedral dims (W width, H low height, H1 high height, slope direction)
+  const [cathW, setCathW] = useState<number>(100)
+  const [cathH, setCathH] = useState<number>(60)
+  const [cathH1, setCathH1] = useState<number>(96)
+  const [cathDir, setCathDir] = useState<"left" | "right" | "both">("left")
+
+  // Portal dims
+  type PortalObject = "door" | "window" | "tv" | "fireplace" | "other"
+  const [portalWallW, setPortalWallW] = useState<number>(100)
+  const [portalWallH, setPortalWallH] = useState<number>(96)
+  const [portalObjW, setPortalObjW] = useState<number>(36)
+  const [portalObjH, setPortalObjH] = useState<number>(82)
+  const [portalFloorToObj, setPortalFloorToObj] = useState<number>(0)
+  const [portalRightGap, setPortalRightGap] = useState<number>(32)
+  const [portalObjType, setPortalObjType] = useState<PortalObject>("door")
 
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
@@ -365,47 +386,83 @@ export function BookshelfConfigurator() {
     ),
   }
 
+  const widthStepSelectionName = (() => {
+    if (mainType === "corner") return `${toFraction(width)} × ${toFraction(width2)}`
+    if (mainType === "usurround") return `${toFraction(uW1)} · ${toFraction(uW)} · ${toFraction(uW2)}`
+    if (mainType === "cathedral") return `${toFraction(cathW)} × ${toFraction(cathH)}–${toFraction(cathH1)}`
+    if (mainType === "portal") return `Wall ${toFraction(portalWallW)} × ${toFraction(portalWallH)}`
+    return `${toFeetAndInches(width)} wide`
+  })()
+
+  const widthStepDelta = (() => {
+    if (mainType === "cathedral") return `${toFraction(cathH1 - cathH)} slope`
+    if (mainType === "portal") return `${portalObjType}`
+    return `${toFraction(totalHeight)} tall`
+  })()
+
   const widthStep: WizardStep = {
     label: "Dimensions",
-    selectionName: mainType === "corner"
-      ? `${toFraction(width)} × ${toFraction(width2)}`
-      : `${toFeetAndInches(width)} wide`,
-    priceDelta: `${toFraction(totalHeight)} tall`,
+    selectionName: widthStepSelectionName,
+    priceDelta: widthStepDelta,
     description:
       mainType === "corner"
         ? "Set both arms of the corner. The 3D preview updates live — adjust until it fits your wall."
+        : mainType === "usurround"
+        ? "Three walls — left arm (W1), front (W), and right arm (W2). All share the same shelf layout."
+        : mainType === "cathedral"
+        ? "Set the wall width and the two heights — the low side (H) and the tall side (H1). Then pick the slope direction."
+        : mainType === "portal"
+        ? "Set the wall, then the object you're framing (door, window, TV, fireplace) and where it sits."
         : "Set the total width. Heights are determined by the shelves you add in the next step.",
-    content: (
-      <div className="space-y-8">
-        <div>
-          <div className="flex items-baseline justify-between mb-3">
-            <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{mainType === "corner" ? "Arm 1" : "Width"}</span>
-            <span className="text-sm font-medium">{toFraction(width)}</span>
-          </div>
-          <Slider value={[width]} onValueChange={([v]) => setWidth(v)} min={25} max={200} step={0.25} />
-          <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
-            <span>25"</span><span>200"</span>
-          </div>
-        </div>
-        {mainType === "corner" && (
+    content:
+      mainType === "usurround" ? (
+        <USurroundDimsContent w1={uW1} setW1={setUW1} w={uW} setW={setUW} w2={uW2} setW2={setUW2} />
+      ) : mainType === "cathedral" ? (
+        <CathedralDimsContent
+          W={cathW} setW={setCathW} H={cathH} setH={setCathH} H1={cathH1} setH1={setCathH1}
+          direction={cathDir} setDirection={setCathDir}
+        />
+      ) : mainType === "portal" ? (
+        <PortalDimsContent
+          wallW={portalWallW} setWallW={setPortalWallW}
+          wallH={portalWallH} setWallH={setPortalWallH}
+          objW={portalObjW} setObjW={setPortalObjW}
+          objH={portalObjH} setObjH={setPortalObjH}
+          floorToObj={portalFloorToObj} setFloorToObj={setPortalFloorToObj}
+          rightGap={portalRightGap} setRightGap={setPortalRightGap}
+          objType={portalObjType} setObjType={setPortalObjType}
+        />
+      ) : (
+        <div className="space-y-8">
           <div>
             <div className="flex items-baseline justify-between mb-3">
-              <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Arm 2</span>
-              <span className="text-sm font-medium">{toFraction(width2)}</span>
+              <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{mainType === "corner" ? "Arm 1" : "Width"}</span>
+              <span className="text-sm font-medium">{toFraction(width)}</span>
             </div>
-            <Slider value={[width2]} onValueChange={([v]) => setWidth2(v)} min={25} max={200} step={0.25} />
+            <Slider value={[width]} onValueChange={([v]) => setWidth(v)} min={25} max={200} step={0.25} />
             <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
               <span>25"</span><span>200"</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-3 italic">
-              {cornerVariant === "inside"
-                ? "Inside corner — backs meet flush, no overlap deduction."
-                : "Outside corner — overlap is automatically subtracted from materials and price."}
-            </p>
           </div>
-        )}
-      </div>
-    ),
+          {mainType === "corner" && (
+            <div>
+              <div className="flex items-baseline justify-between mb-3">
+                <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Arm 2</span>
+                <span className="text-sm font-medium">{toFraction(width2)}</span>
+              </div>
+              <Slider value={[width2]} onValueChange={([v]) => setWidth2(v)} min={25} max={200} step={0.25} />
+              <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
+                <span>25"</span><span>200"</span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-3 italic">
+                {cornerVariant === "inside"
+                  ? "Inside corner — backs meet flush, no overlap deduction."
+                  : "Outside corner — overlap is automatically subtracted from materials and price."}
+              </p>
+            </div>
+          )}
+        </div>
+      ),
   }
 
   const shelvesStep: WizardStep = {
@@ -698,5 +755,125 @@ function USurroundDefaultPreview({ finish }: { finish: string }) {
       modulesLeft={data.modulesLeft} modulesFront={data.modulesFront} modulesRight={data.modulesRight}
       finish={finish} hideTooltip fillContainer
     />
+  )
+}
+
+/* ─── Per-type Step 2 (Dimensions) sub-bodies ─── */
+
+function LabeledSlider({ label, value, onChange, min, max, step = 0.25, hint }: {
+  label: string; value: number; onChange: (v: number) => void; min: number; max: number; step?: number; hint?: string
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-3">
+        <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{label}</span>
+        <span className="text-sm font-medium">{toFraction(value)}</span>
+      </div>
+      <Slider value={[value]} onValueChange={([v]) => onChange(v)} min={min} max={max} step={step} />
+      <div className="flex justify-between text-[10px] text-muted-foreground mt-2 tracking-widest">
+        <span>{min}"</span><span>{max}"</span>
+      </div>
+      {hint && <p className="text-[11px] text-muted-foreground mt-2 italic">{hint}</p>}
+    </div>
+  )
+}
+
+function USurroundDimsContent({ w1, setW1, w, setW, w2, setW2 }: {
+  w1: number; setW1: (v: number) => void; w: number; setW: (v: number) => void; w2: number; setW2: (v: number) => void
+}) {
+  return (
+    <div className="space-y-8">
+      <LabeledSlider label="Left arm (W1)" value={w1} onChange={setW1} min={25} max={200} />
+      <LabeledSlider label="Front (W)" value={w} onChange={setW} min={25} max={200} />
+      <LabeledSlider label="Right arm (W2)" value={w2} onChange={setW2} min={25} max={200}
+        hint="Deduct ~1” from each wall measurement to allow for wall imperfections." />
+    </div>
+  )
+}
+
+function CathedralDimsContent({ W, setW, H, setH, H1, setH1, direction, setDirection }: {
+  W: number; setW: (v: number) => void; H: number; setH: (v: number) => void; H1: number; setH1: (v: number) => void
+  direction: "left" | "right" | "both"; setDirection: (d: "left" | "right" | "both") => void
+}) {
+  const tooSmall = H1 - H < 14
+  return (
+    <div className="space-y-8">
+      <LabeledSlider label="Width (W)" value={W} onChange={setW} min={25} max={240} />
+      <LabeledSlider label="Low side (H)" value={H} onChange={setH} min={20} max={Math.max(20, H1 - 14)} />
+      <LabeledSlider label="High side (H1)" value={H1} onChange={setH1} min={H + 14} max={120}
+        hint={tooSmall ? "H1 must be at least 14” taller than H." : "Slope rises from H on one side to H1 on the other."} />
+      <div>
+        <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground block mb-3">Slope direction</span>
+        <div className="grid grid-cols-3 gap-3">
+          {(["left", "right", "both"] as const).map(d => (
+            <button key={d} onClick={() => setDirection(d)}
+              className={cn(
+                "py-3 text-[11px] tracking-[0.2em] uppercase font-medium border transition-all",
+                direction === d ? "border-brand-walnut text-foreground" : "border-border text-muted-foreground hover:border-foreground/40",
+              )}>
+              {d}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const PORTAL_OBJECT_PRESETS: { id: "door" | "window" | "tv" | "fireplace" | "other"; label: string; icon: React.ElementType }[] = [
+  { id: "door", label: "Door", icon: DoorOpen },
+  { id: "window", label: "Window", icon: HelpCircle },
+  { id: "tv", label: "TV", icon: Monitor },
+  { id: "fireplace", label: "Fireplace", icon: Flame },
+  { id: "other", label: "Other", icon: HelpCircle },
+]
+
+function PortalDimsContent(props: {
+  wallW: number; setWallW: (v: number) => void
+  wallH: number; setWallH: (v: number) => void
+  objW: number; setObjW: (v: number) => void
+  objH: number; setObjH: (v: number) => void
+  floorToObj: number; setFloorToObj: (v: number) => void
+  rightGap: number; setRightGap: (v: number) => void
+  objType: "door" | "window" | "tv" | "fireplace" | "other"
+  setObjType: (t: "door" | "window" | "tv" | "fireplace" | "other") => void
+}) {
+  const { wallW, setWallW, wallH, setWallH, objW, setObjW, objH, setObjH, floorToObj, setFloorToObj, rightGap, setRightGap, objType, setObjType } = props
+  const leftGap = Math.max(0, wallW - objW - rightGap)
+  return (
+    <div className="space-y-8">
+      <div>
+        <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground block mb-3">Object type</span>
+        <div className="grid grid-cols-5 gap-2">
+          {PORTAL_OBJECT_PRESETS.map(p => {
+            const selected = objType === p.id
+            const IconCmp: any = p.icon
+            return (
+              <button key={p.id} onClick={() => {
+                setObjType(p.id)
+                if (p.id === "door") { setObjW(36); setObjH(82); setFloorToObj(0) }
+                if (p.id === "window") { setObjW(36); setObjH(48); setFloorToObj(36) }
+                if (p.id === "tv") { setObjW(55); setObjH(31); setFloorToObj(30) }
+                if (p.id === "fireplace") { setObjW(48); setObjH(40); setFloorToObj(0) }
+              }}
+                className={cn(
+                  "flex flex-col items-center gap-1.5 py-3 px-1 border transition-all",
+                  selected ? "border-brand-walnut text-foreground" : "border-border text-muted-foreground hover:border-foreground/40",
+                )}>
+                <IconCmp className="h-5 w-5" />
+                <span className="text-[10px] tracking-[0.15em] uppercase">{p.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+      <LabeledSlider label="Wall width" value={wallW} onChange={setWallW} min={48} max={240} />
+      <LabeledSlider label="Wall height" value={wallH} onChange={setWallH} min={60} max={144} />
+      <LabeledSlider label="Object width" value={objW} onChange={setObjW} min={12} max={Math.max(12, wallW - 14)} />
+      <LabeledSlider label="Object height" value={objH} onChange={setObjH} min={12} max={Math.max(12, wallH - 12)} />
+      <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH - 12)} />
+      <LabeledSlider label="Right gap" value={rightGap} onChange={setRightGap} min={0} max={Math.max(0, wallW - objW)}
+        hint={`Left gap auto: ${toFraction(leftGap)}`} />
+    </div>
   )
 }
