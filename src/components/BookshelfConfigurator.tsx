@@ -900,9 +900,17 @@ function PortalDimsContent(props: {
       </div>
       <LabeledSlider label="Wall width" value={wallW} onChange={setWallW} min={48} max={240} />
       <LabeledSlider label="Wall height" value={wallH} onChange={setWallH} min={60} max={144} />
-      <LabeledSlider label="Object width" value={objW} onChange={setObjW} min={12} max={Math.max(12, wallW - 14)} />
-      <LabeledSlider label="Object height" value={objH} onChange={setObjH} min={12} max={Math.max(12, wallH - 12)} />
-      <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH - 12)} />
+      <LabeledSlider label="Object width" value={objW} onChange={(v) => {
+        const clamped = Math.min(v, Math.max(12, wallW - 14))
+        setObjW(clamped)
+        if (rightGap > wallW - clamped) setRightGap(Math.max(0, wallW - clamped))
+      }} min={12} max={Math.max(12, wallW - 14)} />
+      <LabeledSlider label="Object height" value={objH} onChange={(v) => {
+        const clamped = Math.min(v, Math.max(12, wallH - 12))
+        setObjH(clamped)
+        if (floorToObj + clamped > wallH) setFloorToObj(Math.max(0, wallH - clamped))
+      }} min={12} max={Math.max(12, wallH - 12)} />
+      <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH)} />
       <LabeledSlider label="Right gap" value={rightGap} onChange={setRightGap} min={0} max={Math.max(0, wallW - objW)}
         hint={`Left gap auto: ${toFraction(leftGap)}`} />
     </div>
