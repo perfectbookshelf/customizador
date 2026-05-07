@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Plus, Minus, ShoppingCart } from "lucide-react"
+import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
