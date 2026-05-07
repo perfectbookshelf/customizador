@@ -7,12 +7,11 @@
  */
 import { describe, expect, it } from "bun:test"
 import { readFileSync } from "node:fs"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 
-const SRC = readFileSync(
-  join(import.meta.dir, "..", "BookshelfConfigurator.tsx"),
-  "utf8",
-)
+const __dir = dirname(fileURLToPath(import.meta.url))
+const SRC = readFileSync(join(__dir, "..", "BookshelfConfigurator.tsx"), "utf8")
 
 const LEGACY = ["PortalConfigurator", "CathedralConfigurator", "USurroundConfigurator"] as const
 
