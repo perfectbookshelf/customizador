@@ -23,10 +23,17 @@ function clickButtonByText(text: string | RegExp) {
 }
 
 function expectUnifiedWizard(stepNum: number) {
-  // The WizardShell renders "Step N / 5"
-  const stepLabel = screen.queryByText(/Step\s*\d/i)
-  expect(stepLabel, `expected Step counter visible on step ${stepNum}`).toBeInTheDocument()
-  expect(stepLabel!.textContent).toMatch(new RegExp(`Step\\s*${stepNum}`))
+  // WizardShell renders "Step N / total" but split across nested spans.
+  // Match by walking text content of any element that has "Step" + the number.
+  const candidates = Array.from(document.querySelectorAll("div, span")).filter((el) => {
+    const t = (el.textContent ?? "").replace(/\s+/g, " ").trim()
+    return /^Step\s*\d+\s*\/\s*\d+$/.test(t)
+  })
+  expect(candidates.length, `expected Step counter on step ${stepNum}`).toBeGreaterThan(0)
+  const matched = candidates.some((el) =>
+    new RegExp(`Step\\s*${stepNum}\\s*/`).test((el.textContent ?? "").replace(/\s+/g, " ")),
+  )
+  expect(matched, `expected to be on step ${stepNum}`).toBe(true)
 }
 
 describe("BookshelfConfigurator — legacy types stay in unified wizard", () => {
