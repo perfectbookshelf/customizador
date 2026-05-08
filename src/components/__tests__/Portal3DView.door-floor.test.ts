@@ -44,22 +44,22 @@ describe("Portal3DView door floor-board rules", () => {
     expect(segs.every(s => s.side !== "full")).toBe(true)
   })
 
-  it("door: side segment is omitted when its gap is < 25\" (min 2-module rule)", () => {
-    // Left gap too narrow → no left segment
-    const segs = computePortalFloorSegments({ ...base, leftGap: 24, rightGap: 40 })
+  it("door: side segment is omitted when its gap is < 16.75\" (can't fit 2 modules)", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 14, rightGap: 40 })
     expect(segs.find(s => s.side === "left")).toBeUndefined()
     expect(segs.find(s => s.side === "right")).toBeDefined()
   })
 
-  it("door: BOTH side segments omitted when both gaps < 25\"", () => {
+  it("door: BOTH side segments omitted when neither side fits 2 modules", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: 10, rightGap: 10, objectWidth: 80 })
     expect(segs).toHaveLength(0)
   })
 
-  it("door: both sides emitted when both gaps >= 25\"", () => {
+  it("door: both sides emitted when both gaps fit ≥2 modules", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: 25, rightGap: 25, objectWidth: 50 })
     expect(segs).toHaveLength(2)
     expect(segs.map(s => s.side).sort()).toEqual(["left", "right"])
+    for (const s of segs) expect(s.moduleCount).toBeGreaterThanOrEqual(2)
   })
 
   it("non-door object lifted off floor: emits ONE full-width floor board", () => {
@@ -82,68 +82,81 @@ describe("Portal3DView door floor-board rules", () => {
   })
 })
 
-describe("Portal door floor-board: exact 25\" boundary + 2-module rule", () => {
-  // Smallest two modules are 7.25" each → 14.5" total. A 25" gap easily holds
-  // the minimum 2-module column required to keep a floor board off the ground.
-  const MIN = 25
+describe("Portal door floor-board: 2-module gravity rule (per-segment reset)", () => {
+  // The Portal split-board rule resets the module sequencer for each emitted
+  // segment (PortalLivePreview calls calculateBookshelf once per segment from
+  // index 0). The sequencer always picks indices 0 then 1 first → smallest two
+  // modules are 7.25" + 9.5" = 16.75", the true physical minimum to support a board.
+  const MIN_PHYS = 16.75
 
-  it("leftGap = 25 (exactly): left segment IS emitted", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: MIN, rightGap: 40 })
+  it("leftGap = 16.75 (exactly): left segment IS emitted with exactly 2 modules", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: MIN_PHYS, rightGap: 40 })
     const left = segs.find(s => s.side === "left")
     expect(left).toBeDefined()
-    expect(left!.w).toBe(MIN)
+    expect(left!.moduleCount).toBe(2)
   })
 
-  it("leftGap = 24.999 (just below): left segment is OMITTED (no support → would fall)", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: 24.999, rightGap: 40 })
+  it("leftGap = 16.74 (just below): left segment OMITTED (would see-saw on 1 module)", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 16.74, rightGap: 40 })
     expect(segs.find(s => s.side === "left")).toBeUndefined()
     expect(segs.find(s => s.side === "right")).toBeDefined()
   })
 
-  it("rightGap = 25 (exactly): right segment IS emitted", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: MIN })
+  it("rightGap = 16.75 (exactly): right segment IS emitted", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: MIN_PHYS })
     const right = segs.find(s => s.side === "right")
     expect(right).toBeDefined()
-    expect(right!.w).toBe(MIN)
+    expect(right!.moduleCount).toBe(2)
   })
 
-  it("rightGap = 24.999 (just below): right segment is OMITTED", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: 24.999 })
+  it("rightGap = 16.74 (just below): right segment OMITTED", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: 16.74 })
     expect(segs.find(s => s.side === "right")).toBeUndefined()
     expect(segs.find(s => s.side === "left")).toBeDefined()
   })
 
-  it("BOTH gaps exactly 25: both segments emitted, neither crosses the door", () => {
+  it("BOTH gaps exactly 16.75: both segments emitted, both with 2 modules", () => {
     const segs = computePortalFloorSegments({
-      ...base, objectWidth: 50, leftGap: MIN, rightGap: MIN,
+      ...base, objectWidth: 50, leftGap: MIN_PHYS, rightGap: MIN_PHYS,
     })
     expect(segs).toHaveLength(2)
-    const objL = MIN
-    const objR = MIN + 50
     for (const s of segs) {
+      expect(s.moduleCount).toBe(2)
+      const objL = MIN_PHYS, objR = MIN_PHYS + 50
       const fullyLeft = s.x + s.w <= objL + 1e-9
       const fullyRight = s.x >= objR - 1e-9
       expect(fullyLeft || fullyRight).toBe(true)
     }
   })
 
-  it("BOTH gaps 24.999: NO floor segments — opening would have unsupported boards", () => {
+  it("BOTH gaps 16.74: NO floor segments — boards would fall", () => {
     const segs = computePortalFloorSegments({
-      ...base, objectWidth: 50, leftGap: 24.999, rightGap: 24.999,
+      ...base, objectWidth: 50, leftGap: 16.74, rightGap: 16.74,
     })
     expect(segs).toHaveLength(0)
   })
 
-  it("asymmetric exact boundary: left=25, right=24 → only left emitted", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: 25, rightGap: 24, objectWidth: 51 })
+  it("asymmetric: left=16.75, right=16.74 → only left emitted", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 16.75, rightGap: 16.74, objectWidth: 66.51 })
     expect(segs).toHaveLength(1)
     expect(segs[0].side).toBe("left")
   })
 
-  it("25\" gap can host the documented minimum 2-module column (2× 7.25\" = 14.5\")", () => {
-    // Sanity: the 25" rule is chosen so the smallest 2-module pair fits with margin.
-    // Each shelf board needs ≥2 modules to support it; the smallest module is 7.25".
-    const minTwoModules = 7.25 * 2
-    expect(minTwoModules).toBeLessThanOrEqual(MIN)
+  it("INVARIANT: every emitted segment has ≥2 module columns supporting it", () => {
+    // Sweep a wide range of gap widths; the gravity rule must always hold.
+    for (let gap = 0; gap <= 100; gap += 0.25) {
+      const segs = computePortalFloorSegments({ ...base, leftGap: gap, rightGap: gap, objectWidth: 20 })
+      for (const s of segs) {
+        expect(s.moduleCount, `gap=${gap}, side=${s.side}, w=${s.w}`).toBeGreaterThanOrEqual(2)
+      }
+    }
+  })
+
+  it("non-door full-width board also requires ≥2 modules (consistent rule)", () => {
+    // Wall narrower than 16.75" → no full-width board emitted.
+    const segs = computePortalFloorSegments({
+      ...base, isDoor: false, floorToObject: 30, wallWidth: 14, objectHeight: 8, objectWidth: 8,
+    })
+    expect(segs).toHaveLength(0)
   })
 })
