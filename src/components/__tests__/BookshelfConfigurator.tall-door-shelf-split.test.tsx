@@ -27,6 +27,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react"
 import { BookshelfConfigurator } from "@/components/BookshelfConfigurator"
 import {
   computePortalShelfBoardSegments,
+  computePortalFloorSegments,
   PORTAL_MIN_MODULES_PER_BOARD,
   PORTAL_BOARD_T,
 } from "@/lib/portal-geometry"
@@ -175,6 +176,91 @@ describe("Tall door: shelf board split + ≥2-module gravity rule", () => {
     })
     expect(segs.find(s => s.side === "left")).toBeUndefined()
     // Right side should still emit and be supported.
+    const right = segs.find(s => s.side === "right")
+    if (right) expect(right.moduleCount).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe("Tall door: FLOOR board ≥2-module gravity rule", () => {
+  function floorOf(props: any) {
+    return computePortalFloorSegments({
+      wallWidth: props.wallWidth,
+      wallHeight: props.wallHeight,
+      objectWidth: props.objectWidth,
+      objectHeight: props.objectHeight,
+      floorToObject: props.floorToObject,
+      leftGap: props.leftGap,
+      rightGap: props.rightGap,
+      isDoor: props.objectType === "door" || props.isDoor === true,
+    })
+  }
+
+  it("default Portal door config: floor segments never have <2 supporting modules and never cross door span", () => {
+    render(<BookshelfConfigurator />)
+    clickButtonByText("Portal")
+    clickNav(/^next$/i)
+    const last = portalCalls[portalCalls.length - 1]
+
+    const segs = floorOf(last)
+    const objL = last.leftGap
+    const objR = last.leftGap + last.objectWidth
+    for (const s of segs) {
+      expect(s.moduleCount, `side=${s.side} w=${s.w}`)
+        .toBeGreaterThanOrEqual(PORTAL_MIN_MODULES_PER_BOARD)
+      const crosses = s.x < objR - 1e-9 && s.x + s.w > objL + 1e-9
+      expect(crosses).toBe(false)
+    }
+  })
+
+  it("INVARIANT: across all 8 sequencer start indices and varying gaps, no floor segment ever has <2 modules", () => {
+    render(<BookshelfConfigurator />)
+    clickButtonByText("Portal")
+    clickNav(/^next$/i)
+    const base = portalCalls[portalCalls.length - 1]
+
+    for (let startIdx = 0; startIdx < 8; startIdx++) {
+      for (const lg of [0, 5, 16.75, 20, 30, 50]) {
+        for (const rg of [0, 5, 16.75, 20, 30, 50]) {
+          const wallWidth = lg + base.objectWidth + rg
+          const segs = computePortalFloorSegments({
+            wallWidth,
+            wallHeight: base.wallHeight,
+            objectWidth: base.objectWidth,
+            objectHeight: base.objectHeight,
+            floorToObject: 0,
+            leftGap: lg,
+            rightGap: rg,
+            isDoor: true,
+            startIdx,
+          })
+          const objL = lg
+          const objR = lg + base.objectWidth
+          for (const s of segs) {
+            expect(
+              s.moduleCount,
+              `startIdx=${startIdx} lg=${lg} rg=${rg} side=${s.side} w=${s.w}`,
+            ).toBeGreaterThanOrEqual(PORTAL_MIN_MODULES_PER_BOARD)
+            const crosses = s.x < objR - 1e-9 && s.x + s.w > objL + 1e-9
+            expect(crosses, `startIdx=${startIdx} lg=${lg} rg=${rg} crossed door`).toBe(false)
+          }
+        }
+      }
+    }
+  })
+
+  it("shrinking left gap below 2-module support: left FLOOR segment is OMITTED", () => {
+    render(<BookshelfConfigurator />)
+    clickButtonByText("Portal")
+    clickNav(/^next$/i)
+    const ts = thumbs()
+    expect(ts.length).toBeGreaterThanOrEqual(5)
+    act(() => press(ts[ts.length - 1], "End"))
+
+    const last = portalCalls[portalCalls.length - 1]
+    expect(last.leftGap).toBeLessThan(16.75)
+
+    const segs = floorOf(last)
+    expect(segs.find(s => s.side === "left")).toBeUndefined()
     const right = segs.find(s => s.side === "right")
     if (right) expect(right.moduleCount).toBeGreaterThanOrEqual(2)
   })
