@@ -277,31 +277,34 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
     return result
   }, [rows, wallWidth, objL, objR, safeBot, safeTop, hasLeft, hasRight, objectWidth])
 
+  // Compute floor band segments (≥2-module verified).
+  const floorSegs = _computePortalFloorSegments({
+    wallWidth, wallHeight, objectWidth, objectHeight,
+    floorToObject, leftGap, rightGap, isDoor,
+  })
+  // Top frame board segments (≥2-module verified).
+  const topSegs = _computePortalShelfBoardSegments({
+    wallWidth, leftGap, rightGap, objectWidth,
+    objectBot: objBot, objectTop: objTop, boardY: lastTop,
+  })
+  // Side panels: only meaningful when that side actually carries emitted boards.
+  const sidePanelLeft = floorSegs.some(s => s.side === "left" || s.side === "full") || topSegs.some(s => s.side === "left" || s.side === "full")
+  const sidePanelRight = floorSegs.some(s => s.side === "right" || s.side === "full") || topSegs.some(s => s.side === "right" || s.side === "full")
+
   return (
     <group>
       {/* ══════ OUTER FRAME ══════ */}
-      {/* Bottom board — split if object reaches floor */}
-      {objBot <= BOARD_T ? (
-        <>
-          {hasLeft && <Board pos={[wL + leftGap / 2, 0, -defDepth / 2]} w={leftGap} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />}
-          {hasRight && <Board pos={[wL + objR + rightGap / 2, 0, -defDepth / 2]} w={rightGap} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />}
-        </>
-      ) : (
-        <Board pos={[0, 0, -defDepth / 2]} w={wallWidth} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
-      )}
-      {/* Top board — split if object intersects this Y */}
-      {(lastTop < objTop && lastTop + BOARD_T > objBot) ? (
-        <>
-          {hasLeft && <Board pos={[wL + leftGap / 2, lastTop, -defDepth / 2]} w={leftGap} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />}
-          {hasRight && <Board pos={[wL + objR + rightGap / 2, lastTop, -defDepth / 2]} w={rightGap} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />}
-        </>
-      ) : (
-        <Board pos={[0, lastTop, -defDepth / 2]} w={wallWidth} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
-      )}
-      {/* Left side panel — only if leftGap >= 25" */}
-      {hasLeft && <SidePanel x={wL + BOARD_T / 2} h={lastTop + BOARD_T} d={maxDepth} finish={intF} />}
-      {/* Right side panel — only if rightGap >= 25" */}
-      {hasRight && <SidePanel x={wL + wallWidth - BOARD_T / 2} h={lastTop + BOARD_T} d={maxDepth} finish={intF} />}
+      {/* Bottom board(s) — split + ≥2-module verified */}
+      {floorSegs.map((s, i) => (
+        <Board key={`floor-${i}`} pos={[wL + s.x + s.w / 2, 0, -defDepth / 2]} w={s.w} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
+      ))}
+      {/* Top board(s) — split + ≥2-module verified */}
+      {topSegs.map((s, i) => (
+        <Board key={`top-${i}`} pos={[wL + s.x + s.w / 2, lastTop, -defDepth / 2]} w={s.w} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
+      ))}
+      {/* Side panels — only if that side carries board segments */}
+      {sidePanelLeft && <SidePanel x={wL + BOARD_T / 2} h={lastTop + BOARD_T} d={maxDepth} finish={intF} />}
+      {sidePanelRight && <SidePanel x={wL + wallWidth - BOARD_T / 2} h={lastTop + BOARD_T} d={maxDepth} finish={intF} />}
 
 
       {/* ══════ SHELF ROWS ══════ */}
@@ -311,21 +314,17 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
         const topBoardY = moduleY + shelf.height
         const zOff = -(maxDepth - shelf.depth)
 
-        // Does this board Y overlap the object zone?
-        const boardInObj = (by: number) => by < objTop && (by + BOARD_T) > objBot
-        const rowOverlapsObj = moduleY < safeTop && topBoardY > safeBot
+        const rowOverlapsObj = moduleY < safeTop && (topBoardY + BOARD_T) > safeBot
 
-        // Render a horizontal shelf board, splitting if it intersects the object zone
-  const renderShelfBoard = (by: number) => {
-          if (!boardInObj(by)) {
-            return <Board pos={[0, by, -shelf.depth / 2]} w={wallWidth} d={shelf.depth} finish={intF} zOff={zOff} />
-          }
-          return (
-            <>
-              {hasLeft && <Board pos={[wL + leftGap / 2, by, -shelf.depth / 2]} w={leftGap} d={shelf.depth} finish={intF} zOff={zOff} />}
-              {hasRight && <Board pos={[wL + objR + rightGap / 2, by, -shelf.depth / 2]} w={rightGap} d={shelf.depth} finish={intF} zOff={zOff} />}
-            </>
-          )
+        // Render a horizontal shelf board, splitting + ≥2-module verifying
+        const renderShelfBoard = (by: number, key: string) => {
+          const segs = _computePortalShelfBoardSegments({
+            wallWidth, leftGap, rightGap, objectWidth,
+            objectBot: objBot, objectTop: objTop, boardY: by,
+          })
+          return segs.map((s, i) => (
+            <Board key={`${key}-${i}`} pos={[wL + s.x + s.w / 2, by, -shelf.depth / 2]} w={s.w} d={shelf.depth} finish={intF} zOff={zOff} />
+          ))
         }
 
         return (
