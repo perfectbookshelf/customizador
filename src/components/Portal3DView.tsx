@@ -133,12 +133,21 @@ function calcModulesForWidth(totalW: number, startIdx: number): { widths: number
   return { widths: ws, nextIdx: idx % MODULE_WIDTHS.length }
 }
 
-// Re-export pure geometry helpers (live in src/lib/portal-geometry.ts).
+// Re-export + locally use the pure split-board helpers.
+import {
+  computePortalFloorSegments as _computePortalFloorSegments,
+  computePortalShelfBoardSegments as _computePortalShelfBoardSegments,
+} from "@/lib/portal-geometry"
 export {
   computePortalFloorSegments,
+  computePortalShelfBoardSegments,
+  computeSplitBoardSegments,
+  calcModulesForSegment,
   floorBoardCrossesObject,
   PORTAL_MIN_COL,
   PORTAL_BOARD_T,
+  PORTAL_MIN_MODULES_PER_BOARD,
+  PORTAL_MODULE_WIDTHS,
 } from "@/lib/portal-geometry"
 export type { PortalGeometryInput, PortalBoardSegment } from "@/lib/portal-geometry"
 
