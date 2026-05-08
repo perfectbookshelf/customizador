@@ -133,63 +133,14 @@ function calcModulesForWidth(totalW: number, startIdx: number): { widths: number
   return { widths: ws, nextIdx: idx % MODULE_WIDTHS.length }
 }
 
-// ─── PURE HELPERS (exported for tests) ───
-// Minimum gap (inches) required on a side to host a column of two modules.
-// Mirrors MIN_COL = 25" used by PortalScene for left/right side columns.
-export const PORTAL_MIN_COL = MIN_COL
-export const PORTAL_BOARD_T = BOARD_T
-
-export interface PortalGeometryInput {
-  wallWidth: number
-  wallHeight: number
-  objectWidth: number
-  objectHeight: number
-  floorToObject: number
-  leftGap: number
-  rightGap: number
-  isDoor: boolean
-}
-
-export interface PortalBoardSegment {
-  /** wall-relative x of the segment's left edge (0..wallWidth) */
-  x: number
-  /** segment width in inches */
-  w: number
-  /** which zone this segment serves */
-  side: "left" | "right" | "full"
-}
-
-/** Compute the floor (y=0) board segments. Doors must NEVER have a board crossing
- *  the opening at y=0 — the door's vertical zone (objL..objR) is omitted, and
- *  side segments are only emitted when the side gap is wide enough to host a
- *  two-module column (>= PORTAL_MIN_COL = 25"). */
-export function computePortalFloorSegments(input: PortalGeometryInput): PortalBoardSegment[] {
-  const { wallWidth, objectWidth, floorToObject, leftGap, rightGap, isDoor } = input
-  const objL = leftGap
-  const objR = leftGap + objectWidth
-  const effFloor = isDoor ? 0 : Math.max(0, floorToObject)
-  // Board occupies y in [0, BOARD_T]. If the object's bottom sits above this band,
-  // the floor board can span the full wall.
-  const objBot = effFloor
-  if (objBot > BOARD_T) {
-    return [{ x: 0, w: wallWidth, side: "full" }]
-  }
-  // Otherwise the object intersects the floor band → split, omitting center.
-  const segs: PortalBoardSegment[] = []
-  if (leftGap >= MIN_COL) segs.push({ x: 0, w: leftGap, side: "left" })
-  if (rightGap >= MIN_COL) segs.push({ x: objR, w: rightGap, side: "right" })
-  return segs
-}
-
-/** Convenience predicate: does ANY emitted floor segment cross the door's
- *  horizontal span [objL, objR]? Always false for a valid door render. */
-export function floorBoardCrossesObject(input: PortalGeometryInput): boolean {
-  const objL = input.leftGap
-  const objR = input.leftGap + input.objectWidth
-  return computePortalFloorSegments(input).some(
-    (s) => s.x < objR && s.x + s.w > objL,
-  )
-}
+// Re-export pure geometry helpers (live in src/lib/portal-geometry.ts).
+export {
+  computePortalFloorSegments,
+  floorBoardCrossesObject,
+  PORTAL_MIN_COL,
+  PORTAL_BOARD_T,
+} from "@/lib/portal-geometry"
+export type { PortalGeometryInput, PortalBoardSegment } from "@/lib/portal-geometry"
 
 // ─── CANVAS HELPERS ───
 function CanvasCapture({ onReady }: { onReady: (fn: () => Promise<string>) => void }) {
