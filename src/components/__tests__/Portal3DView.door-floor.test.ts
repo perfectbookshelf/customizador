@@ -4,7 +4,7 @@ import {
   floorBoardCrossesObject,
   PORTAL_MIN_COL,
   type PortalGeometryInput,
-} from "@/components/Portal3DView"
+} from "@/lib/portal-geometry"
 
 const base: PortalGeometryInput = {
   wallWidth: 100,
