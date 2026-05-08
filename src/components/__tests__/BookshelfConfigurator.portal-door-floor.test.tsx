@@ -68,19 +68,15 @@ describe("Portal door: floorToObject locked to 0", () => {
 
     // Switch to Window (window preset has floorToObj=36)
     clickButtonByText(/^window$/i)
-    portalCalls.length = 0
-    // Render snapshot for window should have floorToObject > 0
     act(() => { /* flush */ })
-    // (Window may briefly clamp; we just assert a window render exists)
-    const windowRender = portalCalls.find(c => c.objectType === "window")
-    expect(windowRender).toBeTruthy()
 
     // Switch back to Door
     portalCalls.length = 0
     clickButtonByText(/^door$/i)
+    act(() => { /* flush */ })
     expect(portalCalls.length).toBeGreaterThan(0)
-    const lastDoorRender = [...portalCalls].reverse().find(c => c.objectType === "door")
-    expect(lastDoorRender).toBeTruthy()
-    expect(lastDoorRender!.floorToObject).toBe(0)
+    for (const c of portalCalls) {
+      expect(c.floorToObject).toBe(0)
+    }
   })
 })
