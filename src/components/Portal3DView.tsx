@@ -221,8 +221,10 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
   const safeBot = objBot - SAFETY
   const safeTop = objTop + SAFETY
 
-  const hasLeft = leftGap >= MIN_COL
-  const hasRight = rightGap >= MIN_COL
+  // Side support: a side zone is usable iff its own module sequence (reset per
+  // segment) yields ≥2 modules — same gravity rule as the board splitter.
+  const hasLeft = calcModulesForSegment(leftGap, 0).length >= PORTAL_MIN_MODULES_PER_BOARD
+  const hasRight = calcModulesForSegment(rightGap, 0).length >= PORTAL_MIN_MODULES_PER_BOARD
 
   // ─── Compute shelf row Y positions ───
   const rows = useMemo(() => {
