@@ -346,7 +346,11 @@ export function BookshelfConfigurator() {
   }
 
   function handleReset() {
+    // Wipe persisted state so a page reload also lands on the bookshelf default.
+    try { localStorage.removeItem("bookshelf-config") } catch { /* ignore */ }
     setStepIndex(0)
+    setMainType("bookshelf")
+    setCornerVariant("outside")
     setWidth(defaultWidth)
     setWidth2(50)
     const defaultShelves: ShelfConfig[] = [
@@ -356,8 +360,15 @@ export function BookshelfConfigurator() {
     setShelves(defaultShelves)
     setShelves2(defaultShelves.map(s => ({ ...s })))
     setSelectedFinish("Oak/Oak")
-    setMainType("bookshelf")
-    setCornerVariant("outside")
+    // U-Surround defaults
+    setUW1(50); setUW(70); setUW2(50)
+    // Cathedral defaults
+    setCathW(100); setCathH(60); setCathH1(96); setCathDir("left")
+    // Portal defaults
+    setPortalWallW(100); setPortalWallH(108)
+    setPortalObjW(36); setPortalObjH(82)
+    setPortalFloorToObj(0); setPortalRightGap(32)
+    setPortalObjType("door")
   }
 
   // All types (including portal/cathedral/usurround) use the unified wizard layout.
