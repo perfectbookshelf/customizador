@@ -196,6 +196,12 @@ export function BookshelfConfigurator() {
     const count = defaults[mainType]
     setShelves(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
     setShelves2(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
+    if (mainType === "portal") {
+      // Seed portal so the bookshelf wraps OVER the door by default
+      setPortalWallW(100); setPortalWallH(108)
+      setPortalObjType("door"); setPortalObjW(36); setPortalObjH(82); setPortalFloorToObj(0)
+      setPortalRightGap(32)
+    }
   }, [mainType])
 
   useEffect(() => {
