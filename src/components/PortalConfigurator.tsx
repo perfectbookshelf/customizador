@@ -141,7 +141,7 @@ interface PortalConfiguratorProps {
 
 export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
   const [wallWidth, setWallWidth] = useState(100)
-  const [wallHeight, setWallHeight] = useState(96)
+  const [wallHeight, setWallHeight] = useState(108)
   const [objectWidth, setObjectWidth] = useState(36)
   const [objectHeight, setObjectHeight] = useState(82)
   const [floorToObject, setFloorToObject] = useState(0)
