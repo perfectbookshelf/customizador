@@ -81,3 +81,69 @@ describe("Portal3DView door floor-board rules", () => {
     expect(segs).toHaveLength(2)
   })
 })
+
+describe("Portal door floor-board: exact 25\" boundary + 2-module rule", () => {
+  // Smallest two modules are 7.25" each → 14.5" total. A 25" gap easily holds
+  // the minimum 2-module column required to keep a floor board off the ground.
+  const MIN = 25
+
+  it("leftGap = 25 (exactly): left segment IS emitted", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: MIN, rightGap: 40 })
+    const left = segs.find(s => s.side === "left")
+    expect(left).toBeDefined()
+    expect(left!.w).toBe(MIN)
+  })
+
+  it("leftGap = 24.999 (just below): left segment is OMITTED (no support → would fall)", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 24.999, rightGap: 40 })
+    expect(segs.find(s => s.side === "left")).toBeUndefined()
+    expect(segs.find(s => s.side === "right")).toBeDefined()
+  })
+
+  it("rightGap = 25 (exactly): right segment IS emitted", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: MIN })
+    const right = segs.find(s => s.side === "right")
+    expect(right).toBeDefined()
+    expect(right!.w).toBe(MIN)
+  })
+
+  it("rightGap = 24.999 (just below): right segment is OMITTED", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: 24.999 })
+    expect(segs.find(s => s.side === "right")).toBeUndefined()
+    expect(segs.find(s => s.side === "left")).toBeDefined()
+  })
+
+  it("BOTH gaps exactly 25: both segments emitted, neither crosses the door", () => {
+    const segs = computePortalFloorSegments({
+      ...base, objectWidth: 50, leftGap: MIN, rightGap: MIN,
+    })
+    expect(segs).toHaveLength(2)
+    const objL = MIN
+    const objR = MIN + 50
+    for (const s of segs) {
+      const fullyLeft = s.x + s.w <= objL + 1e-9
+      const fullyRight = s.x >= objR - 1e-9
+      expect(fullyLeft || fullyRight).toBe(true)
+    }
+  })
+
+  it("BOTH gaps 24.999: NO floor segments — opening would have unsupported boards", () => {
+    const segs = computePortalFloorSegments({
+      ...base, objectWidth: 50, leftGap: 24.999, rightGap: 24.999,
+    })
+    expect(segs).toHaveLength(0)
+  })
+
+  it("asymmetric exact boundary: left=25, right=24 → only left emitted", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 25, rightGap: 24, objectWidth: 51 })
+    expect(segs).toHaveLength(1)
+    expect(segs[0].side).toBe("left")
+  })
+
+  it("25\" gap can host the documented minimum 2-module column (2× 7.25\" = 14.5\")", () => {
+    // Sanity: the 25" rule is chosen so the smallest 2-module pair fits with margin.
+    // Each shelf board needs ≥2 modules to support it; the smallest module is 7.25".
+    const minTwoModules = 7.25 * 2
+    expect(minTwoModules).toBeLessThanOrEqual(MIN)
+  })
+})
