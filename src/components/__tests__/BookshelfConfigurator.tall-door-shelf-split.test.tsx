@@ -224,7 +224,9 @@ describe("Tall door: FLOOR board ≥2-module gravity rule", () => {
           const wallWidth = lg + base.objectWidth + rg
           const segs = computePortalFloorSegments({
             wallWidth,
+            wallHeight: base.wallHeight,
             objectWidth: base.objectWidth,
+            objectHeight: base.objectHeight,
             floorToObject: 0,
             leftGap: lg,
             rightGap: rg,
