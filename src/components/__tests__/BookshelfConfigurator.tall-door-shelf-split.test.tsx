@@ -27,6 +27,7 @@ import { render, screen, fireEvent, act } from "@testing-library/react"
 import { BookshelfConfigurator } from "@/components/BookshelfConfigurator"
 import {
   computePortalShelfBoardSegments,
+  computePortalFloorSegments,
   PORTAL_MIN_MODULES_PER_BOARD,
   PORTAL_BOARD_T,
 } from "@/lib/portal-geometry"
