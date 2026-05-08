@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useLoader } from "@react-three/fiber"
-import { OrbitControls, ContactShadows, Environment } from "@react-three/drei"
+import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 
 export interface Cathedral3DViewRef {
@@ -294,8 +294,7 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
               direction={direction}
             />
 
-            <Environment preset="studio" />
-
+            <Environment preset="studio" environmentIntensity={0.5} />
             <ContactShadows position={[0, -0.1, 0]} opacity={0.3} scale={W * 1.8} blur={2.8} far={totalHeight * 1.5} resolution={1024} />
             <OrbitControls enableZoom enablePan enableRotate minDistance={20} maxDistance={200} target={[0, totalHeight / 2, 0]} enableDamping dampingFactor={0.05} rotateSpeed={0.5} zoomSpeed={0.5} />
           </Suspense>

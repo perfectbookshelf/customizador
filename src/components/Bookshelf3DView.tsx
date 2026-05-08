@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useLoader } from "@react-three/fiber"
-import { OrbitControls, ContactShadows, Environment } from "@react-three/drei"
+import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 
 interface Shelf {
@@ -720,8 +720,7 @@ export const Bookshelf3DView = forwardRef<
             />
           )}
 
-          <Environment preset="studio" />
-
+          <Environment preset="studio" environmentIntensity={0.5} />
           <ContactShadows
             position={[0, -0.1, 0]}
             opacity={0.3}
