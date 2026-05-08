@@ -330,9 +330,9 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
         return (
           <group key={ri}>
             {/* Bottom board of this row (skip row 0, already rendered as outer frame) */}
-            {ri > 0 && renderShelfBoard(rowY)}
+            {ri > 0 && renderShelfBoard(rowY, `rb${ri}`)}
             {/* Top board of this row */}
-            {renderShelfBoard(topBoardY)}
+            {renderShelfBoard(topBoardY, `rt${ri}`)}
 
             {/* Modules — only skip center zone modules when row overlaps object */}
             {rowModules[ri]?.map((mod: any, mi: number) => {
