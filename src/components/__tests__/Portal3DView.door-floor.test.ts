@@ -44,22 +44,22 @@ describe("Portal3DView door floor-board rules", () => {
     expect(segs.every(s => s.side !== "full")).toBe(true)
   })
 
-  it("door: side segment is omitted when its gap is < 25\" (min 2-module rule)", () => {
-    // Left gap too narrow → no left segment
-    const segs = computePortalFloorSegments({ ...base, leftGap: 24, rightGap: 40 })
+  it("door: side segment is omitted when its gap is < 14.5\" (can't fit 2 modules)", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 14, rightGap: 40 })
     expect(segs.find(s => s.side === "left")).toBeUndefined()
     expect(segs.find(s => s.side === "right")).toBeDefined()
   })
 
-  it("door: BOTH side segments omitted when both gaps < 25\"", () => {
+  it("door: BOTH side segments omitted when neither side fits 2 modules", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: 10, rightGap: 10, objectWidth: 80 })
     expect(segs).toHaveLength(0)
   })
 
-  it("door: both sides emitted when both gaps >= 25\"", () => {
+  it("door: both sides emitted when both gaps fit ≥2 modules", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: 25, rightGap: 25, objectWidth: 50 })
     expect(segs).toHaveLength(2)
     expect(segs.map(s => s.side).sort()).toEqual(["left", "right"])
+    for (const s of segs) expect(s.moduleCount).toBeGreaterThanOrEqual(2)
   })
 
   it("non-door object lifted off floor: emits ONE full-width floor board", () => {
