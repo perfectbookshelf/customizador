@@ -185,7 +185,9 @@ describe("Tall door: FLOOR board ≥2-module gravity rule", () => {
   function floorOf(props: any) {
     return computePortalFloorSegments({
       wallWidth: props.wallWidth,
+      wallHeight: props.wallHeight,
       objectWidth: props.objectWidth,
+      objectHeight: props.objectHeight,
       floorToObject: props.floorToObject,
       leftGap: props.leftGap,
       rightGap: props.rightGap,
