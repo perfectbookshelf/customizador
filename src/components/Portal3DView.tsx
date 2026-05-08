@@ -271,8 +271,15 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
       ) : (
         <Board pos={[0, 0, -defDepth / 2]} w={wallWidth} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
       )}
-      {/* Top board — full wallWidth at wallHeight */}
-      <Board pos={[0, lastTop, -defDepth / 2]} w={wallWidth} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
+      {/* Top board — split if object intersects this Y */}
+      {(lastTop < objTop && lastTop + BOARD_T > objBot) ? (
+        <>
+          {hasLeft && <Board pos={[wL + leftGap / 2, lastTop, -defDepth / 2]} w={leftGap} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />}
+          {hasRight && <Board pos={[wL + objR + rightGap / 2, lastTop, -defDepth / 2]} w={rightGap} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />}
+        </>
+      ) : (
+        <Board pos={[0, lastTop, -defDepth / 2]} w={wallWidth} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
+      )}
       {/* Left side panel — only if leftGap >= 25" */}
       {hasLeft && <SidePanel x={wL + BOARD_T / 2} h={lastTop + BOARD_T} d={maxDepth} finish={intF} />}
       {/* Right side panel — only if rightGap >= 25" */}
