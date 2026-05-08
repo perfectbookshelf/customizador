@@ -85,9 +85,9 @@ describe("Portal3DView door floor-board rules", () => {
 describe("Portal door floor-board: 2-module gravity rule (per-segment reset)", () => {
   // The Portal split-board rule resets the module sequencer for each emitted
   // segment (PortalLivePreview calls calculateBookshelf once per segment from
-  // index 0). Smallest two modules from index 0 are 7.25" + 7.25" = 14.5",
-  // so 14.5" is the true physical minimum to support a board.
-  const MIN_PHYS = 14.5
+  // index 0). The sequencer always picks indices 0 then 1 first → smallest two
+  // modules are 7.25" + 9.5" = 16.75", the true physical minimum to support a board.
+  const MIN_PHYS = 16.75
 
   it("leftGap = 14.5 (exactly): left segment IS emitted with exactly 2 modules", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: MIN_PHYS, rightGap: 40 })
