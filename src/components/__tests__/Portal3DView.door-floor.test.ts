@@ -25,12 +25,9 @@ describe("Portal3DView door floor-board rules", () => {
   it("door: never emits a floor segment that crosses the opening", () => {
     const segs = computePortalFloorSegments(base)
     expect(floorBoardCrossesObject(base)).toBe(false)
-    // Two side segments, neither crossing the opening
     expect(segs).toHaveLength(2)
+    const objR = base.leftGap + base.objectWidth
     for (const s of segs) {
-      expect(s.x + s.w).toBeLessThanOrEqual(base.leftGap + 1e-9)
-      // OR fully right of the opening
-      const objR = base.leftGap + base.objectWidth
       const fullyLeft = s.x + s.w <= base.leftGap + 1e-9
       const fullyRight = s.x >= objR - 1e-9
       expect(fullyLeft || fullyRight).toBe(true)
