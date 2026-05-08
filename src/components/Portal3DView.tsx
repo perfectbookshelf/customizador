@@ -137,6 +137,8 @@ function calcModulesForWidth(totalW: number, startIdx: number): { widths: number
 import {
   computePortalFloorSegments as _computePortalFloorSegments,
   computePortalShelfBoardSegments as _computePortalShelfBoardSegments,
+  calcModulesForSegment,
+  PORTAL_MIN_MODULES_PER_BOARD,
 } from "@/lib/portal-geometry"
 export {
   computePortalFloorSegments,
