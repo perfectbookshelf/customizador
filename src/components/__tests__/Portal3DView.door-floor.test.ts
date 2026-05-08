@@ -44,7 +44,7 @@ describe("Portal3DView door floor-board rules", () => {
     expect(segs.every(s => s.side !== "full")).toBe(true)
   })
 
-  it("door: side segment is omitted when its gap is < 14.5\" (can't fit 2 modules)", () => {
+  it("door: side segment is omitted when its gap is < 16.75\" (can't fit 2 modules)", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: 14, rightGap: 40 })
     expect(segs.find(s => s.side === "left")).toBeUndefined()
     expect(segs.find(s => s.side === "right")).toBeDefined()
@@ -89,33 +89,33 @@ describe("Portal door floor-board: 2-module gravity rule (per-segment reset)", (
   // modules are 7.25" + 9.5" = 16.75", the true physical minimum to support a board.
   const MIN_PHYS = 16.75
 
-  it("leftGap = 14.5 (exactly): left segment IS emitted with exactly 2 modules", () => {
+  it("leftGap = 16.75 (exactly): left segment IS emitted with exactly 2 modules", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: MIN_PHYS, rightGap: 40 })
     const left = segs.find(s => s.side === "left")
     expect(left).toBeDefined()
     expect(left!.moduleCount).toBe(2)
   })
 
-  it("leftGap = 14.49 (just below): left segment OMITTED (would see-saw on 1 module)", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: 14.49, rightGap: 40 })
+  it("leftGap = 16.74 (just below): left segment OMITTED (would see-saw on 1 module)", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 16.74, rightGap: 40 })
     expect(segs.find(s => s.side === "left")).toBeUndefined()
     expect(segs.find(s => s.side === "right")).toBeDefined()
   })
 
-  it("rightGap = 14.5 (exactly): right segment IS emitted", () => {
+  it("rightGap = 16.75 (exactly): right segment IS emitted", () => {
     const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: MIN_PHYS })
     const right = segs.find(s => s.side === "right")
     expect(right).toBeDefined()
     expect(right!.moduleCount).toBe(2)
   })
 
-  it("rightGap = 14.49 (just below): right segment OMITTED", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: 14.49 })
+  it("rightGap = 16.74 (just below): right segment OMITTED", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 40, rightGap: 16.74 })
     expect(segs.find(s => s.side === "right")).toBeUndefined()
     expect(segs.find(s => s.side === "left")).toBeDefined()
   })
 
-  it("BOTH gaps exactly 14.5: both segments emitted, both with 2 modules", () => {
+  it("BOTH gaps exactly 16.75: both segments emitted, both with 2 modules", () => {
     const segs = computePortalFloorSegments({
       ...base, objectWidth: 50, leftGap: MIN_PHYS, rightGap: MIN_PHYS,
     })
@@ -129,15 +129,15 @@ describe("Portal door floor-board: 2-module gravity rule (per-segment reset)", (
     }
   })
 
-  it("BOTH gaps 14.49: NO floor segments — boards would fall", () => {
+  it("BOTH gaps 16.74: NO floor segments — boards would fall", () => {
     const segs = computePortalFloorSegments({
-      ...base, objectWidth: 50, leftGap: 14.49, rightGap: 14.49,
+      ...base, objectWidth: 50, leftGap: 16.74, rightGap: 16.74,
     })
     expect(segs).toHaveLength(0)
   })
 
-  it("asymmetric: left=14.5, right=14.49 → only left emitted", () => {
-    const segs = computePortalFloorSegments({ ...base, leftGap: 14.5, rightGap: 14.49, objectWidth: 71.01 })
+  it("asymmetric: left=16.75, right=16.74 → only left emitted", () => {
+    const segs = computePortalFloorSegments({ ...base, leftGap: 16.75, rightGap: 16.74, objectWidth: 66.51 })
     expect(segs).toHaveLength(1)
     expect(segs[0].side).toBe("left")
   })
@@ -153,7 +153,7 @@ describe("Portal door floor-board: 2-module gravity rule (per-segment reset)", (
   })
 
   it("non-door full-width board also requires ≥2 modules (consistent rule)", () => {
-    // Wall narrower than 14.5" → no full-width board emitted.
+    // Wall narrower than 16.75" → no full-width board emitted.
     const segs = computePortalFloorSegments({
       ...base, isDoor: false, floorToObject: 30, wallWidth: 14, objectHeight: 8, objectWidth: 8,
     })
