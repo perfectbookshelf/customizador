@@ -133,6 +133,15 @@ function calcModulesForWidth(totalW: number, startIdx: number): { widths: number
   return { widths: ws, nextIdx: idx % MODULE_WIDTHS.length }
 }
 
+// Re-export pure geometry helpers (live in src/lib/portal-geometry.ts).
+export {
+  computePortalFloorSegments,
+  floorBoardCrossesObject,
+  PORTAL_MIN_COL,
+  PORTAL_BOARD_T,
+} from "@/lib/portal-geometry"
+export type { PortalGeometryInput, PortalBoardSegment } from "@/lib/portal-geometry"
+
 // ─── CANVAS HELPERS ───
 function CanvasCapture({ onReady }: { onReady: (fn: () => Promise<string>) => void }) {
   const { gl, scene, camera } = useThree()
