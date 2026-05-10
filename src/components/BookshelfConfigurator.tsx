@@ -555,6 +555,8 @@ export function BookshelfConfigurator() {
     selectionName: `${typePrefix}${visibleCount} ${shelvesStepUnit}`,
     priceDelta: `${toFraction(shelvesStepHeight)} tall`,
     description: shelvesStepDescription,
+    nextLabel: "See Quote",
+    nextDisabled: !isValidQuoteEmail,
     content: (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-y border-border py-4">
@@ -623,6 +625,28 @@ export function BookshelfConfigurator() {
               </div>
             )
           })}
+        </div>
+
+        {/* Email gate — required to unlock pricing on Step 4 */}
+        <div className="border-t border-border pt-6 mt-2 space-y-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Your email</span>
+            <span className="text-[10px] tracking-widest uppercase text-muted-foreground">Required</span>
+          </div>
+          <Input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            maxLength={255}
+            placeholder="you@example.com"
+            value={quoteEmail}
+            onChange={(e) => setQuoteEmail(e.target.value)}
+            aria-invalid={quoteEmail.length > 0 && !isValidQuoteEmail}
+            className="h-10"
+          />
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
+          </p>
         </div>
       </div>
     ),
