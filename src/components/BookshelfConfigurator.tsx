@@ -826,6 +826,7 @@ export function BookshelfConfigurator() {
         </div>
       )}
       <div className="absolute inset-0">
+        <React.Suspense fallback={<Preview3DFallback />}>
 
         {mainType === "portal" ? (
           <PortalLivePreview
