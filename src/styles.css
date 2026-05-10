@@ -85,6 +85,29 @@
   --sidebar-accent-foreground: hsl(0 0% 20%);
   --sidebar-border: hsl(0 0% 85%);
   --sidebar-ring: hsl(0 0% 0%);
+
+  /* ---------- TYPOGRAPHY (The Perfect Bookshelf) ---------- */
+  --tpb-font-display:  'Manrope', 'Inter', system-ui, sans-serif;
+  --tpb-font-body:     'Inter', system-ui, -apple-system, sans-serif;
+  --tpb-font-heritage: 'Cormorant Garamond', 'Times New Roman', serif;
+  --tpb-font-mono:     ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --tpb-fs-12: 0.75rem;
+  --tpb-fs-14: 0.875rem;
+  --tpb-fs-16: 1rem;
+  --tpb-fs-18: 1.125rem;
+  --tpb-fs-20: 1.25rem;
+  --tpb-fs-24: 1.5rem;
+  --tpb-fs-32: 2rem;
+  --tpb-fs-40: 2.5rem;
+  --tpb-fs-48: 3rem;
+  --tpb-fs-64: 4rem;
+  --tpb-fs-80: 5rem;
+  --tpb-fs-96: 6rem;
+
+  --tpb-fg:   #0E0E0C;
+  --tpb-fg-2: #2A2A26;
+  --tpb-fg-3: #6B6457;
 }
 
 .dark {
