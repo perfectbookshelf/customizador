@@ -201,6 +201,9 @@ export function BookshelfConfigurator() {
   const [portalRightGap, setPortalRightGap] = useState<number>(saved.portalRightGap ?? 32)
   const [portalObjType, setPortalObjType] = useState<PortalObject>(saved.portalObjType ?? "door")
 
+  // Warm the 3D bundle in the background so reaching the preview feels instant.
+  useEffect(() => { preload3D() }, [])
+
   // Keep portal object dims inside the wall whenever the wall shrinks.
   useEffect(() => {
     setPortalObjW(w => Math.min(w, Math.max(12, portalWallW - 14)))
