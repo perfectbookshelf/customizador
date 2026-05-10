@@ -378,6 +378,7 @@ export function BookshelfConfigurator() {
     setPortalObjW(36); setPortalObjH(82)
     setPortalFloorToObj(0); setPortalRightGap(32)
     setPortalObjType("door")
+    setQuoteEmail("")
   }
 
   // All types (including portal/cathedral/usurround) use the unified wizard layout.
