@@ -750,45 +750,10 @@ export function BookshelfConfigurator() {
 
   /* ─── Preview ─── */
 
-  const isLegacyType = mainType === "portal" || mainType === "cathedral" || mainType === "usurround"
-  const isReviewStep = stepIndex === steps.length - 1
-  const showSchematicInPreview = isReviewStep && isLegacyType
-
   const preview = (
     <div ref={mainPreviewRef} className="relative w-full h-full min-h-[45vh] lg:min-h-screen flex items-center justify-center">
-      {showSchematicInPreview && (
-        <div className="w-full h-full flex items-center justify-center p-8 bg-muted/10">
-          <div className="max-w-full max-h-full">
-            {mainType === "portal" && (
-              <PortalSchematic
-                wallWidth={portalWallW}
-                wallHeight={portalWallH}
-                objectWidth={portalObjW}
-                objectHeight={portalObjH}
-                floorToObject={portalFloorToObj}
-                rightGap={portalRightGap}
-                leftGap={Math.max(0, portalWallW - portalObjW - portalRightGap)}
-                topHeight={Math.max(0, portalWallH - portalFloorToObj - portalObjH)}
-              />
-            )}
-            {mainType === "cathedral" && (
-              <CathedralSchematic
-                W={cathW} H={cathH} H1={cathH1} direction={cathDir}
-                shelfYPositions={(() => {
-                  const positions: number[] = []; let y = 0
-                  for (const s of shelves) { y += s.height + 0.75; positions.push(y) }
-                  return positions
-                })()}
-              />
-            )}
-            {mainType === "usurround" && (
-              <USurroundSchematic w1={uW1} w={uW} w2={uW2} h={totalHeight} />
-            )}
-          </div>
-        </div>
-      )}
       {/* Dimension badge */}
-      {!isLegacyType && !showSchematicInPreview && (
+      {!isLegacyType && (
         <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-10 text-right pointer-events-none">
           <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">Dimensions</div>
           <div className="text-sm font-medium text-foreground mt-1">
@@ -798,7 +763,8 @@ export function BookshelfConfigurator() {
           </div>
         </div>
       )}
-      <div className="absolute inset-0" style={{ display: showSchematicInPreview ? "none" : undefined }}>
+      <div className="absolute inset-0">
+
         {mainType === "portal" ? (
           <PortalLivePreview
             finish={selectedFinish}
