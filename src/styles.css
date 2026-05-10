@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -44,8 +44,10 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: 'Playfair Display', serif;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Manrope', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heritage: 'Cormorant Garamond', 'Times New Roman', serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
 :root {
@@ -83,6 +85,29 @@
   --sidebar-accent-foreground: hsl(0 0% 20%);
   --sidebar-border: hsl(0 0% 85%);
   --sidebar-ring: hsl(0 0% 0%);
+
+  /* ---------- TYPOGRAPHY (The Perfect Bookshelf) ---------- */
+  --tpb-font-display:  'Manrope', 'Inter', system-ui, sans-serif;
+  --tpb-font-body:     'Inter', system-ui, -apple-system, sans-serif;
+  --tpb-font-heritage: 'Cormorant Garamond', 'Times New Roman', serif;
+  --tpb-font-mono:     ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --tpb-fs-12: 0.75rem;
+  --tpb-fs-14: 0.875rem;
+  --tpb-fs-16: 1rem;
+  --tpb-fs-18: 1.125rem;
+  --tpb-fs-20: 1.25rem;
+  --tpb-fs-24: 1.5rem;
+  --tpb-fs-32: 2rem;
+  --tpb-fs-40: 2.5rem;
+  --tpb-fs-48: 3rem;
+  --tpb-fs-64: 4rem;
+  --tpb-fs-80: 5rem;
+  --tpb-fs-96: 6rem;
+
+  --tpb-fg:   #0E0E0C;
+  --tpb-fg-2: #2A2A26;
+  --tpb-fg-3: #6B6457;
 }
 
 .dark {
@@ -177,4 +202,92 @@
     overscroll-behavior: contain;
     padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 1rem);
   }
+}
+
+/* ============================================================
+   The Perfect Bookshelf — Semantic typography utilities
+   ============================================================ */
+
+.tpb-display, .tpb h1, .tpb-h1 {
+  font-family: var(--tpb-font-display);
+  font-weight: 800;
+  font-size: clamp(2.5rem, 5vw, var(--tpb-fs-96));
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--tpb-fg);
+}
+
+.tpb h2, .tpb-h2 {
+  font-family: var(--tpb-font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, var(--tpb-fs-48));
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--tpb-fg);
+}
+
+.tpb h3, .tpb-h3 {
+  font-family: var(--tpb-font-display);
+  font-weight: 700;
+  font-size: var(--tpb-fs-32);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--tpb-fg);
+}
+
+.tpb h4, .tpb-h4 {
+  font-family: var(--tpb-font-display);
+  font-weight: 600;
+  font-size: var(--tpb-fs-20);
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--tpb-fg);
+}
+
+.tpb-eyebrow {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-12);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--tpb-fg-3);
+}
+
+.tpb-heritage {
+  font-family: var(--tpb-font-heritage);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--tpb-fg-2);
+}
+
+.tpb p, .tpb-body {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-16);
+  line-height: 1.6;
+  color: var(--tpb-fg-2);
+  text-wrap: pretty;
+}
+
+.tpb-lead {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-20);
+  line-height: 1.5;
+  color: var(--tpb-fg);
+  font-weight: 400;
+  text-wrap: pretty;
+}
+
+.tpb-caption {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-14);
+  line-height: 1.5;
+  color: var(--tpb-fg-3);
+}
+
+.tpb-small {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-12);
+  line-height: 1.4;
+  color: var(--tpb-fg-3);
 }
