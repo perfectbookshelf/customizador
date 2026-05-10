@@ -13,14 +13,42 @@ import iconCathedral from "@/assets/icons/Cathedral.png"
 import iconUModel from "@/assets/icons/U-Model.png"
 import type { BookshelfConfig, ShelfConfig, BookshelfType, BookshelfResult } from "@/lib/types"
 import { calculateBookshelf } from "@/lib/bookshelf-calculator"
-import { Bookshelf3DView, type Bookshelf3DViewRef } from "./Bookshelf3DView"
+import type { Bookshelf3DViewRef } from "./Bookshelf3DView"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
-import { Portal3DView } from "./Portal3DView"
-import { Cathedral3DView } from "./Cathedral3DView"
-import { USurround3DView } from "./USurround3DView"
+
+// Lazy-load heavy 3D views (three.js + @react-three/fiber + drei) so the
+// initial wizard bundle stays light. Quality is unchanged — same components,
+// just code-split out of the first paint.
+const Bookshelf3DView = React.lazy(() =>
+  import("./Bookshelf3DView").then((m) => ({ default: m.Bookshelf3DView }))
+)
+const Portal3DView = React.lazy(() =>
+  import("./Portal3DView").then((m) => ({ default: m.Portal3DView }))
+)
+const Cathedral3DView = React.lazy(() =>
+  import("./Cathedral3DView").then((m) => ({ default: m.Cathedral3DView }))
+)
+const USurround3DView = React.lazy(() =>
+  import("./USurround3DView").then((m) => ({ default: m.USurround3DView }))
+)
+
+const Preview3DFallback = () => (
+  <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs tracking-[0.25em] uppercase">
+    Loading preview…
+  </div>
+)
+
+// Warm the 3D bundle in the background once the wizard mounts so the user
+// doesn't wait when reaching the preview step.
+const preload3D = () => {
+  void import("./Bookshelf3DView")
+  void import("./Portal3DView")
+  void import("./Cathedral3DView")
+  void import("./USurround3DView")
+}
 import { PortalSchematic } from "./PortalSchematic"
 import { CathedralSchematic } from "./CathedralSchematic"
 import { USurroundSchematic } from "./USurroundSchematic"
@@ -172,6 +200,9 @@ export function BookshelfConfigurator() {
   const [portalFloorToObj, setPortalFloorToObj] = useState<number>(saved.portalFloorToObj ?? 0)
   const [portalRightGap, setPortalRightGap] = useState<number>(saved.portalRightGap ?? 32)
   const [portalObjType, setPortalObjType] = useState<PortalObject>(saved.portalObjType ?? "door")
+
+  // Warm the 3D bundle in the background so reaching the preview feels instant.
+  useEffect(() => { preload3D() }, [])
 
   // Keep portal object dims inside the wall whenever the wall shrinks.
   useEffect(() => {
@@ -795,6 +826,7 @@ export function BookshelfConfigurator() {
         </div>
       )}
       <div className="absolute inset-0">
+        <React.Suspense fallback={<Preview3DFallback />}>
 
         {mainType === "portal" ? (
           <PortalLivePreview
@@ -836,6 +868,7 @@ export function BookshelfConfigurator() {
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">Configure to see preview</div>
         )}
+        </React.Suspense>
       </div>
       {isMobileDevice && result && !isLegacyType && <FloatingPreview mainPreviewRef={mainPreviewRef} />}
     </div>
