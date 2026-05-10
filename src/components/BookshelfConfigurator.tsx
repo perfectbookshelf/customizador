@@ -868,6 +868,7 @@ export function BookshelfConfigurator() {
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">Configure to see preview</div>
         )}
+        </React.Suspense>
       </div>
       {isMobileDevice && result && !isLegacyType && <FloatingPreview mainPreviewRef={mainPreviewRef} />}
     </div>
