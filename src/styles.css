@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&display=swap');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -44,75 +44,93 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-display: 'Playfair Display', serif;
-  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-display: 'Manrope', 'Inter', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heritage: 'Cormorant Garamond', 'Times New Roman', serif;
 }
 
+/* The Perfect Bookshelf — TPB design system tokens
+   Mapped onto the existing semantic token names so every component
+   (shadcn buttons, cards, dialogs, etc.) inherits the new look. */
 :root {
-  --radius: 0.5rem;
-  --background: hsl(0 0% 96%);
-  --foreground: hsl(0 0% 10%);
-  --card: hsl(0 0% 98%);
-  --card-foreground: hsl(0 0% 10%);
-  --popover: hsl(0 0% 98%);
-  --popover-foreground: hsl(0 0% 10%);
-  --primary: hsl(0 0% 0%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(0 0% 90%);
-  --secondary-foreground: hsl(0 0% 20%);
-  --muted: hsl(0 0% 92%);
-  --muted-foreground: hsl(0 0% 45%);
-  --accent: hsl(0 0% 0%);
-  --accent-foreground: hsl(0 0% 100%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(0 0% 85%);
-  --input: hsl(0 0% 85%);
-  --ring: hsl(0 0% 0%);
-  --brand-walnut: oklch(0.42 0.08 50);
-  --brand-walnut-foreground: oklch(0.98 0 0);
-  --wood-oak: hsl(38 60% 65%);
-  --wood-walnut: hsl(20 55% 28%);
-  --wood-ash: hsl(35 25% 85%);
-  --wood-maple: hsl(38 55% 72%);
-  --sidebar: hsl(0 0% 95%);
-  --sidebar-foreground: hsl(0 0% 15%);
-  --sidebar-primary: hsl(0 0% 0%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(0 0% 90%);
-  --sidebar-accent-foreground: hsl(0 0% 20%);
-  --sidebar-border: hsl(0 0% 85%);
-  --sidebar-ring: hsl(0 0% 0%);
+  --radius: 0.25rem; /* architectural — small */
+
+  /* Surfaces */
+  --background: #F5F1EA;       /* tpb-cream */
+  --foreground: #0E0E0C;       /* tpb-ink */
+  --card: #FBF8F1;             /* tpb-paper */
+  --card-foreground: #0E0E0C;
+  --popover: #FBF8F1;
+  --popover-foreground: #0E0E0C;
+
+  /* Primary = ink black (logo) */
+  --primary: #0E0E0C;
+  --primary-foreground: #F5F1EA;
+
+  /* Secondary = sand backdrop */
+  --secondary: #E5DAC4;
+  --secondary-foreground: #2A2A26;
+
+  --muted: #ECE6D9;
+  --muted-foreground: #6B6457;
+
+  /* Accent = terracotta (used sparingly) */
+  --accent: #C75A3A;
+  --accent-foreground: #FBF8F1;
+
+  --destructive: hsl(0 60% 45%);
+  --destructive-foreground: #FBF8F1;
+
+  --border: #D6CFC2;
+  --input: #D6CFC2;
+  --ring: #C75A3A;
+
+  /* Wood swatches — aligned with brand finish palette */
+  --brand-walnut: #6B4A2B;
+  --brand-walnut-foreground: #FBF8F1;
+  --wood-oak: #D9B57A;
+  --wood-walnut: #6B4A2B;
+  --wood-ash: #ECE6D9;
+  --wood-maple: #E8D0A6;
+
+  --sidebar: #FBF8F1;
+  --sidebar-foreground: #2A2A26;
+  --sidebar-primary: #0E0E0C;
+  --sidebar-primary-foreground: #F5F1EA;
+  --sidebar-accent: #E5DAC4;
+  --sidebar-accent-foreground: #2A2A26;
+  --sidebar-border: #D6CFC2;
+  --sidebar-ring: #C75A3A;
 }
 
 .dark {
-  --background: hsl(0 0% 10%);
-  --foreground: hsl(0 0% 90%);
-  --card: hsl(0 0% 14%);
-  --card-foreground: hsl(0 0% 90%);
-  --popover: hsl(0 0% 14%);
-  --popover-foreground: hsl(0 0% 90%);
-  --primary: hsl(0 0% 85%);
-  --primary-foreground: hsl(0 0% 10%);
-  --secondary: hsl(0 0% 20%);
-  --secondary-foreground: hsl(0 0% 90%);
-  --muted: hsl(0 0% 18%);
-  --muted-foreground: hsl(0 0% 55%);
-  --accent: hsl(0 0% 75%);
-  --accent-foreground: hsl(0 0% 10%);
-  --destructive: hsl(0 62.8% 30.6%);
-  --destructive-foreground: hsl(0 0% 98%);
-  --border: hsl(0 0% 22%);
-  --input: hsl(0 0% 22%);
-  --ring: hsl(0 0% 85%);
-  --sidebar: hsl(0 0% 12%);
-  --sidebar-foreground: hsl(0 0% 90%);
-  --sidebar-primary: hsl(0 0% 85%);
-  --sidebar-primary-foreground: hsl(0 0% 10%);
-  --sidebar-accent: hsl(0 0% 20%);
-  --sidebar-accent-foreground: hsl(0 0% 90%);
-  --sidebar-border: hsl(0 0% 22%);
-  --sidebar-ring: hsl(0 0% 85%);
+  --background: #0E0E0C;
+  --foreground: #F5F1EA;
+  --card: #1A1A18;
+  --card-foreground: #F5F1EA;
+  --popover: #1A1A18;
+  --popover-foreground: #F5F1EA;
+  --primary: #F5F1EA;
+  --primary-foreground: #0E0E0C;
+  --secondary: #2A2A26;
+  --secondary-foreground: #F5F1EA;
+  --muted: #2A2A26;
+  --muted-foreground: #A8A296;
+  --accent: #C75A3A;
+  --accent-foreground: #F5F1EA;
+  --destructive: hsl(0 55% 50%);
+  --destructive-foreground: #F5F1EA;
+  --border: #2A2A26;
+  --input: #2A2A26;
+  --ring: #C75A3A;
+  --sidebar: #1A1A18;
+  --sidebar-foreground: #F5F1EA;
+  --sidebar-primary: #F5F1EA;
+  --sidebar-primary-foreground: #0E0E0C;
+  --sidebar-accent: #2A2A26;
+  --sidebar-accent-foreground: #F5F1EA;
+  --sidebar-border: #2A2A26;
+  --sidebar-ring: #C75A3A;
 }
 
 @layer base {
@@ -124,10 +142,26 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  h1 { letter-spacing: -0.025em; line-height: 0.98; }
+
+  .font-heritage { font-family: var(--font-heritage); font-style: italic; }
+
+  .tpb-eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted-foreground);
   }
 }
 
