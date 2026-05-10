@@ -133,6 +133,7 @@ export function BookshelfConfigurator() {
   }, [])
 
   const [mainType, setMainType] = useState<MainType>(saved.mainType ?? "bookshelf")
+  const isLegacyType = mainType === "portal" || mainType === "cathedral" || mainType === "usurround"
   const [cornerVariant, setCornerVariant] = useState<CornerVariant>(saved.cornerVariant ?? "outside")
   const [width, setWidth] = useState<number>(saved.width ?? defaultWidth)
   const [width2, setWidth2] = useState<number>(saved.width2 ?? 50)
