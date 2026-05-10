@@ -203,3 +203,91 @@
     padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 1rem);
   }
 }
+
+/* ============================================================
+   The Perfect Bookshelf — Semantic typography utilities
+   ============================================================ */
+
+.tpb-display, .tpb h1, .tpb-h1 {
+  font-family: var(--tpb-font-display);
+  font-weight: 800;
+  font-size: clamp(2.5rem, 5vw, var(--tpb-fs-96));
+  line-height: 0.95;
+  letter-spacing: -0.025em;
+  color: var(--tpb-fg);
+}
+
+.tpb h2, .tpb-h2 {
+  font-family: var(--tpb-font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 3.5vw, var(--tpb-fs-48));
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--tpb-fg);
+}
+
+.tpb h3, .tpb-h3 {
+  font-family: var(--tpb-font-display);
+  font-weight: 700;
+  font-size: var(--tpb-fs-32);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--tpb-fg);
+}
+
+.tpb h4, .tpb-h4 {
+  font-family: var(--tpb-font-display);
+  font-weight: 600;
+  font-size: var(--tpb-fs-20);
+  line-height: 1.25;
+  letter-spacing: -0.005em;
+  color: var(--tpb-fg);
+}
+
+.tpb-eyebrow {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-12);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--tpb-fg-3);
+}
+
+.tpb-heritage {
+  font-family: var(--tpb-font-heritage);
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--tpb-fg-2);
+}
+
+.tpb p, .tpb-body {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-16);
+  line-height: 1.6;
+  color: var(--tpb-fg-2);
+  text-wrap: pretty;
+}
+
+.tpb-lead {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-20);
+  line-height: 1.5;
+  color: var(--tpb-fg);
+  font-weight: 400;
+  text-wrap: pretty;
+}
+
+.tpb-caption {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-14);
+  line-height: 1.5;
+  color: var(--tpb-fg-3);
+}
+
+.tpb-small {
+  font-family: var(--tpb-font-body);
+  font-size: var(--tpb-fs-12);
+  line-height: 1.4;
+  color: var(--tpb-fg-3);
+}
