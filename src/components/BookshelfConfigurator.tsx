@@ -798,7 +798,7 @@ export function BookshelfConfigurator() {
           </div>
         </div>
       )}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0" style={{ display: showSchematicInPreview ? "none" : undefined }}>
         {mainType === "portal" ? (
           <PortalLivePreview
             finish={selectedFinish}
