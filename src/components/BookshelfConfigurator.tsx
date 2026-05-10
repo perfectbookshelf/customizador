@@ -846,7 +846,7 @@ export function BookshelfConfigurator() {
       preview={preview}
       steps={steps}
       index={stepIndex}
-      onIndexChange={setStepIndex}
+      onIndexChange={(next) => setStepIndex(next > 2 && !isValidQuoteEmail ? Math.min(2, next) : next)}
       onReset={handleReset}
     />
   )
