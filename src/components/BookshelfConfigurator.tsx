@@ -666,35 +666,7 @@ export function BookshelfConfigurator() {
     hideNav: true,
     content: (
       <div className="space-y-8">
-        {(mainType === "portal" || mainType === "cathedral" || mainType === "usurround") && (
-          <div className="border border-border p-4 bg-muted/20">
-            {mainType === "portal" && (
-              <PortalSchematic
-                wallWidth={portalWallW}
-                wallHeight={portalWallH}
-                objectWidth={portalObjW}
-                objectHeight={portalObjH}
-                floorToObject={portalFloorToObj}
-                rightGap={portalRightGap}
-                leftGap={Math.max(0, portalWallW - portalObjW - portalRightGap)}
-                topHeight={Math.max(0, portalWallH - portalFloorToObj - portalObjH)}
-              />
-            )}
-            {mainType === "cathedral" && (
-              <CathedralSchematic
-                W={cathW} H={cathH} H1={cathH1} direction={cathDir}
-                shelfYPositions={(() => {
-                  const positions: number[] = []; let y = 0
-                  for (const s of shelves) { y += s.height + 0.75; positions.push(y) }
-                  return positions
-                })()}
-              />
-            )}
-            {mainType === "usurround" && (
-              <USurroundSchematic w1={uW1} w={uW} w2={uW2} h={totalHeight} />
-            )}
-          </div>
-        )}
+        {/* Schematic now lives in the large preview pane on the review step */}
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
           <SummaryRow label="Type" value={activeType.label} />
           <SummaryRow label="Finish" value={finishOption?.label ?? "—"} />
