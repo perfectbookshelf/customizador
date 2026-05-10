@@ -127,6 +127,10 @@ export function BookshelfConfigurator() {
   const defaultWidth = 69.75
 
   const [stepIndex, setStepIndex] = useState(0)
+  const [quoteEmail, setQuoteEmail] = useState<string>("")
+  // RFC-5322-lite: good enough for client-side gating without false negatives.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const isValidQuoteEmail = EMAIL_RE.test(quoteEmail.trim()) && quoteEmail.trim().length <= 255
   const saved = useMemo<any>(() => {
     const raw = safeGetItem("bookshelf-config")
     if (!raw) return {}
