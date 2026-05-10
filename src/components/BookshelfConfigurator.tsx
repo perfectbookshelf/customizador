@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
+import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import iconHorizontal from "@/assets/icons/Horizontal.png"
 import iconBookshelf from "@/assets/icons/Vertical_Bookshelf.png"
@@ -126,6 +127,10 @@ export function BookshelfConfigurator() {
   const defaultWidth = 69.75
 
   const [stepIndex, setStepIndex] = useState(0)
+  const [quoteEmail, setQuoteEmail] = useState<string>("")
+  // RFC-5322-lite: good enough for client-side gating without false negatives.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const isValidQuoteEmail = EMAIL_RE.test(quoteEmail.trim()) && quoteEmail.trim().length <= 255
   const saved = useMemo<any>(() => {
     const raw = safeGetItem("bookshelf-config")
     if (!raw) return {}
@@ -373,6 +378,7 @@ export function BookshelfConfigurator() {
     setPortalObjW(36); setPortalObjH(82)
     setPortalFloorToObj(0); setPortalRightGap(32)
     setPortalObjType("door")
+    setQuoteEmail("")
   }
 
   // All types (including portal/cathedral/usurround) use the unified wizard layout.
@@ -550,6 +556,8 @@ export function BookshelfConfigurator() {
     selectionName: `${typePrefix}${visibleCount} ${shelvesStepUnit}`,
     priceDelta: `${toFraction(shelvesStepHeight)} tall`,
     description: shelvesStepDescription,
+    nextLabel: "See Quote",
+    nextDisabled: !isValidQuoteEmail,
     content: (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-y border-border py-4">
@@ -618,6 +626,28 @@ export function BookshelfConfigurator() {
               </div>
             )
           })}
+        </div>
+
+        {/* Email gate — required to unlock pricing on Step 4 */}
+        <div className="border-t border-border pt-6 mt-2 space-y-3">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Your email</span>
+            <span className="text-[10px] tracking-widest uppercase text-muted-foreground">Required</span>
+          </div>
+          <Input
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            maxLength={255}
+            placeholder="you@example.com"
+            value={quoteEmail}
+            onChange={(e) => setQuoteEmail(e.target.value)}
+            aria-invalid={quoteEmail.length > 0 && !isValidQuoteEmail}
+            className="h-10"
+          />
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
+          </p>
         </div>
       </div>
     ),
@@ -817,7 +847,7 @@ export function BookshelfConfigurator() {
       preview={preview}
       steps={steps}
       index={stepIndex}
-      onIndexChange={setStepIndex}
+      onIndexChange={(next) => setStepIndex(next > 2 && !isValidQuoteEmail ? Math.min(2, next) : next)}
       onReset={handleReset}
     />
   )
