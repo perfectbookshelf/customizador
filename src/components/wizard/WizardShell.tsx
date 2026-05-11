@@ -19,6 +19,8 @@ export interface WizardStep {
   nextDisabled?: boolean
   /** Override the default "NEXT >" label, e.g. "REVIEW >". */
   nextLabel?: string
+  /** Called when the user clicks Next while it's disabled. Useful for guiding them to the missing field. */
+  onNextBlocked?: () => void
 }
 
 interface WizardShellProps {
