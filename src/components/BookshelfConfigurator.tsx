@@ -1089,6 +1089,11 @@ function PortalDimsContent(props: {
 }) {
   const { wallW, setWallW, wallH, setWallH, objW, setObjW, objH, setObjH, floorToObj, setFloorToObj, rightGap, setRightGap, objType, setObjType } = props
   const leftGap = Math.max(0, wallW - objW - rightGap)
+  const minWallH = Math.max(60, floorToObj + objH)
+  const effectiveWallH = Math.max(wallH, minWallH)
+  useEffect(() => {
+    if (wallH < minWallH) setWallH(minWallH)
+  }, [wallH, minWallH, setWallH])
   return (
     <div className="space-y-8">
       <div>
@@ -1100,10 +1105,10 @@ function PortalDimsContent(props: {
             return (
               <button key={p.id} onClick={() => {
                 setObjType(p.id)
-                if (p.id === "door") { setObjW(36); setObjH(82); setFloorToObj(0) }
-                if (p.id === "window") { setObjW(36); setObjH(48); setFloorToObj(36) }
-                if (p.id === "tv") { setObjW(55); setObjH(31); setFloorToObj(30) }
-                if (p.id === "fireplace") { setObjW(48); setObjH(40); setFloorToObj(0) }
+                if (p.id === "door") { setObjW(36); setObjH(82); setFloorToObj(0); setWallH(Math.max(wallH, 82)) }
+                if (p.id === "window") { setObjW(36); setObjH(48); setFloorToObj(36); setWallH(Math.max(wallH, 84)) }
+                if (p.id === "tv") { setObjW(55); setObjH(31); setFloorToObj(30); setWallH(Math.max(wallH, 61)) }
+                if (p.id === "fireplace") { setObjW(48); setObjH(40); setFloorToObj(0); setWallH(Math.max(wallH, 60)) }
               }}
                 className={cn(
                   "flex flex-col items-center gap-1.5 py-3 px-1 border transition-all",
@@ -1117,19 +1122,19 @@ function PortalDimsContent(props: {
         </div>
       </div>
       <LabeledSlider label="Wall width" value={wallW} onChange={setWallW} min={48} max={240} />
-      <LabeledSlider label="Wall height" value={wallH} onChange={setWallH} min={60} max={144} />
+      <LabeledSlider label="Wall height" value={effectiveWallH} onChange={(v) => setWallH(Math.max(v, minWallH))} min={minWallH} max={144} />
       <LabeledSlider label="Object width" value={objW} onChange={(v) => {
         const clamped = Math.min(v, Math.max(12, wallW - 14))
         setObjW(clamped)
         if (rightGap > wallW - clamped) setRightGap(Math.max(0, wallW - clamped))
       }} min={12} max={Math.max(12, wallW - 14)} />
       <LabeledSlider label="Object height" value={objH} onChange={(v) => {
-        const clamped = Math.min(v, Math.max(12, wallH - 12))
+        const clamped = Math.min(v, Math.max(12, effectiveWallH - floorToObj))
         setObjH(clamped)
-        if (floorToObj + clamped > wallH) setFloorToObj(Math.max(0, wallH - clamped))
-      }} min={12} max={Math.max(12, wallH - 12)} />
+        if (floorToObj + clamped > wallH) setWallH(floorToObj + clamped)
+      }} min={12} max={Math.max(12, effectiveWallH - floorToObj)} />
       {objType !== "door" ? (
-        <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, wallH - objH)} />
+        <LabeledSlider label="Floor → object" value={floorToObj} onChange={setFloorToObj} min={0} max={Math.max(0, effectiveWallH - objH)} />
       ) : (
         <div className="text-[10px] tracking-[0.15em] uppercase text-muted-foreground italic">
           Door sits on the floor — no shelf runs underneath
