@@ -679,6 +679,7 @@ export function BookshelfConfigurator() {
             <span className="text-[10px] tracking-widest uppercase text-muted-foreground">Required</span>
           </div>
           <Input
+            ref={emailInputRef}
             type="email"
             inputMode="email"
             autoComplete="email"
@@ -687,7 +688,10 @@ export function BookshelfConfigurator() {
             value={quoteEmail}
             onChange={(e) => setQuoteEmail(e.target.value)}
             aria-invalid={quoteEmail.length > 0 && !isValidQuoteEmail}
-            className="h-10"
+            className={cn(
+              "h-10 transition-all",
+              emailFlash && "ring-2 ring-destructive ring-offset-2 ring-offset-background border-destructive animate-pulse",
+            )}
           />
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
