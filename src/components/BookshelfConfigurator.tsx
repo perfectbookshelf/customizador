@@ -240,6 +240,76 @@ export function BookshelfConfigurator() {
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
 
+  // ─── Portal debug / scenario runner ───
+  const [portalDebug, setPortalDebug] = useState(false)
+  const [scenarioIdx, setScenarioIdx] = useState<number | null>(null)
+  type PortalScenario = {
+    name: string
+    desc: string
+    apply: () => void
+    expect: string
+  }
+  const portalScenarios: PortalScenario[] = useMemo(() => [
+    {
+      name: "Baseline door",
+      desc: "100w × 108h wall, 36×82 door on floor, 6 shelves",
+      expect: "Frame hugs the door zone. No phantom top board crossing the door.",
+      apply: () => {
+        setPortalWallW(100); setPortalWallH(108)
+        setPortalObjType("door"); setPortalObjW(36); setPortalObjH(82); setPortalFloorToObj(0)
+        setPortalRightGap(32)
+        setShelves(Array(6).fill(null).map(() => ({ height: 14, depth: 14 })))
+      },
+    },
+    {
+      name: "Tall wall, few shelves (PHANTOM TOP BOARD BUG)",
+      desc: "108h wall but only 2 shelves → shelvesTop ≈ 30\", lastTop forced to 107.25\"",
+      expect: "Debug overlay should warn: ⚠ phantom top board, top board mode = full.",
+      apply: () => {
+        setPortalWallW(100); setPortalWallH(108)
+        setPortalObjType("door"); setPortalObjW(36); setPortalObjH(82); setPortalFloorToObj(0)
+        setPortalRightGap(32)
+        setShelves(Array(2).fill(null).map(() => ({ height: 14, depth: 14 })))
+      },
+    },
+    {
+      name: "Shelves exceed wall (clipping)",
+      desc: "Wall=60\", 8 shelves of 14\" → 4–5 should clip out",
+      expect: "Debug shows 'shelves rendered: X/8' with ⚠ clipped count.",
+      apply: () => {
+        setPortalWallH(60); setPortalWallW(100)
+        setPortalObjType("door"); setPortalObjW(28); setPortalObjH(58); setPortalFloorToObj(0)
+        setPortalRightGap(36)
+        setShelves(Array(8).fill(null).map(() => ({ height: 14, depth: 14 })))
+      },
+    },
+    {
+      name: "Window lifted off floor",
+      desc: "Window 36×48 at floorToObj=36, wall 108h",
+      expect: "Floor board spans full width (no door zone). floor→obj = 36.00\".",
+      apply: () => {
+        setPortalObjType("window"); setPortalObjW(36); setPortalObjH(48); setPortalFloorToObj(36)
+        setPortalWallW(100); setPortalWallH(108); setPortalRightGap(32)
+        setShelves(Array(6).fill(null).map(() => ({ height: 14, depth: 14 })))
+      },
+    },
+    {
+      name: "Object pushed against wall ceiling",
+      desc: "TV 55×31 at floorToObj=75 → top of object = 106\", wallH=108",
+      expect: "lastTop ≈ shelvesTop, top board mode should be 'split' or 'none', no phantom warning.",
+      apply: () => {
+        setPortalObjType("tv"); setPortalObjW(55); setPortalObjH(31); setPortalFloorToObj(75)
+        setPortalWallW(100); setPortalWallH(108); setPortalRightGap(22)
+        setShelves(Array(7).fill(null).map(() => ({ height: 14, depth: 14 })))
+      },
+    },
+  ], [])
+  const runScenario = (i: number) => {
+    setPortalDebug(true)
+    setScenarioIdx(i)
+    portalScenarios[i].apply()
+  }
+
   const bookshelfType: BookshelfType =
     (mainType === "portal" || mainType === "cathedral" || mainType === "usurround") ? "bookshelf" : mainType
 
@@ -853,6 +923,53 @@ export function BookshelfConfigurator() {
           </div>
         </div>
       )}
+      {/* Portal debug + scenario runner */}
+      {mainType === "portal" && (
+        <div className="absolute bottom-4 right-4 z-20 max-w-[280px] bg-background/95 backdrop-blur border border-border rounded-md shadow-lg p-3 text-xs space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Portal QA</span>
+            <label className="flex items-center gap-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={portalDebug}
+                onChange={(e) => setPortalDebug(e.target.checked)}
+                className="accent-primary"
+              />
+              <span className="text-[10px]">Debug overlay</span>
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {portalScenarios.map((s, i) => (
+              <button
+                key={i}
+                onClick={() => runScenario(i)}
+                className={`text-[10px] px-2 py-1 rounded border ${scenarioIdx === i ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:bg-muted"}`}
+                title={s.desc}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => {
+                if (scenarioIdx === null) { runScenario(0); return }
+                const next = (scenarioIdx + 1) % portalScenarios.length
+                runScenario(next)
+              }}
+              className="text-[10px] px-2 py-1 rounded border border-border bg-background hover:bg-muted font-semibold"
+            >
+              Run checks ▶
+            </button>
+          </div>
+          {scenarioIdx !== null && (
+            <div className="space-y-1 border-t border-border pt-2">
+              <div className="font-semibold text-[11px]">{scenarioIdx + 1}. {portalScenarios[scenarioIdx].name}</div>
+              <div className="text-[10px] text-muted-foreground">{portalScenarios[scenarioIdx].desc}</div>
+              <div className="text-[10px]"><span className="text-muted-foreground">Expect:</span> {portalScenarios[scenarioIdx].expect}</div>
+              <div className="text-[10px] italic text-muted-foreground">📸 Capture a screenshot, then click ▶ for the next scenario.</div>
+            </div>
+          )}
+        </div>
+      )}
       <div className="absolute inset-0">
         <React.Suspense fallback={<Preview3DFallback />}>
 
@@ -864,6 +981,7 @@ export function BookshelfConfigurator() {
             floorToObject={portalFloorToObj} rightGap={portalRightGap}
             objectType={portalObjType}
             shelves={shelves}
+            debug={portalDebug}
           />
         ) : mainType === "cathedral" ? (
           <CathedralLivePreview
@@ -925,13 +1043,14 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 
 /* ─── Live 3D previews for Portal / Cathedral / U-Surround ─── */
 
-function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, objectType, shelves }: {
+function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, objectType, shelves, debug }: {
   finish: string
   wallWidth: number; wallHeight: number
   objectWidth: number; objectHeight: number
   floorToObject: number; rightGap: number
   objectType: "door" | "window" | "tv" | "fireplace" | "other"
   shelves: ShelfConfig[]
+  debug?: boolean
 }) {
   // Defensive clamp: state updates are async, so a wall-shrink can briefly
   // leave object dims oversized. Always render with values that fit the wall.
@@ -963,6 +1082,7 @@ function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectH
       topModules={topRes?.shelves.map(s => s.modules)}
       bottomModules={undefined}
       finish={finish} hideTooltip fillContainer
+      debug={debug}
     />
   )
 }
