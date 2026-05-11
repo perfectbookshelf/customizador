@@ -205,12 +205,15 @@ export function BookshelfConfigurator() {
 
   // Portal dims
   type PortalObject = "door" | "window" | "tv" | "fireplace" | "other"
-  const [portalWallW, setPortalWallW] = useState<number>(saved.portalWallW ?? 100)
   const savedPortalObjType = (saved.portalObjType ?? "door") as PortalObject
+  const savedPortalWallH = savedPortalObjType === "door" && (saved.portalWallH ?? 108) <= 60 && (saved.portalObjH ?? 82) <= 48
+    ? 108
+    : saved.portalWallH ?? 108
   const savedPortalObjH = savedPortalObjType === "door" && (saved.portalWallH ?? 108) <= 60 && (saved.portalObjH ?? 82) <= 48
     ? 82
     : saved.portalObjH ?? 82
-  const [portalWallH, setPortalWallH] = useState<number>(saved.portalWallH ?? 108)
+  const [portalWallW, setPortalWallW] = useState<number>(saved.portalWallW ?? 100)
+  const [portalWallH, setPortalWallH] = useState<number>(savedPortalWallH)
   const [portalObjW, setPortalObjW] = useState<number>(saved.portalObjW ?? 36)
   const [portalObjH, setPortalObjH] = useState<number>(savedPortalObjH)
   const [portalFloorToObj, setPortalFloorToObj] = useState<number>(saved.portalFloorToObj ?? 0)
