@@ -26,6 +26,8 @@ interface Portal3DViewProps {
   isMobile?: boolean
   hideTooltip?: boolean
   fillContainer?: boolean
+  /** Show a debug overlay with wall/shelf bounds — for diagnostics. */
+  debug?: boolean
 }
 
 // ─── CONSTANTS ───
