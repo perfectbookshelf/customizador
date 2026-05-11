@@ -601,6 +601,7 @@ export function BookshelfConfigurator() {
     description: shelvesStepDescription,
     nextLabel: "See Quote",
     nextDisabled: !isValidQuoteEmail,
+    onNextBlocked: flashEmailField,
     content: (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-y border-border py-4">
