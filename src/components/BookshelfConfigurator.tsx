@@ -934,6 +934,7 @@ export function BookshelfConfigurator() {
             floorToObject={portalFloorToObj} rightGap={portalRightGap}
             objectType={portalObjType}
             shelves={shelves}
+            debug={portalDebug}
           />
         ) : mainType === "cathedral" ? (
           <CathedralLivePreview
