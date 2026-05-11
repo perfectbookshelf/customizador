@@ -19,7 +19,7 @@ import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 // Lazy-load heavy 3D views (three.js + @react-three/fiber + drei) so the
 // initial wizard bundle stays light. Quality is unchanged — same components,
