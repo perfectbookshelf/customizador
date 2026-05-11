@@ -380,7 +380,7 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
 // ─── EXPORTED COMPONENT ───
 export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
   function Portal3DView(props, ref) {
-    const { wallWidth, wallHeight, finish, isMobile, hideTooltip, fillContainer } = props
+    const { wallWidth, wallHeight, finish, isMobile, hideTooltip, fillContainer, debug, shelves, objectType, floorToObject, objectHeight } = props
     const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
     const isTwoToneBlack = parts && parts[1] === "Black"
     const intF = isTwoToneBlack ? parts[0] : parts ? parts[1] : finish
@@ -400,6 +400,34 @@ export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
 
     const maxDepth = props.shelves.length > 0 ? Math.max(...props.shelves.map(s => s.depth)) : 7
     const camDist = Math.max(wallWidth * 1.2, wallHeight * 1.2, maxDepth * 5)
+
+    // ─── Debug metrics (mirror PortalScene logic) ───
+    const dbg = useMemo(() => {
+      const isDoor = objectType === "door"
+      const effFloorToObj = isDoor ? 0 : Math.max(0, Math.min(floorToObject, Math.max(0, wallHeight - objectHeight)))
+      let shelvesTop = 0
+      let renderedShelves = 0
+      let y = 0
+      for (const s of shelves) {
+        const next = y + s.height + BOARD_T
+        if (next > wallHeight + 0.01) break
+        renderedShelves++
+        y = next
+        shelvesTop = y
+      }
+      const lastTop = Math.max(shelvesTop, wallHeight - BOARD_T)
+      const objTop = effFloorToObj + objectHeight
+      const topBoardOverlapsObj = lastTop < objTop && lastTop + BOARD_T > effFloorToObj
+      const topBoardMode: "split" | "full" | "none" =
+        !topBoardOverlapsObj && lastTop > shelvesTop + 0.01 ? "full"
+          : topBoardOverlapsObj ? "split" : "none"
+      const phantom = lastTop - shelvesTop > BOARD_T + 0.01
+      return {
+        isDoor, effFloorToObj, shelvesTop, lastTop, renderedShelves,
+        clippedShelves: shelves.length - renderedShelves,
+        topBoardMode, phantom,
+      }
+    }, [shelves, wallHeight, objectType, floorToObject, objectHeight])
 
     return (
       <div className={
@@ -428,7 +456,25 @@ export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
         {!hideTooltip && (
           <div className="absolute bottom-4 left-4 bg-foreground/70 text-primary-foreground px-3 py-2 rounded-md text-xs">Click and drag to rotate • Right-click to pan</div>
         )}
+        {debug && (
+          <div className="absolute top-2 left-2 z-20 bg-background/90 backdrop-blur border border-border rounded-md p-2 text-[10px] font-mono text-foreground space-y-0.5 max-w-[240px] pointer-events-none">
+            <div className="font-bold tracking-wider text-[9px] uppercase text-muted-foreground">Portal debug</div>
+            <div>wallH: <span className="font-semibold">{wallHeight.toFixed(2)}"</span></div>
+            <div>shelvesTop: <span className="font-semibold">{dbg.shelvesTop.toFixed(2)}"</span></div>
+            <div>lastTop: <span className="font-semibold">{dbg.lastTop.toFixed(2)}"</span></div>
+            <div>floor→obj: <span className="font-semibold">{dbg.effFloorToObj.toFixed(2)}"{dbg.isDoor ? " (door)" : ""}</span></div>
+            <div>shelves rendered: <span className="font-semibold">{dbg.renderedShelves}/{shelves.length}</span></div>
+            {dbg.clippedShelves > 0 && (
+              <div className="text-destructive">⚠ {dbg.clippedShelves} clipped (exceed wallH)</div>
+            )}
+            <div>top board: <span className="font-semibold">{dbg.topBoardMode}</span></div>
+            {dbg.phantom && (
+              <div className="text-destructive">⚠ phantom top board ({(dbg.lastTop - dbg.shelvesTop).toFixed(1)}" gap above shelves)</div>
+            )}
+          </div>
+        )}
       </div>
     )
   }
 )
+
