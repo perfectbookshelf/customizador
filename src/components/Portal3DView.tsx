@@ -247,7 +247,10 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
   // effect even when the shelf stack is shorter than the wall. The top board
   // sits flush with wallHeight; side panels run the full wall.
   const shelvesTop = rows.length > 0 ? rows[rows.length - 1].y + BOARD_T + rows[rows.length - 1].shelf.height : 0
-  const lastTop = Math.max(shelvesTop, wallHeight - BOARD_T)
+  // Anchor the structure's top to the shelf stack — never to wallHeight.
+  // Anchoring to wallHeight produced a phantom full-width board floating above
+  // the shelves that crossed through the door/portal zone.
+  const lastTop = shelvesTop
 
   // ─── Compute modules per row ───
   const rowModules = useMemo(() => {
