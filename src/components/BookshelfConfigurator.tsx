@@ -1089,8 +1089,8 @@ function PortalDimsContent(props: {
 }) {
   const { wallW, setWallW, wallH, setWallH, objW, setObjW, objH, setObjH, floorToObj, setFloorToObj, rightGap, setRightGap, objType, setObjType } = props
   const leftGap = Math.max(0, wallW - objW - rightGap)
-  const minWallH = Math.max(60, floorToObj + objH)
-  const effectiveWallH = Math.max(wallH, minWallH)
+  const minWallH = Math.min(144, Math.max(60, floorToObj + objH))
+  const effectiveWallH = Math.min(144, Math.max(wallH, minWallH))
   useEffect(() => {
     if (wallH < minWallH) setWallH(minWallH)
   }, [wallH, minWallH, setWallH])
