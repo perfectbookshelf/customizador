@@ -925,13 +925,14 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 
 /* ─── Live 3D previews for Portal / Cathedral / U-Surround ─── */
 
-function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, objectType, shelves }: {
+function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectHeight, floorToObject, rightGap, objectType, shelves, debug }: {
   finish: string
   wallWidth: number; wallHeight: number
   objectWidth: number; objectHeight: number
   floorToObject: number; rightGap: number
   objectType: "door" | "window" | "tv" | "fireplace" | "other"
   shelves: ShelfConfig[]
+  debug?: boolean
 }) {
   // Defensive clamp: state updates are async, so a wall-shrink can briefly
   // leave object dims oversized. Always render with values that fit the wall.
@@ -963,6 +964,7 @@ function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectH
       topModules={topRes?.shelves.map(s => s.modules)}
       bottomModules={undefined}
       finish={finish} hideTooltip fillContainer
+      debug={debug}
     />
   )
 }
