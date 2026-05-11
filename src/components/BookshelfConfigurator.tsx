@@ -244,7 +244,7 @@ export function BookshelfConfigurator() {
   const didMountTypeRef = useRef(false)
   useEffect(() => {
     if (!didMountTypeRef.current) { didMountTypeRef.current = true; return }
-    const defaults: Record<MainType, number> = { rack: 2, bookshelf: 4, corner: 4, portal: 4, cathedral: 5, usurround: 4 }
+    const defaults: Record<MainType, number> = { rack: 2, bookshelf: 4, corner: 4, portal: 6, cathedral: 5, usurround: 4 }
     const count = defaults[mainType]
     setShelves(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
     setShelves2(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
