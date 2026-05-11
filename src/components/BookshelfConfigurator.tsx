@@ -206,12 +206,16 @@ export function BookshelfConfigurator() {
   // Portal dims
   type PortalObject = "door" | "window" | "tv" | "fireplace" | "other"
   const [portalWallW, setPortalWallW] = useState<number>(saved.portalWallW ?? 100)
+  const savedPortalObjType = (saved.portalObjType ?? "door") as PortalObject
+  const savedPortalObjH = savedPortalObjType === "door" && (saved.portalWallH ?? 108) <= 60 && (saved.portalObjH ?? 82) <= 48
+    ? 82
+    : saved.portalObjH ?? 82
   const [portalWallH, setPortalWallH] = useState<number>(saved.portalWallH ?? 108)
   const [portalObjW, setPortalObjW] = useState<number>(saved.portalObjW ?? 36)
-  const [portalObjH, setPortalObjH] = useState<number>(saved.portalObjH ?? 82)
+  const [portalObjH, setPortalObjH] = useState<number>(savedPortalObjH)
   const [portalFloorToObj, setPortalFloorToObj] = useState<number>(saved.portalFloorToObj ?? 0)
   const [portalRightGap, setPortalRightGap] = useState<number>(saved.portalRightGap ?? 32)
-  const [portalObjType, setPortalObjType] = useState<PortalObject>(saved.portalObjType ?? "door")
+  const [portalObjType, setPortalObjType] = useState<PortalObject>(savedPortalObjType)
 
   // Warm the 3D bundle in the background so reaching the preview feels instant.
   useEffect(() => { preload3D() }, [])
@@ -221,10 +225,6 @@ export function BookshelfConfigurator() {
     setPortalObjW(w => Math.min(w, Math.max(12, portalWallW - 14)))
     setPortalRightGap(g => Math.min(g, Math.max(0, portalWallW - Math.min(portalObjW, portalWallW - 14))))
   }, [portalWallW]) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    setPortalObjH(h => Math.min(h, Math.max(12, portalWallH - 12)))
-    setPortalFloorToObj(f => Math.min(f, Math.max(0, portalWallH - Math.min(portalObjH, portalWallH - 12))))
-  }, [portalWallH]) // eslint-disable-line react-hooks/exhaustive-deps
   // Doors must sit on the floor — never let saved/in-flight state lift them.
   useEffect(() => {
     if (portalObjType === "door" && portalFloorToObj !== 0) setPortalFloorToObj(0)
