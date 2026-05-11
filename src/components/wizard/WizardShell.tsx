@@ -50,7 +50,14 @@ export function WizardShell({
   const total = steps.length
 
   const goPrev = () => safeIndex > 0 && onIndexChange(safeIndex - 1)
-  const goNext = () => safeIndex < total - 1 && onIndexChange(safeIndex + 1)
+  const goNext = () => {
+    if (safeIndex >= total - 1) return
+    if (step.nextDisabled) {
+      step.onNextBlocked?.()
+      return
+    }
+    onIndexChange(safeIndex + 1)
+  }
 
   return (
     <div className="w-full configurator-root bg-background">
