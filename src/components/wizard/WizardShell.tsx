@@ -119,8 +119,12 @@ export function WizardShell({
                 </div>
                 <button
                   onClick={goNext}
-                  disabled={safeIndex === total - 1 || step.nextDisabled}
-                  className="justify-self-end text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  disabled={safeIndex === total - 1 || (step.nextDisabled && !step.onNextBlocked)}
+                  aria-disabled={step.nextDisabled || undefined}
+                  className={cn(
+                    "justify-self-end text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1",
+                    step.nextDisabled && step.onNextBlocked && "opacity-40 hover:opacity-100 hover:text-brand-walnut cursor-pointer",
+                  )}
                 >
                   {step.nextLabel ?? "Next"}
                   <ChevronRight className="h-3 w-3" />
