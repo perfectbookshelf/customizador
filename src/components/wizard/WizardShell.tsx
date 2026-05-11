@@ -19,6 +19,8 @@ export interface WizardStep {
   nextDisabled?: boolean
   /** Override the default "NEXT >" label, e.g. "REVIEW >". */
   nextLabel?: string
+  /** Called when the user clicks Next while it's disabled. Useful for guiding them to the missing field. */
+  onNextBlocked?: () => void
 }
 
 interface WizardShellProps {
@@ -48,7 +50,14 @@ export function WizardShell({
   const total = steps.length
 
   const goPrev = () => safeIndex > 0 && onIndexChange(safeIndex - 1)
-  const goNext = () => safeIndex < total - 1 && onIndexChange(safeIndex + 1)
+  const goNext = () => {
+    if (safeIndex >= total - 1) return
+    if (step.nextDisabled) {
+      step.onNextBlocked?.()
+      return
+    }
+    onIndexChange(safeIndex + 1)
+  }
 
   return (
     <div className="w-full configurator-root bg-background">
@@ -110,8 +119,12 @@ export function WizardShell({
                 </div>
                 <button
                   onClick={goNext}
-                  disabled={safeIndex === total - 1 || step.nextDisabled}
-                  className="justify-self-end text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  disabled={safeIndex === total - 1 || (step.nextDisabled && !step.onNextBlocked)}
+                  aria-disabled={step.nextDisabled || undefined}
+                  className={cn(
+                    "justify-self-end text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1",
+                    step.nextDisabled && step.onNextBlocked && "opacity-40 hover:opacity-100 hover:text-brand-walnut cursor-pointer",
+                  )}
                 >
                   {step.nextLabel ?? "Next"}
                   <ChevronRight className="h-3 w-3" />

@@ -18,6 +18,7 @@ import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
+import { toast } from "sonner"
 
 // Lazy-load heavy 3D views (three.js + @react-three/fiber + drei) so the
 // initial wizard bundle stays light. Quality is unchanged — same components,
@@ -159,6 +160,17 @@ export function BookshelfConfigurator() {
   // RFC-5322-lite: good enough for client-side gating without false negatives.
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const isValidQuoteEmail = EMAIL_RE.test(quoteEmail.trim()) && quoteEmail.trim().length <= 255
+  const emailInputRef = useRef<HTMLInputElement>(null)
+  const [emailFlash, setEmailFlash] = useState(false)
+  const flashEmailField = () => {
+    emailInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    emailInputRef.current?.focus({ preventScroll: true })
+    setEmailFlash(true)
+    window.setTimeout(() => setEmailFlash(false), 1600)
+    toast.error("Enter your email to see your quote", {
+      description: "We use it to send your quote and follow up on your build.",
+    })
+  }
   const saved = useMemo<any>(() => {
     const raw = safeGetItem("bookshelf-config")
     if (!raw) return {}
@@ -589,6 +601,7 @@ export function BookshelfConfigurator() {
     description: shelvesStepDescription,
     nextLabel: "See Quote",
     nextDisabled: !isValidQuoteEmail,
+    onNextBlocked: flashEmailField,
     content: (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-y border-border py-4">
@@ -666,6 +679,7 @@ export function BookshelfConfigurator() {
             <span className="text-[10px] tracking-widest uppercase text-muted-foreground">Required</span>
           </div>
           <Input
+            ref={emailInputRef}
             type="email"
             inputMode="email"
             autoComplete="email"
@@ -674,7 +688,10 @@ export function BookshelfConfigurator() {
             value={quoteEmail}
             onChange={(e) => setQuoteEmail(e.target.value)}
             aria-invalid={quoteEmail.length > 0 && !isValidQuoteEmail}
-            className="h-10"
+            className={cn(
+              "h-10 transition-all",
+              emailFlash && "ring-2 ring-destructive ring-offset-2 ring-offset-background border-destructive animate-pulse",
+            )}
           />
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
