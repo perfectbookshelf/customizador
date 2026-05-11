@@ -418,7 +418,7 @@ export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
         y = next
         shelvesTop = y
       }
-      const lastTop = Math.max(shelvesTop, wallHeight - BOARD_T)
+      const lastTop = shelvesTop
       const objTop = effFloorToObj + objectHeight
       const topBoardOverlapsObj = lastTop < objTop && lastTop + BOARD_T > effFloorToObj
       const topBoardMode: "split" | "full" | "none" =
