@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle } from "lucide-react"
+import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
@@ -696,6 +696,14 @@ export function BookshelfConfigurator() {
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
           </p>
+          <Button
+            onClick={() => isValidQuoteEmail ? setStepIndex(stepIndex + 1) : flashEmailField()}
+            disabled={!isValidQuoteEmail}
+            className="w-full h-11 mt-2 text-[11px] tracking-[0.25em] uppercase font-medium"
+          >
+            See Quote
+            <ChevronRight className="h-3 w-3 ml-1" />
+          </Button>
         </div>
       </div>
     ),
