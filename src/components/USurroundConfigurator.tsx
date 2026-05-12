@@ -371,7 +371,9 @@ export function USurroundConfigurator({ onTypeChange }: USurroundConfiguratorPro
                   {w2 === 25 && <p className="text-[10px] text-destructive mt-1">This section is at minimum width</p>}
                 </div>
                 <p className="text-[10px] text-muted-foreground italic">Always deduct 1" from each wall measurement to account for wall imperfections.</p>
-                <USurroundSchematic w1={w1} w={w} w2={w2} h={totalHeight} />
+                <div data-pbs-schematic>
+                  <USurroundSchematic w1={w1} w={w} w2={w2} h={totalHeight} />
+                </div>
               </div>
             </ConfigSection>
 
