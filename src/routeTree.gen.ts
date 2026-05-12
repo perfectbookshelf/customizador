@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPbsCreateCheckoutRouteImport } from './routes/api/pbs-create-checkout'
 import { Route as ApiShopifyValidateCouponRouteImport } from './routes/api/shopify/validate-coupon'
 import { Route as ApiShopifyTestRouteImport } from './routes/api/shopify/test'
+import { Route as ApiShopifyDebugLastOrderRouteImport } from './routes/api/shopify/debug-last-order'
 import { Route as ApiShopifyCheckoutRouteImport } from './routes/api/shopify/checkout'
 
 const IndexRoute = IndexRouteImport.update({
@@ -36,6 +37,12 @@ const ApiShopifyTestRoute = ApiShopifyTestRouteImport.update({
   path: '/api/shopify/test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiShopifyDebugLastOrderRoute =
+  ApiShopifyDebugLastOrderRouteImport.update({
+    id: '/api/shopify/debug-last-order',
+    path: '/api/shopify/debug-last-order',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiShopifyCheckoutRoute = ApiShopifyCheckoutRouteImport.update({
   id: '/api/shopify/checkout',
   path: '/api/shopify/checkout',
@@ -46,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/debug-last-order': typeof ApiShopifyDebugLastOrderRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
@@ -53,6 +61,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/debug-last-order': typeof ApiShopifyDebugLastOrderRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
@@ -61,6 +70,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/debug-last-order': typeof ApiShopifyDebugLastOrderRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
@@ -70,6 +80,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/pbs-create-checkout'
     | '/api/shopify/checkout'
+    | '/api/shopify/debug-last-order'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
   fileRoutesByTo: FileRoutesByTo
@@ -77,6 +88,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/pbs-create-checkout'
     | '/api/shopify/checkout'
+    | '/api/shopify/debug-last-order'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
   id:
@@ -84,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/api/pbs-create-checkout'
     | '/api/shopify/checkout'
+    | '/api/shopify/debug-last-order'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
   fileRoutesById: FileRoutesById
@@ -92,6 +105,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiPbsCreateCheckoutRoute: typeof ApiPbsCreateCheckoutRoute
   ApiShopifyCheckoutRoute: typeof ApiShopifyCheckoutRoute
+  ApiShopifyDebugLastOrderRoute: typeof ApiShopifyDebugLastOrderRoute
   ApiShopifyTestRoute: typeof ApiShopifyTestRoute
   ApiShopifyValidateCouponRoute: typeof ApiShopifyValidateCouponRoute
 }
@@ -126,6 +140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShopifyTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/shopify/debug-last-order': {
+      id: '/api/shopify/debug-last-order'
+      path: '/api/shopify/debug-last-order'
+      fullPath: '/api/shopify/debug-last-order'
+      preLoaderRoute: typeof ApiShopifyDebugLastOrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/shopify/checkout': {
       id: '/api/shopify/checkout'
       path: '/api/shopify/checkout'
@@ -140,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiPbsCreateCheckoutRoute: ApiPbsCreateCheckoutRoute,
   ApiShopifyCheckoutRoute: ApiShopifyCheckoutRoute,
+  ApiShopifyDebugLastOrderRoute: ApiShopifyDebugLastOrderRoute,
   ApiShopifyTestRoute: ApiShopifyTestRoute,
   ApiShopifyValidateCouponRoute: ApiShopifyValidateCouponRoute,
 }
