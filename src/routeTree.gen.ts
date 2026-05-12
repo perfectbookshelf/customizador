@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiPbsCreateCheckoutRouteImport } from './routes/api/pbs-create-checkout'
 import { Route as ApiShopifyValidateCouponRouteImport } from './routes/api/shopify/validate-coupon'
+import { Route as ApiShopifyTestRouteImport } from './routes/api/shopify/test'
 import { Route as ApiShopifyCheckoutRouteImport } from './routes/api/shopify/checkout'
 
 const IndexRoute = IndexRouteImport.update({
@@ -30,6 +31,11 @@ const ApiShopifyValidateCouponRoute =
     path: '/api/shopify/validate-coupon',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiShopifyTestRoute = ApiShopifyTestRouteImport.update({
+  id: '/api/shopify/test',
+  path: '/api/shopify/test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiShopifyCheckoutRoute = ApiShopifyCheckoutRouteImport.update({
   id: '/api/shopify/checkout',
   path: '/api/shopify/checkout',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
 export interface FileRoutesById {
@@ -53,6 +61,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
+  '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
 }
 export interface FileRouteTypes {
@@ -61,18 +70,21 @@ export interface FileRouteTypes {
     | '/'
     | '/api/pbs-create-checkout'
     | '/api/shopify/checkout'
+    | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/api/pbs-create-checkout'
     | '/api/shopify/checkout'
+    | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
   id:
     | '__root__'
     | '/'
     | '/api/pbs-create-checkout'
     | '/api/shopify/checkout'
+    | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
   fileRoutesById: FileRoutesById
 }
@@ -80,6 +92,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiPbsCreateCheckoutRoute: typeof ApiPbsCreateCheckoutRoute
   ApiShopifyCheckoutRoute: typeof ApiShopifyCheckoutRoute
+  ApiShopifyTestRoute: typeof ApiShopifyTestRoute
   ApiShopifyValidateCouponRoute: typeof ApiShopifyValidateCouponRoute
 }
 
@@ -106,6 +119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShopifyValidateCouponRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/shopify/test': {
+      id: '/api/shopify/test'
+      path: '/api/shopify/test'
+      fullPath: '/api/shopify/test'
+      preLoaderRoute: typeof ApiShopifyTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/shopify/checkout': {
       id: '/api/shopify/checkout'
       path: '/api/shopify/checkout'
@@ -120,6 +140,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiPbsCreateCheckoutRoute: ApiPbsCreateCheckoutRoute,
   ApiShopifyCheckoutRoute: ApiShopifyCheckoutRoute,
+  ApiShopifyTestRoute: ApiShopifyTestRoute,
   ApiShopifyValidateCouponRoute: ApiShopifyValidateCouponRoute,
 }
 export const routeTree = rootRouteImport
