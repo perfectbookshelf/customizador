@@ -28,6 +28,7 @@ import { FinishPreviewModal } from "./FinishPreviewModal"
 import { FinishPreviewChips } from "./FinishPreviewChips"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
+import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 
 const MIN_MODULE_WIDTH = 7.25
