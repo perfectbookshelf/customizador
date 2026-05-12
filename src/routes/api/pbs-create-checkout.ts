@@ -62,6 +62,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
             properties.push({ name: "Shelf Configuration", value: "No shelves configured" })
           }
           properties.push({ name: "Finish", value: config?.finish || "Not selected" })
+          if (cleanEmail) properties.push({ name: "Quote Email", value: cleanEmail })
 
           const shopName = normalizeShopifyStore(SHOPIFY_STORE)
 
