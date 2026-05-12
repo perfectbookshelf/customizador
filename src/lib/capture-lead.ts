@@ -42,6 +42,6 @@ export async function captureQuoteLead(input: CaptureLeadInput): Promise<void> {
   } catch {
     /* swallow — capture is fire-and-forget */
   } finally {
-    if (inflight === email) inflight = null
+    if (inflight === key) inflight = null
   }
 }
