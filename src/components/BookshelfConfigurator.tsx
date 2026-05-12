@@ -458,7 +458,7 @@ export function BookshelfConfigurator() {
     }
 
     try {
-      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code })
+      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code, email: quoteEmail })
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch { /* ignore */ }
         if (window.self !== window.top) window.parent.postMessage({ type: "pbs-storage-set", key, value }, "*")
