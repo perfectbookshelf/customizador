@@ -838,7 +838,7 @@ export function BookshelfConfigurator() {
     content: (
       <div className="space-y-8">
         {isLegacyType && (
-          <div className="border border-border p-4 bg-muted/20 flex items-center justify-center">
+          <div data-pbs-schematic className="border border-border p-4 bg-muted/20 flex items-center justify-center">
             {mainType === "portal" && (
               <PortalSchematic
                 wallWidth={portalWallW}
