@@ -27,14 +27,26 @@ async function upsertShopifyLead(
     "X-Shopify-Access-Token": accessToken,
     "Content-Type": "application/json",
   }
+  const findExisting = async (): Promise<{ id: number; tags?: string } | null> => {
+    const queries = [
+      `email:${email}`,
+      `email:"${email}"`,
+      email,
+    ]
+    for (const q of queries) {
+      const url = `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/search.json?query=${encodeURIComponent(q)}`
+      const r = await fetch(url, { headers })
+      if (!r.ok) continue
+      const j = (await r.json()) as { customers?: Array<{ id: number; tags?: string; email?: string }> }
+      const match = j.customers?.find((c) => (c.email || "").toLowerCase() === email)
+      if (match) return match
+    }
+    return null
+  }
   try {
-    // Look for an existing customer with this email.
-    const searchUrl = `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/search.json?query=${encodeURIComponent(`email:${email}`)}`
-    const searchRes = await fetch(searchUrl, { headers })
-    if (searchRes.ok) {
-      const sj = (await searchRes.json()) as { customers?: Array<{ id: number; tags?: string }> }
-      const existing = sj.customers?.[0]
-      if (existing) {
+    const existing = await findExisting()
+    if (existing) {
+      {
         // Make sure pbs-lead tag is present.
         const tags = (existing.tags || "")
           .split(",")
