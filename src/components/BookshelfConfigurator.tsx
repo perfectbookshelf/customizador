@@ -161,8 +161,6 @@ export function BookshelfConfigurator() {
   // RFC-5322-lite: good enough for client-side gating without false negatives.
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const isValidQuoteEmail = EMAIL_RE.test(quoteEmail.trim()) && quoteEmail.trim().length <= 255
-  const emailInputRef = useRef<HTMLInputElement>(null)
-  const [emailFlash, setEmailFlash] = useState(false)
   const [emailSheetOpen, setEmailSheetOpen] = useState(false)
   const openEmailSheet = () => setEmailSheetOpen(true)
   const saved = useMemo<any>(() => {
