@@ -208,6 +208,7 @@ export function USurroundConfigurator({ onTypeChange }: USurroundConfiguratorPro
     const finishOption = FINISH_OPTIONS.find(f => f.id === selectedFinish)
     let imageDataUrl: string | null = null
     try { if (view3DRef.current) imageDataUrl = await view3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = await captureSvgAsPng("[data-pbs-schematic]")
 
     const payload = {
       type: "pbs-checkout",
