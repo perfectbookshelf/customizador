@@ -109,7 +109,7 @@ export async function uploadDataUrlToShopifyFiles(
   try {
     const form = new FormData()
     for (const p of target.parameters) form.append(p.name, p.value)
-    form.append("file", new Blob([new Uint8Array(bytes)], { type: mimeType }), filename)
+    form.append("file", new Blob([bytes as BlobPart], { type: mimeType }), filename)
     const uploadRes = await fetch(target.url, { method: "POST", body: form })
     if (!uploadRes.ok) {
       console.warn("Staged upload failed", uploadRes.status, await uploadRes.text().catch(() => ""))
