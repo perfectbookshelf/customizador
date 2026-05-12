@@ -9,7 +9,6 @@ function normalizeShopifyStore(store: string) {
 }
 
 export const Route = createFileRoute("/api/shopify/test")({
-  // @ts-expect-error - server handlers are runtime-supported
   server: {
     handlers: {
       GET: async () => {

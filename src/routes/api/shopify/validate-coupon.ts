@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 
 export const Route = createFileRoute("/api/shopify/validate-coupon")({
-  // @ts-expect-error - server handlers are runtime-supported but not yet in route type
   server: {
     handlers: {
       POST: async ({ request }: { request: Request }) => {

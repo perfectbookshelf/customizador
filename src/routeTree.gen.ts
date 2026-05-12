@@ -14,6 +14,7 @@ import { Route as ApiPbsCreateCheckoutRouteImport } from './routes/api/pbs-creat
 import { Route as ApiShopifyValidateCouponRouteImport } from './routes/api/shopify/validate-coupon'
 import { Route as ApiShopifyTestRouteImport } from './routes/api/shopify/test'
 import { Route as ApiShopifyCheckoutRouteImport } from './routes/api/shopify/checkout'
+import { Route as ApiPublicPbsCaptureLeadRouteImport } from './routes/api/public/pbs-capture-lead'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,10 +42,16 @@ const ApiShopifyCheckoutRoute = ApiShopifyCheckoutRouteImport.update({
   path: '/api/shopify/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPbsCaptureLeadRoute = ApiPublicPbsCaptureLeadRouteImport.update({
+  id: '/api/public/pbs-capture-lead',
+  path: '/api/public/pbs-capture-lead',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
+  '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
@@ -52,6 +59,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
+  '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
+  '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
@@ -69,6 +78,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/api/pbs-create-checkout'
+    | '/api/public/pbs-capture-lead'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
@@ -76,6 +86,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/api/pbs-create-checkout'
+    | '/api/public/pbs-capture-lead'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
@@ -83,6 +94,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/api/pbs-create-checkout'
+    | '/api/public/pbs-capture-lead'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
@@ -91,6 +103,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApiPbsCreateCheckoutRoute: typeof ApiPbsCreateCheckoutRoute
+  ApiPublicPbsCaptureLeadRoute: typeof ApiPublicPbsCaptureLeadRoute
   ApiShopifyCheckoutRoute: typeof ApiShopifyCheckoutRoute
   ApiShopifyTestRoute: typeof ApiShopifyTestRoute
   ApiShopifyValidateCouponRoute: typeof ApiShopifyValidateCouponRoute
@@ -133,12 +146,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShopifyCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pbs-capture-lead': {
+      id: '/api/public/pbs-capture-lead'
+      path: '/api/public/pbs-capture-lead'
+      fullPath: '/api/public/pbs-capture-lead'
+      preLoaderRoute: typeof ApiPublicPbsCaptureLeadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApiPbsCreateCheckoutRoute: ApiPbsCreateCheckoutRoute,
+  ApiPublicPbsCaptureLeadRoute: ApiPublicPbsCaptureLeadRoute,
   ApiShopifyCheckoutRoute: ApiShopifyCheckoutRoute,
   ApiShopifyTestRoute: ApiShopifyTestRoute,
   ApiShopifyValidateCouponRoute: ApiShopifyValidateCouponRoute,
