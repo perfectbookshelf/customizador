@@ -23,7 +23,7 @@ import { captureQuoteLead } from "@/lib/capture-lead"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
 import { QuoteEmailSheet } from "./wizard/QuoteEmailSheet"
-import { toast } from "sonner"
+
 
 // Lazy-load heavy 3D views (three.js + @react-three/fiber + drei) so the
 // initial wizard bundle stays light. Quality is unchanged — same components,
