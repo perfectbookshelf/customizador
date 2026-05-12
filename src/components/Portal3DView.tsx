@@ -431,7 +431,7 @@ export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
             <CanvasCapture onReady={(fn) => { captureFn = fn }} />
             <CameraController wallWidth={wallWidth} wallHeight={wallHeight} maxDepth={maxDepth} isMobile={isMobile} resetKey={resetCount} />
             <ambientLight intensity={0.6} />
-            <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow shadow-mapSize-width={4096} shadow-mapSize-height={4096} shadow-bias={-0.00001} shadow-camera-left={-wallWidth} shadow-camera-right={wallWidth} shadow-camera-top={wallHeight} shadow-camera-bottom={-5} />
+            <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} shadow-bias={-0.00001} shadow-camera-left={-wallWidth} shadow-camera-right={wallWidth} shadow-camera-top={wallHeight} shadow-camera-bottom={-5} />
             <directionalLight position={[-10, 10, -8]} intensity={0.4} />
             <pointLight position={[0, wallHeight * 0.7, maxDepth * 1.5]} intensity={0.8} distance={maxDepth * 4} />
             <PortalScene props={props} intF={intF} frameF={frameF} backF={backF} />

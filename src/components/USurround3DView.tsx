@@ -142,7 +142,7 @@ export const USurround3DView = forwardRef<USurround3DViewRef, USurround3DViewPro
             <CanvasCapture onReady={(fn) => { captureFn = fn }} />
             <CameraController w1={w1} w={w} w2={w2} totalHeight={totalHeight} maxDepth={maxDepth} isMobile={isMobile} resetKey={resetCount} />
             <ambientLight intensity={0.6} />
-            <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow shadow-mapSize-width={4096} shadow-mapSize-height={4096} shadow-bias={-0.00001} />
+            <directionalLight position={[15, 20, 10]} intensity={1.2} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} shadow-bias={-0.00001} />
             <directionalLight position={[-10, 10, -8]} intensity={0.4} />
             <pointLight position={[0, totalHeight * 0.7, maxDepth * 1.5]} intensity={0.8} distance={maxDepth * 4} />
             <USurroundScene props={props} intF={intF} frameF={frameF} backF={backF} />
