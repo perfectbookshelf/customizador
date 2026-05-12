@@ -42,14 +42,6 @@ const Preview3DFallback = () => (
   </div>
 )
 
-// Warm the 3D bundle in the background once the wizard mounts so the user
-// doesn't wait when reaching the preview step.
-const preload3D = () => {
-  void import("./Bookshelf3DView")
-  void import("./Portal3DView")
-  void import("./Cathedral3DView")
-  void import("./USurround3DView")
-}
 import { PortalSchematic } from "./PortalSchematic"
 import { CathedralSchematic } from "./CathedralSchematic"
 import { USurroundSchematic } from "./USurroundSchematic"
@@ -220,8 +212,6 @@ export function BookshelfConfigurator() {
   const [portalRightGap, setPortalRightGap] = useState<number>(saved.portalRightGap ?? 32)
   const [portalObjType, setPortalObjType] = useState<PortalObject>(savedPortalObjType)
 
-  // Warm the 3D bundle in the background so reaching the preview feels instant.
-  useEffect(() => { preload3D() }, [])
 
   // Keep portal object dims inside the wall whenever the wall shrinks.
   useEffect(() => {
