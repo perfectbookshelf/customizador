@@ -526,6 +526,37 @@ export function BookshelfConfigurator() {
   const finishOption = FINISH_OPTIONS.find((f) => f.id === selectedFinish)
   const activeType = TYPE_OPTIONS.find(t => t.id === mainType)!
 
+  const quoteLeadConfig = () => ({
+    mainType,
+    bookshelfType,
+    cornerVariant: mainType === "corner" ? cornerVariant : undefined,
+    width,
+    width2: mainType === "corner" ? width2 : undefined,
+    selectedFinish,
+    shelves,
+    shelves2: mainType === "corner" ? shelves2 : undefined,
+    uSurround:
+      mainType === "usurround"
+        ? { w1: uW1, w: uW, w2: uW2 }
+        : undefined,
+    cathedral:
+      mainType === "cathedral"
+        ? { width: cathW, lowHeight: cathH, highHeight: cathH1, direction: cathDir }
+        : undefined,
+    portal:
+      mainType === "portal"
+        ? {
+            wallWidth: portalWallW,
+            wallHeight: portalWallH,
+            objectWidth: portalObjW,
+            objectHeight: portalObjH,
+            floorToObject: portalFloorToObj,
+            rightGap: portalRightGap,
+            objectType: portalObjType,
+          }
+        : undefined,
+  })
+
   /* ─── Step content ─── */
 
   const typeStep: WizardStep = {
@@ -778,6 +809,7 @@ export function BookshelfConfigurator() {
                   email: quoteEmail,
                   productType: bookshelfType,
                   stepReached: "step-3-email",
+                  lastConfig: quoteLeadConfig(),
                 })
               }
             }}
@@ -797,6 +829,7 @@ export function BookshelfConfigurator() {
                   email: quoteEmail,
                   productType: bookshelfType,
                   stepReached: "step-3-see-quote",
+                  lastConfig: quoteLeadConfig(),
                 })
                 setStepIndex(stepIndex + 1)
               } else {
