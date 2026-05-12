@@ -443,6 +443,7 @@ export function BookshelfConfigurator() {
     const finishLabel = finishOption?.label || selectedFinish
     let imageDataUrl: string | null = null
     try { if (bookshelf3DRef.current) imageDataUrl = await bookshelf3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = isLegacyType ? await captureSvgAsPng("[data-pbs-schematic]") : null
 
     const config = {
       bookshelfType,
