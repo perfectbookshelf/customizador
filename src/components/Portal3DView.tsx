@@ -311,10 +311,9 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
       {floorSegs.map((s, i) => (
         <Board key={`floor-${i}`} pos={[wL + s.x + s.w / 2, 0, -defDepth / 2]} w={s.w} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
       ))}
-      {/* Top board(s) — split + ≥2-module verified */}
-      {topSegs.map((s, i) => (
-        <Board key={`top-${i}`} pos={[wL + s.x + s.w / 2, lastTop, -defDepth / 2]} w={s.w} d={defDepth} finish={intF} zOff={-(maxDepth - defDepth)} />
-      ))}
+      {/* Top board: each shelf row already renders its own top board via
+          renderShelfBoard(topBoardY) below. Drawing another board here at
+          lastTop (= shelvesTop) produced a duplicate "phantom" shelf on top. */}
       {/* Side panels — only if that side carries board segments */}
       {sidePanelLeft && <SidePanel x={wL + BOARD_T / 2} h={lastTop + BOARD_T} d={maxDepth} finish={intF} />}
       {sidePanelRight && <SidePanel x={wL + wallWidth - BOARD_T / 2} h={lastTop + BOARD_T} d={maxDepth} finish={intF} />}
