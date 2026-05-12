@@ -684,17 +684,15 @@ export const Bookshelf3DView = forwardRef<
               modules2={modules2}
             />
           ) : (
-            <group position={[0, totalHeight * 0.16, 0]}>
-              <Bookshelf3D
-                style={style}
-                width={width}
-                shelves={shelves}
-                finish={internalFinish}
-                frameFinish={frameFinish}
-                backFinish={backFinish}
-                modules={modules}
-              />
-            </group>
+            <Bookshelf3D
+              style={style}
+              width={width}
+              shelves={shelves}
+              finish={internalFinish}
+              frameFinish={frameFinish}
+              backFinish={backFinish}
+              modules={modules}
+            />
           )}
 
           <Environment preset="studio" environmentIntensity={0.5} />
