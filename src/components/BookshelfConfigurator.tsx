@@ -1139,7 +1139,6 @@ export function BookshelfConfigurator() {
 
   return (
     <WizardShell
-      brand="PBS"
       preview={preview}
       steps={steps}
       index={stepIndex}
