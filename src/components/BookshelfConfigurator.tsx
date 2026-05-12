@@ -451,7 +451,22 @@ export function BookshelfConfigurator() {
 
     try {
       const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config, imageDataUrl, discountCode: appliedDiscount?.code })
-      window.location.href = checkoutUrl
+      const _pbsSet = (key: string, value: string) => {
+        try { localStorage.setItem(key, value) } catch { /* ignore */ }
+        if (window.self !== window.top) window.parent.postMessage({ type: "pbs-storage-set", key, value }, "*")
+      }
+      _pbsSet("pbs_checkout_url", checkoutUrl)
+      if (imageDataUrl) _pbsSet("pbs_cart_image", imageDataUrl)
+
+      if (window.self !== window.top) {
+        try {
+          window.parent.postMessage({ type: "pbs-ga4-event", eventName: "add_to_cart", params: { currency: "USD", value: totalPrice } }, "*")
+          window.parent.postMessage({ type: "pbs-ga4-event", eventName: "begin_checkout", params: { currency: "USD", value: totalPrice } }, "*")
+        } catch { /* ignore */ }
+        window.parent.postMessage({ type: "pbs-checkout-redirect", checkoutUrl }, "*")
+      } else {
+        window.location.href = checkoutUrl
+      }
     } catch (err) {
       console.error("Checkout error:", err)
       setCheckoutError("Something went wrong. Please try again or contact us.")
