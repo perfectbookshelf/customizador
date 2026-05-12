@@ -1,8 +1,9 @@
 import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
-import { Canvas, useThree, useLoader } from "@react-three/fiber"
+import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
+import { WOOD_COLORS, useWoodTexture } from "@/lib/wood-textures"
 
 export interface Cathedral3DViewRef {
   captureImage: () => Promise<string>
@@ -16,38 +17,14 @@ interface Cathedral3DViewProps {
   finish: string; isMobile?: boolean; hideTooltip?: boolean; fillContainer?: boolean
 }
 
-const getWoodColor = (finish: string): string => {
-  const colorMap: Record<string, string> = {
-    White: "#F5F5F5", Maple: "#E8D4B8", Black: "#1A1A1A", Oak: "#D4A574", Walnut: "#5D432C",
-  }
-  return colorMap[finish] || colorMap.Oak
-}
+const getWoodColor = (finish: string): string => WOOD_COLORS[finish] || WOOD_COLORS.Oak
 
-const getTextureUrl = (finish: string): string | null => {
-  const textureMap: Record<string, string> = {
-    Maple: "/images/finishes/maple1.jpeg", Oak: "/images/finishes/oak1.jpeg", Walnut: "/images/finishes/walnut1.jpeg", Black: "/images/finishes/valchromat.png",
-  }
-  return textureMap[finish] || null
-}
-
-function WoodMaterial({ finish, isFrame = false }: { finish: string; isFrame?: boolean }) {
-  const textureUrl = getTextureUrl(finish)
-  const texture = useLoader(THREE.TextureLoader, textureUrl || "/images/finishes/OAK6.png")
-
-  const clonedTexture = useMemo(() => {
-    const t = texture.clone()
-    t.wrapS = THREE.RepeatWrapping
-    t.wrapT = THREE.RepeatWrapping
-    t.repeat.set(1, 1)
-    t.rotation = 0
-    t.needsUpdate = true
-    return t
-  }, [texture])
-
-  if (!textureUrl) {
+function WoodMaterial({ finish, isFrame = false, size, seed = 0 }: { finish: string; isFrame?: boolean; size?: { w?: number; h?: number; d?: number }; seed?: number }) {
+  const tex = useWoodTexture(finish, size || {}, seed)
+  if (!tex) {
     return <meshStandardMaterial color={getWoodColor(finish)} roughness={isFrame ? 0.7 : 0.8} metalness={0.0} side={THREE.DoubleSide} envMapIntensity={0.3} />
   }
-  return <meshStandardMaterial map={clonedTexture} roughness={isFrame ? 0.6 : 0.7} metalness={0.0} side={THREE.DoubleSide} envMapIntensity={0.3} />
+  return <meshStandardMaterial map={tex} roughness={isFrame ? 0.6 : 0.7} metalness={0.0} side={THREE.DoubleSide} envMapIntensity={0.3} />
 }
 
 function Board({ position, width, depth, finish, zOffset = 0 }: {
