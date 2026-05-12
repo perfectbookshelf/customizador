@@ -148,7 +148,6 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
           const { error } = await supabaseAdmin
             .from("quote_leads")
             .upsert(row, { onConflict: "email" })
-            )
           if (error) {
             console.warn("quote_leads upsert error", error)
             return Response.json(
