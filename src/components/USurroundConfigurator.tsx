@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { Plus, Minus, RotateCcw, ShoppingCart, ChevronDown } from "lucide-react"
+import { Plus, Minus, RotateCcw, ShoppingCart, ChevronDown, Calendar } from "lucide-react"
 import type { ShelfConfig } from "@/lib/types"
 import { calculateUSurround } from "@/lib/usurround-calculator"
 import { calculateBookshelf } from "@/lib/bookshelf-calculator"
@@ -419,6 +419,13 @@ export function USurroundConfigurator({ onTypeChange }: USurroundConfiguratorPro
               />
               <Button onClick={handleAddToCart} disabled={isAddingToCart || !usurroundResult} className="w-full h-12 rounded-xl text-base font-semibold gap-2">
                 <ShoppingCart className="h-4 w-4" />{isAddingToCart ? "Processing..." : "Add to Cart"}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => bookConsultation({ productType: "usurround" })}
+                className="w-full h-12 rounded-xl text-base font-semibold gap-2"
+              >
+                <Calendar className="h-4 w-4" /> Book a Consultation
               </Button>
             </div>
             <div className="h-8" />
