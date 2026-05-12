@@ -121,7 +121,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
 
           const checkoutUrl = createJson.draft_order?.invoice_url
           if (checkoutUrl) {
-            return Response.json({ checkoutUrl }, { headers: corsHeaders })
+            return Response.json({ checkoutUrl, _debugProps: properties }, { headers: corsHeaders })
           }
 
           return Response.json({ error: "No invoice URL" }, { status: 500, headers: corsHeaders })
