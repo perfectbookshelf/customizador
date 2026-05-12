@@ -562,7 +562,9 @@ export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
             </ConfigSection>
 
             <ConfigSection step={5} title="Schematic" subtitle="Live diagram" defaultOpen={true}>
-              <PortalSchematic wallWidth={wallWidth} wallHeight={wallHeight} objectWidth={objectWidth} objectHeight={objectHeight} floorToObject={floorToObject} rightGap={rightGap} leftGap={leftGap} topHeight={topSectionHeight} />
+              <div data-pbs-schematic>
+                <PortalSchematic wallWidth={wallWidth} wallHeight={wallHeight} objectWidth={objectWidth} objectHeight={objectHeight} floorToObject={floorToObject} rightGap={rightGap} leftGap={leftGap} topHeight={topSectionHeight} />
+              </div>
             </ConfigSection>
 
             <ConfigSection step={6} title="Shelves" subtitle={`${globalShelves.length} shelves · ${fittingRows} fit`} defaultOpen={true}>
