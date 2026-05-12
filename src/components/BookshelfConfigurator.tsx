@@ -459,27 +459,13 @@ export function BookshelfConfigurator() {
       _pbsSet("pbs_checkout_url", checkoutUrl)
       if (imageDataUrl) _pbsSet("pbs_cart_image", imageDataUrl)
 
-      const inIframe = window.self !== window.top
-      if (inIframe) {
+      if (window.self !== window.top) {
         try {
           window.parent.postMessage({ type: "pbs-ga4-event", eventName: "add_to_cart", params: { currency: "USD", value: totalPrice } }, "*")
           window.parent.postMessage({ type: "pbs-ga4-event", eventName: "begin_checkout", params: { currency: "USD", value: totalPrice } }, "*")
-          window.parent.postMessage({ type: "pbs-checkout-redirect", checkoutUrl }, "*")
         } catch { /* ignore */ }
-        // Try to break out of the iframe (works when same-origin); otherwise open in a new tab.
-        try {
-          if (window.top) window.top.location.href = checkoutUrl
-          else throw new Error("no top")
-        } catch {
-          const w = window.open(checkoutUrl, "_blank", "noopener,noreferrer")
-          if (!w) {
-            // Popup blocked — last resort, navigate the iframe itself.
-            window.location.href = checkoutUrl
-          }
-        }
-      } else {
-        window.location.href = checkoutUrl
       }
+      redirectToCheckout(checkoutUrl)
     } catch (err) {
       console.error("Checkout error:", err)
       setCheckoutError("Something went wrong. Please try again or contact us.")
