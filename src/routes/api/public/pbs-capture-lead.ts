@@ -135,19 +135,19 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
             )
           }
 
-          // 2. Upsert into quote_leads.
+          // 2. Upsert into quote_leads. Only set shopify_customer_id when we
+          // actually have one — never overwrite an existing id with null.
+          const row: Record<string, unknown> = {
+            email: rawEmail,
+            product_type: productType,
+            step_reached: stepReached,
+            last_config: lastConfig,
+            updated_at: new Date().toISOString(),
+          }
+          if (shopifyCustomerId) row.shopify_customer_id = shopifyCustomerId
           const { error } = await supabaseAdmin
             .from("quote_leads")
-            .upsert(
-              {
-                email: rawEmail,
-                product_type: productType,
-                step_reached: stepReached,
-                last_config: lastConfig,
-                shopify_customer_id: shopifyCustomerId,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "email" },
+            .upsert(row, { onConflict: "email" })
             )
           if (error) {
             console.warn("quote_leads upsert error", error)
