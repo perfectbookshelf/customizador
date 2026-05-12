@@ -505,7 +505,8 @@ function CameraController({
     const paddingMultiplier = isMobile ? 1.6 : 1.8
     const optimalDistance = Math.max(distanceForWidth, distanceForHeight, distanceForDepth) * paddingMultiplier
 
-    const targetYOffset = 0
+    const compactPreview = isMobile || size.height <= 360
+    const targetYOffset = liftModel && compactPreview ? -totalHeight * 0.24 : 0
 
     let targetPosition: THREE.Vector3
     let lookAt: THREE.Vector3
@@ -563,7 +564,7 @@ function CameraController({
     }
 
     animate()
-  }, [resetKey, camera, isMobile, isCorner, liftModel, cornerVariant, width, totalHeight, maxDepth, width2])
+  }, [resetKey, camera, isMobile, isCorner, liftModel, cornerVariant, width, totalHeight, maxDepth, width2, size.height])
 
   return null
 }
@@ -684,17 +685,15 @@ export const Bookshelf3DView = forwardRef<
               modules2={modules2}
             />
           ) : (
-            <group position={[0, totalHeight * 0.16, 0]}>
-              <Bookshelf3D
-                style={style}
-                width={width}
-                shelves={shelves}
-                finish={internalFinish}
-                frameFinish={frameFinish}
-                backFinish={backFinish}
-                modules={modules}
-              />
-            </group>
+            <Bookshelf3D
+              style={style}
+              width={width}
+              shelves={shelves}
+              finish={internalFinish}
+              frameFinish={frameFinish}
+              backFinish={backFinish}
+              modules={modules}
+            />
           )}
 
           <Environment preset="studio" environmentIntensity={0.5} />
