@@ -115,6 +115,11 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
               : null
           const lastConfig =
             body?.lastConfig && typeof body.lastConfig === "object" ? body.lastConfig : null
+          const extraTags = Array.isArray(body?.extraTags)
+            ? (body.extraTags as unknown[]).filter(
+                (t): t is string => typeof t === "string" && t.length > 0 && t.length <= 64,
+              )
+            : []
 
           // 1. Best-effort: create / tag Shopify customer.
           let shopifyCustomerId: string | null = null
@@ -125,6 +130,7 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
               normalizeShopifyStore(SHOPIFY_STORE),
               SHOPIFY_ACCESS_TOKEN,
               rawEmail,
+              extraTags,
             )
           }
 
