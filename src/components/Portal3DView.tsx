@@ -163,7 +163,7 @@ function CameraController({ wallWidth, wallHeight, maxDepth, isMobile, resetKey 
     const pad = isMobile ? 1.6 : 1.8
     const dist = Math.max(dW, dH, maxDepth * 2.5) * pad
     const compactPreview = isMobile || size.height <= 360
-    const yOff = compactPreview ? -wallHeight * 0.2 : 0
+    const yOff = compactPreview ? -wallHeight * 0.35 : 0
     const tgt = new THREE.Vector3(0, wallHeight * 0.5 + yOff, dist)
     const look = new THREE.Vector3(0, wallHeight / 2 + yOff, 0)
     const start = camera.position.clone()
