@@ -23,7 +23,12 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
       POST: async ({ request }: { request: Request }) => {
         try {
           const body = await request.json()
-          const { price, config, imageDataUrl, schematicDataUrl } = body
+          const { price, config, imageDataUrl, schematicDataUrl, email } = body
+          const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+          const cleanEmail =
+            typeof email === "string" && EMAIL_RE.test(email.trim()) && email.trim().length <= 255
+              ? email.trim().toLowerCase()
+              : null
           const amount = Number.parseFloat(price)
 
           if (Number.isNaN(amount) || amount <= 0) {
@@ -57,6 +62,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
             properties.push({ name: "Shelf Configuration", value: "No shelves configured" })
           }
           properties.push({ name: "Finish", value: config?.finish || "Not selected" })
+          if (cleanEmail) properties.push({ name: "Quote Email", value: cleanEmail })
 
           const shopName = normalizeShopifyStore(SHOPIFY_STORE)
 
@@ -94,6 +100,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
               ],
               note: `PBS Configurator | ${config?.finish || "N/A"} | ${width || "?"}" W x ${height || "?"}" H | ${shelvesCount} shelves`,
               use_customer_default_address: true,
+              ...(cleanEmail ? { email: cleanEmail } : {}),
             },
           }
 

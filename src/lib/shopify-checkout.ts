@@ -4,6 +4,7 @@ interface CheckoutPayload {
   imageDataUrl?: string | null
   schematicDataUrl?: string | null
   discountCode?: string | null
+  email?: string | null
 }
 
 export async function createShopifyCheckout(payload: CheckoutPayload): Promise<string> {
