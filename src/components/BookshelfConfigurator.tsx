@@ -772,6 +772,15 @@ export function BookshelfConfigurator() {
             placeholder="you@example.com"
             value={quoteEmail}
             onChange={(e) => setQuoteEmail(e.target.value)}
+            onBlur={() => {
+              if (isValidQuoteEmail) {
+                void captureQuoteLead({
+                  email: quoteEmail,
+                  productType: bookshelfType,
+                  stepReached: "step-3-email",
+                })
+              }
+            }}
             aria-invalid={quoteEmail.length > 0 && !isValidQuoteEmail}
             className={cn(
               "h-10 transition-all",
@@ -782,7 +791,18 @@ export function BookshelfConfigurator() {
             We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
           </p>
           <Button
-            onClick={() => isValidQuoteEmail ? setStepIndex(stepIndex + 1) : flashEmailField()}
+            onClick={() => {
+              if (isValidQuoteEmail) {
+                void captureQuoteLead({
+                  email: quoteEmail,
+                  productType: bookshelfType,
+                  stepReached: "step-3-see-quote",
+                })
+                setStepIndex(stepIndex + 1)
+              } else {
+                flashEmailField()
+              }
+            }}
             disabled={!isValidQuoteEmail}
             className="w-full h-11 mt-2 text-[11px] tracking-[0.25em] uppercase font-medium"
           >
