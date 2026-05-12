@@ -27,34 +27,42 @@ async function upsertShopifyLead(
     "X-Shopify-Access-Token": accessToken,
     "Content-Type": "application/json",
   }
+  const findExisting = async (): Promise<{ id: number; tags?: string } | null> => {
+    const queries = [
+      `email:${email}`,
+      `email:"${email}"`,
+      email,
+    ]
+    for (const q of queries) {
+      const url = `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/search.json?query=${encodeURIComponent(q)}`
+      const r = await fetch(url, { headers })
+      if (!r.ok) continue
+      const j = (await r.json()) as { customers?: Array<{ id: number; tags?: string; email?: string }> }
+      const match = j.customers?.find((c) => (c.email || "").toLowerCase() === email)
+      if (match) return match
+    }
+    return null
+  }
   try {
-    // Look for an existing customer with this email.
-    const searchUrl = `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/search.json?query=${encodeURIComponent(`email:${email}`)}`
-    const searchRes = await fetch(searchUrl, { headers })
-    if (searchRes.ok) {
-      const sj = (await searchRes.json()) as { customers?: Array<{ id: number; tags?: string }> }
-      const existing = sj.customers?.[0]
-      if (existing) {
-        // Make sure pbs-lead tag is present.
-        const tags = (existing.tags || "")
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean)
-        if (!tags.includes("pbs-lead")) {
-          tags.push("pbs-lead")
-          await fetch(
-            `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
-            {
-              method: "PUT",
-              headers,
-              body: JSON.stringify({ customer: { id: existing.id, tags: tags.join(", ") } }),
-            },
-          )
-        }
-        return String(existing.id)
+    const existing = await findExisting()
+    if (existing) {
+      // Make sure pbs-lead tag is present.
+      const tags = (existing.tags || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+      if (!tags.includes("pbs-lead")) {
+        tags.push("pbs-lead")
+        await fetch(
+          `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
+          {
+            method: "PUT",
+            headers,
+            body: JSON.stringify({ customer: { id: existing.id, tags: tags.join(", ") } }),
+          },
+        )
       }
-    } else {
-      console.warn("Shopify customer search failed", searchRes.status, await searchRes.text().catch(() => ""))
+      return String(existing.id)
     }
 
     // Create a new customer.
@@ -74,7 +82,14 @@ async function upsertShopifyLead(
       },
     )
     if (!createRes.ok) {
-      console.warn("Shopify customer create failed", createRes.status, await createRes.text().catch(() => ""))
+      const errText = await createRes.text().catch(() => "")
+      console.warn("Shopify customer create failed", createRes.status, errText)
+      // 422 "already taken" → search index lagged. Retry lookup.
+      if (createRes.status === 422 && /already.*taken/i.test(errText)) {
+        await new Promise((r) => setTimeout(r, 600))
+        const retry = await findExisting()
+        if (retry) return String(retry.id)
+      }
       return null
     }
     const cj = (await createRes.json()) as { customer?: { id: number } }
@@ -120,20 +135,19 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
             )
           }
 
-          // 2. Upsert into quote_leads.
+          // 2. Upsert into quote_leads. Only set shopify_customer_id when we
+          // actually have one — never overwrite an existing id with null.
+          const row = {
+            email: rawEmail,
+            product_type: productType,
+            step_reached: stepReached,
+            last_config: lastConfig as never,
+            updated_at: new Date().toISOString(),
+            ...(shopifyCustomerId ? { shopify_customer_id: shopifyCustomerId } : {}),
+          }
           const { error } = await supabaseAdmin
             .from("quote_leads")
-            .upsert(
-              {
-                email: rawEmail,
-                product_type: productType,
-                step_reached: stepReached,
-                last_config: lastConfig,
-                shopify_customer_id: shopifyCustomerId,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "email" },
-            )
+            .upsert(row, { onConflict: "email" })
           if (error) {
             console.warn("quote_leads upsert error", error)
             return Response.json(
