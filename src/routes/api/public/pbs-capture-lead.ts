@@ -22,7 +22,9 @@ async function upsertShopifyLead(
   shopName: string,
   accessToken: string,
   email: string,
+  extraTags: string[] = [],
 ): Promise<string | null> {
+  const baseTags = ["pbs-lead", ...extraTags.filter((t) => typeof t === "string" && t.length <= 64)]
   const headers = {
     "X-Shopify-Access-Token": accessToken,
     "Content-Type": "application/json",
