@@ -158,24 +158,23 @@
 
 /* ─── Mobile configurator layout: fixed preview + scrollable config ─── */
 @media (max-width: 768px) {
+  /* Let the page scroll naturally — no nested scroll containers, no sticky preview */
   .configurator-root {
-    height: 100vh;
-    height: 100svh;
-    min-height: 100vh;
+    height: auto;
     min-height: 100svh;
-    overflow: hidden;
+    overflow: visible;
   }
   .configurator-layout {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100svh;
+    height: auto;
+    min-height: 0;
     margin-top: 0;
-    overflow: hidden;
+    overflow: visible;
   }
   .configurator-preview {
     position: relative;
-    flex: 0 0 32svh;
+    flex: 0 0 auto;
     height: 32svh;
     max-height: 32svh;
     min-height: 220px;
@@ -191,18 +190,16 @@
     touch-action: none;
   }
   .configurator-config {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   }
   .configurator-config-inner {
-    flex: 1 1 0%;
+    flex: 0 0 auto;
     min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
+    overflow: visible;
     padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 1rem);
   }
 }
