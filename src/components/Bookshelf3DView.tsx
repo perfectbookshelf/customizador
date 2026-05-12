@@ -1,8 +1,9 @@
 import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
-import { Canvas, useThree, useLoader } from "@react-three/fiber"
+import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
+import { WOOD_COLORS, useWoodTexture } from "@/lib/wood-textures"
 
 interface Shelf {
   height: number
