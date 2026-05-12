@@ -16,7 +16,6 @@ function normalizeShopifyStore(store: string) {
 }
 
 export const Route = createFileRoute("/api/pbs-create-checkout")({
-  // @ts-expect-error - server handlers are runtime-supported but not yet in route type
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 200, headers: corsHeaders }),

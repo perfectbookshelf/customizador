@@ -11,7 +11,6 @@ function toFraction(decimal: number): string {
 }
 
 export const Route = createFileRoute("/api/shopify/checkout")({
-  // @ts-expect-error - server handlers are runtime-supported but not yet in route type
   server: {
     handlers: {
       POST: async ({ request }: { request: Request }) => {
