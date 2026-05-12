@@ -156,54 +156,45 @@
   }
 }
 
-/* ─── Mobile configurator layout: fixed preview + scrollable config ─── */
+/* ─── Mobile configurator layout: natural document scroll ───
+   On mobile we intentionally disable the sticky preview + nested
+   scroll container so the page scrolls as a single document and
+   all step content (e.g. Step 3 shelves) is reachable. */
 @media (max-width: 768px) {
   .configurator-root {
-    height: 100vh;
-    height: 100svh;
-    min-height: 100vh;
+    height: auto;
     min-height: 100svh;
-    overflow: hidden;
+    overflow: visible;
   }
   .configurator-layout {
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    height: 100svh;
+    height: auto;
+    min-height: 100svh;
     margin-top: 0;
-    overflow: hidden;
+    overflow: visible;
   }
   .configurator-preview {
     position: relative;
-    flex: 0 0 32svh;
-    height: 32svh;
-    max-height: 32svh;
-    min-height: 220px;
+    flex: 0 0 auto;
     overflow: hidden;
     touch-action: none;
-  }
-  .configurator-preview > div {
-    height: 100% !important;
-    min-height: 0 !important;
-    padding: 0 !important;
   }
   .configurator-preview canvas {
     touch-action: none;
   }
   .configurator-config {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     flex-direction: column;
   }
   .configurator-config-inner {
-    flex: 1 1 0%;
+    flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 1rem);
+    overflow: visible !important;
+    padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 2rem);
   }
 }
 
