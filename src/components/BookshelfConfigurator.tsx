@@ -807,7 +807,7 @@ export function BookshelfConfigurator() {
               if (isValidQuoteEmail) {
                 void captureQuoteLead({
                   email: quoteEmail,
-                  productType: bookshelfType,
+                  productType: mainType,
                   stepReached: "step-3-email",
                   lastConfig: quoteLeadConfig(),
                 })
@@ -827,7 +827,7 @@ export function BookshelfConfigurator() {
               if (isValidQuoteEmail) {
                 void captureQuoteLead({
                   email: quoteEmail,
-                  productType: bookshelfType,
+                  productType: mainType,
                   stepReached: "step-3-see-quote",
                   lastConfig: quoteLeadConfig(),
                 })
