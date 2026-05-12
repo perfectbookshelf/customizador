@@ -16,6 +16,7 @@ import { calculateBookshelf } from "@/lib/bookshelf-calculator"
 import type { Bookshelf3DViewRef } from "./Bookshelf3DView"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
+import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { loadQuoteEmail, saveQuoteEmail } from "@/lib/quote-email"
 import { CouponField, type AppliedDiscount } from "./CouponField"
@@ -442,6 +443,7 @@ export function BookshelfConfigurator() {
     const finishLabel = finishOption?.label || selectedFinish
     let imageDataUrl: string | null = null
     try { if (bookshelf3DRef.current) imageDataUrl = await bookshelf3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = isLegacyType ? await captureSvgAsPng("[data-pbs-schematic]") : null
 
     const config = {
       bookshelfType,
@@ -456,7 +458,7 @@ export function BookshelfConfigurator() {
     }
 
     try {
-      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config, imageDataUrl, discountCode: appliedDiscount?.code })
+      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code })
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch { /* ignore */ }
         if (window.self !== window.top) window.parent.postMessage({ type: "pbs-storage-set", key, value }, "*")
@@ -836,7 +838,7 @@ export function BookshelfConfigurator() {
     content: (
       <div className="space-y-8">
         {isLegacyType && (
-          <div className="border border-border p-4 bg-muted/20 flex items-center justify-center">
+          <div data-pbs-schematic className="border border-border p-4 bg-muted/20 flex items-center justify-center">
             {mainType === "portal" && (
               <PortalSchematic
                 wallWidth={portalWallW}

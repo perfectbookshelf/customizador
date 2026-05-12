@@ -14,6 +14,7 @@ import { FinishPreviewModal } from "./FinishPreviewModal"
 import { FinishPreviewChips } from "./FinishPreviewChips"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
+import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 
@@ -207,6 +208,7 @@ export function USurroundConfigurator({ onTypeChange }: USurroundConfiguratorPro
     const finishOption = FINISH_OPTIONS.find(f => f.id === selectedFinish)
     let imageDataUrl: string | null = null
     try { if (view3DRef.current) imageDataUrl = await view3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = await captureSvgAsPng("[data-pbs-schematic]")
 
     const payload = {
       type: "pbs-checkout",
@@ -225,7 +227,7 @@ export function USurroundConfigurator({ onTypeChange }: USurroundConfiguratorPro
     }
 
     try {
-      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, discountCode: appliedDiscount?.code })
+      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code })
       // Save for cart/checkout preview — iframe-safe (works in Safari cross-origin)
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch {}
@@ -369,7 +371,9 @@ export function USurroundConfigurator({ onTypeChange }: USurroundConfiguratorPro
                   {w2 === 25 && <p className="text-[10px] text-destructive mt-1">This section is at minimum width</p>}
                 </div>
                 <p className="text-[10px] text-muted-foreground italic">Always deduct 1" from each wall measurement to account for wall imperfections.</p>
-                <USurroundSchematic w1={w1} w={w} w2={w2} h={totalHeight} />
+                <div data-pbs-schematic>
+                  <USurroundSchematic w1={w1} w={w} w2={w2} h={totalHeight} />
+                </div>
               </div>
             </ConfigSection>
 

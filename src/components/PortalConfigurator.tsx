@@ -28,6 +28,7 @@ import { FinishPreviewModal } from "./FinishPreviewModal"
 import { FinishPreviewChips } from "./FinishPreviewChips"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
+import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 
@@ -308,6 +309,7 @@ export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
     const finishOption = FINISH_OPTIONS.find(f => f.id === selectedFinish)
     let imageDataUrl: string | null = null
     try { if (portal3DRef.current) imageDataUrl = await portal3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = await captureSvgAsPng("[data-pbs-schematic]")
 
     // Consolidate SKUs from all zones
     const skuMap = new Map<string, { type: string; quantity: number }>()
@@ -338,7 +340,7 @@ export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
     }
 
     try {
-      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, discountCode: appliedDiscount?.code })
+      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code })
       // Save for cart/checkout preview — iframe-safe (works in Safari cross-origin)
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch {}
@@ -562,7 +564,9 @@ export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
             </ConfigSection>
 
             <ConfigSection step={5} title="Schematic" subtitle="Live diagram" defaultOpen={true}>
-              <PortalSchematic wallWidth={wallWidth} wallHeight={wallHeight} objectWidth={objectWidth} objectHeight={objectHeight} floorToObject={floorToObject} rightGap={rightGap} leftGap={leftGap} topHeight={topSectionHeight} />
+              <div data-pbs-schematic>
+                <PortalSchematic wallWidth={wallWidth} wallHeight={wallHeight} objectWidth={objectWidth} objectHeight={objectHeight} floorToObject={floorToObject} rightGap={rightGap} leftGap={leftGap} topHeight={topSectionHeight} />
+              </div>
             </ConfigSection>
 
             <ConfigSection step={6} title="Shelves" subtitle={`${globalShelves.length} shelves · ${fittingRows} fit`} defaultOpen={true}>

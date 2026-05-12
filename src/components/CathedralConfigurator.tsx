@@ -16,6 +16,7 @@ import { FinishPreviewModal } from "./FinishPreviewModal"
 import { FinishPreviewChips } from "./FinishPreviewChips"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
+import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 
@@ -174,6 +175,7 @@ export function CathedralConfigurator({ onTypeChange }: CathedralConfiguratorPro
     const finishOption = FINISH_OPTIONS.find(f => f.id === selectedFinish)
     let imageDataUrl: string | null = null
     try { if (cathedral3DRef.current) imageDataUrl = await cathedral3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = await captureSvgAsPng("[data-pbs-schematic]")
 
     const payload = {
       type: "pbs-checkout",
@@ -192,7 +194,7 @@ export function CathedralConfigurator({ onTypeChange }: CathedralConfiguratorPro
     }
 
     try {
-      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, discountCode: appliedDiscount?.code })
+      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code })
       // Save for cart/checkout preview — iframe-safe (works in Safari cross-origin)
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch {}
@@ -345,7 +347,9 @@ export function CathedralConfigurator({ onTypeChange }: CathedralConfiguratorPro
             </ConfigSection>
 
             <div className="py-4 px-1">
-              <CathedralSchematic W={W} H={H} H1={H1} direction={direction} shelfYPositions={shelfYPositions} />
+              <div data-pbs-schematic>
+                <CathedralSchematic W={W} H={H} H1={H1} direction={direction} shelfYPositions={shelfYPositions} />
+              </div>
             </div>
 
             <ConfigSection step={4} title="Shelves" subtitle={`${shelves.length} shelves · ${rows.length} fit`} defaultOpen={true}>
