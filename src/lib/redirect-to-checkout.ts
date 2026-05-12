@@ -1,11 +1,11 @@
 /**
- * Redirect the user to a Shopify checkout URL.
+ * Redirect the user to an external URL (Shopify checkout, consultation, etc.).
  *
- * - Top-level window: navigate normally.
- * - Inside an iframe (preview / embed): open in a new tab so we don't navigate
- *   the embedding page (Shopify blocks iframing via X-Frame-Options anyway).
- *   We also send a postMessage so an integrator that wants to handle the
- *   redirect itself can do so.
+ * Preference order:
+ *  1. Top-level navigation in the same tab (works when not iframed, or when
+ *     the iframe is same-origin / allow-top-navigation).
+ *  2. postMessage to the parent so an integrator can handle the redirect.
+ *  3. Fallback: open in a new tab (only if same-tab navigation isn't possible).
  *
  * Returns true if some redirect path was attempted, false otherwise.
  */
@@ -25,21 +25,17 @@ export function redirectToCheckout(checkoutUrl: string): boolean {
     /* ignore */
   }
 
-  // Open Shopify in a brand new tab — never navigate the iframe itself,
-  // because Shopify refuses to render inside one.
-  const w = window.open(checkoutUrl, "_blank", "noopener,noreferrer")
-  if (w) return true
-
-  // Popup was blocked. Last resort: ask the top window to navigate.
-  // If cross-origin this will throw; the integrator's postMessage listener
-  // is then the only remaining path.
+  // Try to navigate the top window in the same tab.
   try {
     if (window.top) {
       window.top.location.href = checkoutUrl
       return true
     }
   } catch {
-    /* cross-origin — give up silently, postMessage above is the fallback */
+    /* cross-origin — fall through to new-tab fallback */
   }
-  return false
+
+  // Last resort: new tab (popup may be blocked).
+  const w = window.open(checkoutUrl, "_blank", "noopener,noreferrer")
+  return !!w
 }
