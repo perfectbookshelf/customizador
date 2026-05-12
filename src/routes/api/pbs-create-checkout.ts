@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
       POST: async ({ request }: { request: Request }) => {
         try {
           const body = await request.json()
-          const { price, config } = body
+          const { price, config, imageDataUrl, schematicDataUrl } = body
           const amount = Number.parseFloat(price)
 
           if (Number.isNaN(amount) || amount <= 0) {
