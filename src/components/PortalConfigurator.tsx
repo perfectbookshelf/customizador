@@ -308,6 +308,7 @@ export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
     const finishOption = FINISH_OPTIONS.find(f => f.id === selectedFinish)
     let imageDataUrl: string | null = null
     try { if (portal3DRef.current) imageDataUrl = await portal3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = await captureSvgAsPng("[data-pbs-schematic]")
 
     // Consolidate SKUs from all zones
     const skuMap = new Map<string, { type: string; quantity: number }>()
