@@ -55,6 +55,30 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
             { name: "Finish", value: config?.finish || "Not selected" },
           ]
 
+          const shopName = normalizeShopifyStore(SHOPIFY_STORE)
+
+          // Best-effort: upload preview + schematic so the customer sees them
+          // in the invoice/checkout. Never block checkout if upload fails.
+          const ts = Date.now()
+          if (typeof imageDataUrl === "string" && imageDataUrl.startsWith("data:")) {
+            const url = await uploadDataUrlToShopifyFiles(
+              shopName,
+              SHOPIFY_ACCESS_TOKEN,
+              imageDataUrl,
+              `pbs-preview-${ts}.png`,
+            )
+            if (url) properties.push({ name: "Preview Image", value: url })
+          }
+          if (typeof schematicDataUrl === "string" && schematicDataUrl.startsWith("data:")) {
+            const url = await uploadDataUrlToShopifyFiles(
+              shopName,
+              SHOPIFY_ACCESS_TOKEN,
+              schematicDataUrl,
+              `pbs-schematic-${ts}.png`,
+            )
+            if (url) properties.push({ name: "Schematic", value: url })
+          }
+
           const draftOrderPayload = {
             draft_order: {
               line_items: [
@@ -69,6 +93,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
               use_customer_default_address: true,
             },
           }
+
 
           const shopName = normalizeShopifyStore(SHOPIFY_STORE)
           const createResponse = await fetch(
