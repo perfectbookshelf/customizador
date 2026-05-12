@@ -951,21 +951,29 @@ export function BookshelfConfigurator() {
           </div>
         )}
 
-        <div className="flex items-center justify-between gap-4 pt-2">
-          <button
-            onClick={() => setStepIndex(stepIndex - 1)}
-            className="text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut"
-          >
-            ← Back
-          </button>
+        <div className="flex flex-col gap-3 pt-2">
           <Button
             onClick={handleAddToCart}
             disabled={isAddingToCart || !result}
-            className="h-12 px-8 rounded-none gap-2 bg-foreground hover:bg-brand-walnut text-background tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
+            className="w-full h-12 px-8 rounded-none gap-2 bg-foreground hover:bg-brand-walnut text-background tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
           >
             <ShoppingCart className="h-4 w-4" />
             {isAddingToCart ? "Processing…" : "Checkout"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => redirectToCheckout("https://novo-customizador.lovable.app")}
+            className="w-full h-12 px-8 rounded-none border border-foreground bg-background hover:bg-foreground hover:text-background text-foreground tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
+          >
+            Book a Free Consultation
+          </Button>
+          <button
+            onClick={() => setStepIndex(stepIndex - 1)}
+            className="self-start text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut mt-1"
+          >
+            ← Back
+          </button>
         </div>
       </div>
     ),
