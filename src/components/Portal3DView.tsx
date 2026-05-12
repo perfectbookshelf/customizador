@@ -162,7 +162,8 @@ function CameraController({ wallWidth, wallHeight, maxDepth, isMobile, resetKey 
     const dH = wallHeight / 2 / Math.tan(fovR / 2)
     const pad = isMobile ? 1.6 : 1.8
     const dist = Math.max(dW, dH, maxDepth * 2.5) * pad
-    const yOff = 0
+    const compactPreview = isMobile || size.height <= 360
+    const yOff = compactPreview ? -wallHeight * 0.2 : 0
     const tgt = new THREE.Vector3(0, wallHeight * 0.5 + yOff, dist)
     const look = new THREE.Vector3(0, wallHeight / 2 + yOff, 0)
     const start = camera.position.clone()
@@ -177,7 +178,7 @@ function CameraController({ wallWidth, wallHeight, maxDepth, isMobile, resetKey 
       if (p < 1) requestAnimationFrame(anim)
     }
     anim()
-  }, [resetKey, camera, isMobile, wallWidth, wallHeight, maxDepth])
+  }, [resetKey, camera, isMobile, wallWidth, wallHeight, maxDepth, size.height])
   return null
 }
 
