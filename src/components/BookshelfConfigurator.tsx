@@ -963,7 +963,7 @@ export function BookshelfConfigurator() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => redirectToCheckout("https://novo-customizador.lovable.app")}
+            onClick={() => redirectToCheckout("https://www.perfectbookshelf.com/pages/book-a-consultation")}
             className="w-full h-12 px-8 rounded-none border border-foreground bg-background hover:bg-foreground hover:text-background text-foreground tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
           >
             Book a Free Consultation
