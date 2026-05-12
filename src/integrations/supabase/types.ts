@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      quote_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          last_config: Json | null
+          product_type: string | null
+          shopify_customer_id: string | null
+          step_reached: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          last_config?: Json | null
+          product_type?: string | null
+          shopify_customer_id?: string | null
+          step_reached?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          last_config?: Json | null
+          product_type?: string | null
+          shopify_customer_id?: string | null
+          step_reached?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
