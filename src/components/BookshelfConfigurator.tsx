@@ -17,6 +17,7 @@ import type { Bookshelf3DViewRef } from "./Bookshelf3DView"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
+import { loadQuoteEmail, saveQuoteEmail } from "@/lib/quote-email"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
 import { toast } from "sonner"
@@ -149,7 +150,11 @@ export function BookshelfConfigurator() {
   const defaultWidth = 69.75
 
   const [stepIndex, setStepIndex] = useState(0)
-  const [quoteEmail, setQuoteEmail] = useState<string>("")
+  const [quoteEmail, setQuoteEmailState] = useState<string>(() => loadQuoteEmail())
+  const setQuoteEmail = (value: string) => {
+    setQuoteEmailState(value)
+    saveQuoteEmail(value)
+  }
   // RFC-5322-lite: good enough for client-side gating without false negatives.
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const isValidQuoteEmail = EMAIL_RE.test(quoteEmail.trim()) && quoteEmail.trim().length <= 255
