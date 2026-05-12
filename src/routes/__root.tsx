@@ -39,10 +39,12 @@ export const Route = createRootRoute({
       { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
+      { rel: "stylesheet", href: appCss },
+      { rel: "preload", as: "image", href: "/textures/oak.jpg" },
+      { rel: "preload", as: "image", href: "/textures/maple.jpg" },
+      { rel: "preload", as: "image", href: "/textures/walnut.jpg" },
+      { rel: "preload", as: "image", href: "/textures/black.jpg" },
+      { rel: "preload", as: "image", href: "/textures/white.jpg" },
     ],
   }),
   shellComponent: RootShell,
