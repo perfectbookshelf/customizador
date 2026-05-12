@@ -194,7 +194,7 @@ export function CathedralConfigurator({ onTypeChange }: CathedralConfiguratorPro
     }
 
     try {
-      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, discountCode: appliedDiscount?.code })
+      const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config: payload.config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code })
       // Save for cart/checkout preview — iframe-safe (works in Safari cross-origin)
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch {}
