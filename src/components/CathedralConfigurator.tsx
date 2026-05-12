@@ -175,6 +175,7 @@ export function CathedralConfigurator({ onTypeChange }: CathedralConfiguratorPro
     const finishOption = FINISH_OPTIONS.find(f => f.id === selectedFinish)
     let imageDataUrl: string | null = null
     try { if (cathedral3DRef.current) imageDataUrl = await cathedral3DRef.current.captureImage() } catch { /* */ }
+    const schematicDataUrl = await captureSvgAsPng("[data-pbs-schematic]")
 
     const payload = {
       type: "pbs-checkout",
