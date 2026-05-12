@@ -79,8 +79,8 @@ export function WizardShell({
         {/* Step panel */}
         <div className="lg:w-[42%] xl:w-[38%] flex-shrink-0 configurator-config relative flex flex-col">
           {/* Pinned price/selection bar — stays at top of panel while step body scrolls */}
-          <div className="flex-shrink-0 px-6 md:px-10 lg:px-12 pt-6 lg:pt-10 bg-background z-10">
-            <div className="flex items-baseline justify-between gap-4 border-b border-border pb-4 min-h-[2.5rem]">
+          <div className="flex-shrink-0 px-6 md:px-10 lg:px-12 pt-3 lg:pt-10 bg-background z-10">
+            <div className="flex items-baseline justify-between gap-4 border-b border-border pb-2.5 lg:pb-4 min-h-[2rem] lg:min-h-[2.5rem]">
               <span className="text-xs tracking-[0.2em] font-semibold uppercase text-foreground truncate">
                 {step.selectionName ?? "—"}
               </span>
@@ -89,18 +89,18 @@ export function WizardShell({
               </span>
             </div>
           </div>
-          <div className="flex-1 px-6 md:px-10 lg:px-12 pt-6 lg:pt-8 pb-32 configurator-config-inner overflow-y-auto">
+          <div className="flex-1 px-6 md:px-10 lg:px-12 pt-3 lg:pt-8 pb-32 configurator-config-inner overflow-y-auto">
 
             {/* Description */}
             {step.description && (
-              <p className="text-sm leading-relaxed text-muted-foreground mt-5 max-w-prose">
+              <p className="text-sm leading-relaxed text-muted-foreground mt-2 lg:mt-5 max-w-prose">
                 {step.description}
               </p>
             )}
 
             {/* Step header w/ back+next */}
             {!step.hideNav && (
-              <div className="grid grid-cols-3 items-center mt-12 mb-8 gap-2">
+              <div className="grid grid-cols-3 items-center mt-5 lg:mt-12 mb-5 lg:mb-8 gap-2">
                 <button
                   onClick={goPrev}
                   disabled={safeIndex === 0}
