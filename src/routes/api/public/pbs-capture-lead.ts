@@ -86,7 +86,14 @@ async function upsertShopifyLead(
       },
     )
     if (!createRes.ok) {
-      console.warn("Shopify customer create failed", createRes.status, await createRes.text().catch(() => ""))
+      const errText = await createRes.text().catch(() => "")
+      console.warn("Shopify customer create failed", createRes.status, errText)
+      // 422 "already taken" → search index lagged. Retry lookup.
+      if (createRes.status === 422 && /already.*taken/i.test(errText)) {
+        await new Promise((r) => setTimeout(r, 600))
+        const retry = await findExisting()
+        if (retry) return String(retry.id)
+      }
       return null
     }
     const cj = (await createRes.json()) as { customer?: { id: number } }
