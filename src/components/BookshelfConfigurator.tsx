@@ -963,7 +963,51 @@ export function BookshelfConfigurator() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => redirectToCheckout("https://www.perfectbookshelf.com/pages/book-a-consultation")}
+            onClick={() => {
+              const consultationUrl = "https://www.perfectbookshelf.com/pages/book-a-consultation"
+              try {
+                if (typeof window !== "undefined") {
+                  // GA4 via dataLayer (works when GTM/GA4 is loaded on the host page)
+                  const w = window as unknown as { dataLayer?: Array<Record<string, unknown>>; gtag?: (...args: unknown[]) => void }
+                  w.dataLayer = w.dataLayer || []
+                  w.dataLayer.push({
+                    event: "book_consultation_click",
+                    source: "configurator_step5",
+                    product: mainType,
+                    finish: selectedFinish,
+                    value: totalPrice,
+                    currency: "USD",
+                  })
+                  w.gtag?.("event", "book_consultation_click", {
+                    source: "configurator_step5",
+                    product: mainType,
+                    finish: selectedFinish,
+                    value: totalPrice,
+                    currency: "USD",
+                  })
+                  // Mirror the existing postMessage pattern used for begin_checkout
+                  if (window.parent && window.parent !== window) {
+                    window.parent.postMessage(
+                      {
+                        type: "pbs-ga4-event",
+                        eventName: "book_consultation_click",
+                        params: {
+                          source: "configurator_step5",
+                          product: mainType,
+                          finish: selectedFinish,
+                          value: totalPrice,
+                          currency: "USD",
+                        },
+                      },
+                      "*",
+                    )
+                  }
+                }
+              } catch {
+                /* analytics must never block the redirect */
+              }
+              redirectToCheckout(consultationUrl)
+            }}
             className="w-full h-12 px-8 rounded-none border border-foreground bg-background hover:bg-foreground hover:text-background text-foreground tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
           >
             Book a Free Consultation
