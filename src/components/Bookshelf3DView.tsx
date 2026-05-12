@@ -1,7 +1,7 @@
 import * as React from "react"
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
 import { Canvas, useThree } from "@react-three/fiber"
-import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
+import { OrbitControls, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 import { WOOD_COLORS, useWoodTexture } from "@/lib/wood-textures"
 
@@ -618,6 +618,7 @@ export const Bookshelf3DView = forwardRef<
       }
     >
       <Canvas
+        dpr={[1, 1.5]}
         camera={{
           position: [0, totalHeight * 0.5, cameraDistance],
           fov: 60,
@@ -628,6 +629,7 @@ export const Bookshelf3DView = forwardRef<
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.0,
           preserveDrawingBuffer: true,
+          powerPreference: "high-performance",
         }}
       >
         <Suspense fallback={null}>
@@ -644,8 +646,8 @@ export const Bookshelf3DView = forwardRef<
             position={[15, 20, 10]}
             intensity={1.2}
             castShadow
-            shadow-mapSize-width={4096}
-            shadow-mapSize-height={4096}
+            shadow-mapSize-width={2048}
+            shadow-mapSize-height={2048}
             shadow-bias={-0.00001}
             shadow-camera-left={-width}
             shadow-camera-right={width}
@@ -694,7 +696,7 @@ export const Bookshelf3DView = forwardRef<
             />
           )}
 
-          <Environment preset="studio" environmentIntensity={0.5} />
+          {/* Environment HDR removed — saved ~1 MB/3rd-party CDN download. Lights above provide all the look. */}
           <ContactShadows
             position={[0, -0.1, 0]}
             opacity={0.3}
