@@ -22,7 +22,8 @@ import { loadQuoteEmail, saveQuoteEmail } from "@/lib/quote-email"
 import { captureQuoteLead } from "@/lib/capture-lead"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
-import { toast } from "sonner"
+import { QuoteEmailSheet } from "./wizard/QuoteEmailSheet"
+
 
 // Lazy-load heavy 3D views (three.js + @react-three/fiber + drei) so the
 // initial wizard bundle stays light. Quality is unchanged — same components,
@@ -160,17 +161,8 @@ export function BookshelfConfigurator() {
   // RFC-5322-lite: good enough for client-side gating without false negatives.
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const isValidQuoteEmail = EMAIL_RE.test(quoteEmail.trim()) && quoteEmail.trim().length <= 255
-  const emailInputRef = useRef<HTMLInputElement>(null)
-  const [emailFlash, setEmailFlash] = useState(false)
-  const flashEmailField = () => {
-    emailInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
-    emailInputRef.current?.focus({ preventScroll: true })
-    setEmailFlash(true)
-    window.setTimeout(() => setEmailFlash(false), 1600)
-    toast.error("Enter your email to see your quote", {
-      description: "We use it to send your quote and follow up on your build.",
-    })
-  }
+  const [emailSheetOpen, setEmailSheetOpen] = useState(false)
+  const openEmailSheet = () => setEmailSheetOpen(true)
   const saved = useMemo<any>(() => {
     const raw = safeGetItem("bookshelf-config")
     if (!raw) return {}
@@ -717,7 +709,7 @@ export function BookshelfConfigurator() {
     description: shelvesStepDescription,
     nextLabel: "See Quote",
     nextDisabled: !isValidQuoteEmail,
-    onNextBlocked: flashEmailField,
+    onNextBlocked: openEmailSheet,
     content: (
       <div className="space-y-6">
         <div className="flex items-center justify-between border-y border-border py-4">
@@ -786,62 +778,6 @@ export function BookshelfConfigurator() {
               </div>
             )
           })}
-        </div>
-
-        {/* Email gate — required to unlock pricing on Step 4 */}
-        <div className="border-t border-border pt-6 mt-2 space-y-3">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Your email</span>
-            <span className="text-[10px] tracking-widest uppercase text-muted-foreground">Required</span>
-          </div>
-          <Input
-            ref={emailInputRef}
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            maxLength={255}
-            placeholder="you@example.com"
-            value={quoteEmail}
-            onChange={(e) => setQuoteEmail(e.target.value)}
-            onBlur={() => {
-              if (isValidQuoteEmail) {
-                void captureQuoteLead({
-                  email: quoteEmail,
-                  productType: mainType,
-                  stepReached: "step-3-email",
-                  lastConfig: quoteLeadConfig(),
-                })
-              }
-            }}
-            aria-invalid={quoteEmail.length > 0 && !isValidQuoteEmail}
-            className={cn(
-              "h-10 transition-all",
-              emailFlash && "ring-2 ring-destructive ring-offset-2 ring-offset-background border-destructive animate-pulse",
-            )}
-          />
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
-          </p>
-          <Button
-            onClick={() => {
-              if (isValidQuoteEmail) {
-                void captureQuoteLead({
-                  email: quoteEmail,
-                  productType: mainType,
-                  stepReached: "step-3-see-quote",
-                  lastConfig: quoteLeadConfig(),
-                })
-                setStepIndex(stepIndex + 1)
-              } else {
-                flashEmailField()
-              }
-            }}
-            disabled={!isValidQuoteEmail}
-            className="w-full h-11 mt-2 text-[11px] tracking-[0.25em] uppercase font-medium"
-          >
-            See Quote
-            <ChevronRight className="h-3 w-3 ml-1" />
-          </Button>
         </div>
       </div>
     ),
@@ -1138,13 +1074,31 @@ export function BookshelfConfigurator() {
   )
 
   return (
-    <WizardShell
-      preview={preview}
-      steps={steps}
-      index={stepIndex}
-      onIndexChange={(next) => setStepIndex(next > 2 && !isValidQuoteEmail ? Math.min(2, next) : next)}
-      onReset={handleReset}
-    />
+    <>
+      <WizardShell
+        preview={preview}
+        steps={steps}
+        index={stepIndex}
+        onIndexChange={(next) => setStepIndex(next > 2 && !isValidQuoteEmail ? Math.min(2, next) : next)}
+        onReset={handleReset}
+      />
+      <QuoteEmailSheet
+        open={emailSheetOpen}
+        initialEmail={quoteEmail}
+        onClose={() => setEmailSheetOpen(false)}
+        onSubmit={(email) => {
+          setQuoteEmail(email)
+          void captureQuoteLead({
+            email,
+            productType: mainType,
+            stepReached: "step-3-see-quote",
+            lastConfig: quoteLeadConfig(),
+          })
+          setEmailSheetOpen(false)
+          setStepIndex((i) => i + 1)
+        }}
+      />
+    </>
   )
 }
 
