@@ -28,6 +28,7 @@ import { FinishPreviewModal } from "./FinishPreviewModal"
 import { FinishPreviewChips } from "./FinishPreviewChips"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
+import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 
