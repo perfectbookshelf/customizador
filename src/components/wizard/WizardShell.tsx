@@ -63,9 +63,11 @@ export function WizardShell({
     <div className="w-full configurator-root bg-background">
       <div className="flex flex-col lg:flex-row configurator-layout min-h-screen">
         {/* Brand mark — desktop only, sits over the preview corner */}
-        <div className="hidden lg:block absolute top-6 left-6 z-20 text-xs tracking-[0.3em] font-semibold text-foreground/80">
-          {brand ?? "PBS"}
-        </div>
+        {brand && (
+          <div className="hidden lg:block absolute top-6 left-6 z-20 text-xs tracking-[0.3em] font-semibold text-foreground/80">
+            {brand}
+          </div>
+        )}
 
         {/* Preview */}
         <div className="lg:w-[58%] xl:w-[62%] flex-shrink-0 bg-secondary/40 configurator-preview relative">
