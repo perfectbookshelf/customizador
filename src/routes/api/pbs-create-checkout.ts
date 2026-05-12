@@ -100,6 +100,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
               ],
               note: `PBS Configurator | ${config?.finish || "N/A"} | ${width || "?"}" W x ${height || "?"}" H | ${shelvesCount} shelves`,
               use_customer_default_address: true,
+              ...(cleanEmail ? { email: cleanEmail } : {}),
             },
           }
 
