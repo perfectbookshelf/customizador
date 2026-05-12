@@ -160,24 +160,24 @@
 @media (max-width: 768px) {
   .configurator-root {
     height: 100vh;
-    height: 100dvh;
+    height: 100svh;
     min-height: 100vh;
-    min-height: 100dvh;
+    min-height: 100svh;
     overflow: hidden;
   }
   .configurator-layout {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    height: 100dvh;
+    height: 100svh;
     margin-top: 0;
     overflow: hidden;
   }
   .configurator-preview {
     position: relative;
-    flex: 0 0 32dvh;
-    height: 32dvh;
-    max-height: 32dvh;
+    flex: 0 0 32svh;
+    height: 32svh;
+    max-height: 32svh;
     min-height: 220px;
     overflow: hidden;
     touch-action: none;
