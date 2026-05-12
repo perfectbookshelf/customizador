@@ -37,13 +37,19 @@ async function upsertShopifyLead(
       const sj = (await searchRes.json()) as { customers?: Array<{ id: number; tags?: string }> }
       const existing = sj.customers?.[0]
       if (existing) {
-        // Make sure pbs-lead tag is present.
+        // Merge required tags (pbs-lead + any extras) into the existing list.
         const tags = (existing.tags || "")
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean)
-        if (!tags.includes("pbs-lead")) {
-          tags.push("pbs-lead")
+        let changed = false
+        for (const t of baseTags) {
+          if (!tags.includes(t)) {
+            tags.push(t)
+            changed = true
+          }
+        }
+        if (changed) {
           await fetch(
             `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
             {
@@ -68,7 +74,7 @@ async function upsertShopifyLead(
         body: JSON.stringify({
           customer: {
             email,
-            tags: "pbs-lead",
+            tags: baseTags.join(", "),
             accepts_marketing: false,
             email_marketing_consent: { state: "not_subscribed", opt_in_level: "single_opt_in" },
           },
