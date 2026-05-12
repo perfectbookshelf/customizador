@@ -12,7 +12,7 @@ interface QuoteEmailSheetProps {
   onSubmit: (email: string) => void
 }
 
-const EMAIL_RE = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
  * Mobile-first bottom sheet (becomes a centered modal on ≥sm screens) that
