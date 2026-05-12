@@ -781,62 +781,6 @@ export function BookshelfConfigurator() {
             )
           })}
         </div>
-
-        {/* Email gate — required to unlock pricing on Step 4 */}
-        <div className="border-t border-border pt-6 mt-2 space-y-3">
-          <div className="flex items-baseline justify-between">
-            <span className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Your email</span>
-            <span className="text-[10px] tracking-widest uppercase text-muted-foreground">Required</span>
-          </div>
-          <Input
-            ref={emailInputRef}
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            maxLength={255}
-            placeholder="you@example.com"
-            value={quoteEmail}
-            onChange={(e) => setQuoteEmail(e.target.value)}
-            onBlur={() => {
-              if (isValidQuoteEmail) {
-                void captureQuoteLead({
-                  email: quoteEmail,
-                  productType: mainType,
-                  stepReached: "step-3-email",
-                  lastConfig: quoteLeadConfig(),
-                })
-              }
-            }}
-            aria-invalid={quoteEmail.length > 0 && !isValidQuoteEmail}
-            className={cn(
-              "h-10 transition-all",
-              emailFlash && "ring-2 ring-destructive ring-offset-2 ring-offset-background border-destructive animate-pulse",
-            )}
-          />
-          <p className="text-[11px] text-muted-foreground leading-relaxed">
-            We&rsquo;ll use this to send your quote and follow up on your build. Enter a valid address to unlock pricing.
-          </p>
-          <Button
-            onClick={() => {
-              if (isValidQuoteEmail) {
-                void captureQuoteLead({
-                  email: quoteEmail,
-                  productType: mainType,
-                  stepReached: "step-3-see-quote",
-                  lastConfig: quoteLeadConfig(),
-                })
-                setStepIndex(stepIndex + 1)
-              } else {
-                flashEmailField()
-              }
-            }}
-            disabled={!isValidQuoteEmail}
-            className="w-full h-11 mt-2 text-[11px] tracking-[0.25em] uppercase font-medium"
-          >
-            See Quote
-            <ChevronRight className="h-3 w-3 ml-1" />
-          </Button>
-        </div>
       </div>
     ),
   }
