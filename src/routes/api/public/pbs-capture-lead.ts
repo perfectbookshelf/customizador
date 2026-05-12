@@ -86,7 +86,6 @@ async function upsertShopifyLead(
 }
 
 export const Route = createFileRoute("/api/public/pbs-capture-lead")({
-  // @ts-expect-error - server handlers are runtime-supported but not yet in route type
   server: {
     handlers: {
       OPTIONS: async () => new Response(null, { status: 200, headers: corsHeaders }),
