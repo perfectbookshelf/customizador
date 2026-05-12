@@ -187,7 +187,7 @@ function CameraController({ width, totalHeight, maxDepth, isMobile, resetKey }: 
     const optimalDistance = Math.max(distanceForWidth, distanceForHeight, distanceForDepth) * paddingMultiplier
 
     const compactPreview = isMobile || size.height <= 360
-    const targetYOffset = compactPreview ? -totalHeight * 0.2 : 0
+    const targetYOffset = compactPreview ? -totalHeight * 0.35 : 0
     const targetPosition = new THREE.Vector3(0, totalHeight * 0.5 + targetYOffset, optimalDistance)
     const lookAt = new THREE.Vector3(0, totalHeight / 2 + targetYOffset, 0)
     const startPos = camera.position.clone()
