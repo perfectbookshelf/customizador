@@ -1,7 +1,8 @@
 import { Suspense, useMemo, useImperativeHandle, forwardRef, useEffect, useRef, useState } from "react"
-import { Canvas, useThree, useLoader } from "@react-three/fiber"
+import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
+import { WOOD_COLORS, useWoodTexture } from "@/lib/wood-textures"
 
 export interface Portal3DViewRef {
   captureImage: () => Promise<string>
@@ -37,26 +38,9 @@ const MIN_COL = 25
 const BOARD_T = 0.75
 const SAFETY = 2
 
-// ─── MATERIAL HELPERS ───
-const WOOD_COLORS: Record<string, string> = {
-  White: "#F5F5F5", Maple: "#E8D4B8", Black: "#1A1A1A", Oak: "#D4A574", Walnut: "#5D432C",
-}
-const TEXTURE_URLS: Record<string, string> = {
-  Maple: "/images/finishes/maple1.jpeg", Oak: "/images/finishes/oak1.jpeg", Walnut: "/images/finishes/walnut1.jpeg", Black: "/images/finishes/valchromat.png",
-}
-
-function WoodMaterial({ finish, isFrame = false }: { finish: string; isFrame?: boolean }) {
-  const url = TEXTURE_URLS[finish] || null
-  const texture = useLoader(THREE.TextureLoader, url || "/images/finishes/OAK6.png")
-  const tex = useMemo(() => {
-    const t = texture.clone()
-    t.wrapS = t.wrapT = THREE.RepeatWrapping
-    t.repeat.set(1, 1)
-    t.rotation = 0
-    t.needsUpdate = true
-    return t
-  }, [texture])
-  if (!url) return <meshStandardMaterial color={WOOD_COLORS[finish] || WOOD_COLORS.Oak} roughness={isFrame ? 0.7 : 0.8} metalness={0} side={THREE.DoubleSide} envMapIntensity={0.3} />
+function WoodMaterial({ finish, isFrame = false, size, seed = 0 }: { finish: string; isFrame?: boolean; size?: { w?: number; h?: number; d?: number }; seed?: number }) {
+  const tex = useWoodTexture(finish, size || {}, seed)
+  if (!tex) return <meshStandardMaterial color={WOOD_COLORS[finish] || WOOD_COLORS.Oak} roughness={isFrame ? 0.7 : 0.8} metalness={0} side={THREE.DoubleSide} envMapIntensity={0.3} />
   return <meshStandardMaterial map={tex} roughness={isFrame ? 0.6 : 0.7} metalness={0} side={THREE.DoubleSide} envMapIntensity={0.3} />
 }
 
