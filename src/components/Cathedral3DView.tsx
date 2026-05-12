@@ -183,7 +183,7 @@ function CameraController({ width, totalHeight, maxDepth, isMobile, resetKey }: 
     const distanceForHeight = totalHeight / 2 / Math.tan(fovRadians / 2)
     const distanceForDepth = maxDepth * 2.5
 
-    const paddingMultiplier = isMobile ? 1.15 : 1.8
+    const paddingMultiplier = isMobile ? 1.6 : 1.8
     const optimalDistance = Math.max(distanceForWidth, distanceForHeight, distanceForDepth) * paddingMultiplier
 
     const targetYOffset = 0
