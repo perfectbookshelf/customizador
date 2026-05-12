@@ -28,52 +28,25 @@ export interface Bookshelf3DViewRef {
   captureImage: () => Promise<string>
 }
 
-const getWoodColor = (finish: string): string => {
-  const colorMap: Record<string, string> = {
-    White: "#F5F5F5",
-    Maple: "#E8D4B8",
-    Black: "#1A1A1A",
-    Oak: "#D4A574",
-    Walnut: "#5D432C",
-  }
-  return colorMap[finish] || colorMap.Oak
-}
-
-const getTextureUrl = (finish: string): string | null => {
-  const textureMap: Record<string, string> = {
-    Maple: "/images/finishes/maple1.jpeg",
-    Oak: "/images/finishes/oak1.jpeg",
-    Walnut: "/images/finishes/walnut1.jpeg",
-    Black: "/images/finishes/valchromat.png",
-  }
-  return textureMap[finish] || null
-}
+const getWoodColor = (finish: string): string => WOOD_COLORS[finish] || WOOD_COLORS.Oak
 
 function WoodMaterial({
   finish,
   isFrame = false,
-}: { finish: string; isFrame?: boolean }) {
-  const textureUrl = getTextureUrl(finish)
-  const texture = useLoader(
-    THREE.TextureLoader,
-    textureUrl || "/images/finishes/OAK6.png"
-  )
+  size,
+  seed = 0,
+}: {
+  finish: string
+  isFrame?: boolean
+  size?: { w?: number; h?: number; d?: number }
+  seed?: number
+}) {
+  const tex = useWoodTexture(finish, size || {}, seed)
 
-  const clonedTexture = useMemo(() => {
-    const t = texture.clone()
-    t.wrapS = THREE.RepeatWrapping
-    t.wrapT = THREE.RepeatWrapping
-    t.repeat.set(1, 1)
-    t.rotation = 0
-    t.needsUpdate = true
-    return t
-  }, [texture])
-
-  if (!textureUrl) {
-    const color = getWoodColor(finish)
+  if (!tex) {
     return (
       <meshStandardMaterial
-        color={color}
+        color={getWoodColor(finish)}
         roughness={isFrame ? 0.7 : 0.8}
         metalness={0.0}
         side={THREE.DoubleSide}
@@ -84,7 +57,7 @@ function WoodMaterial({
 
   return (
     <meshStandardMaterial
-      map={clonedTexture}
+      map={tex}
       roughness={isFrame ? 0.6 : 0.7}
       metalness={0.0}
       side={THREE.DoubleSide}
