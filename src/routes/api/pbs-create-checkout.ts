@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router"
+import { uploadDataUrlToShopifyFiles } from "@/lib/shopify-files.server"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
