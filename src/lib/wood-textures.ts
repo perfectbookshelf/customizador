@@ -21,9 +21,16 @@ export const WOOD_TEXTURE_URLS: Record<string, string> = {
 
 export const ALL_TEXTURE_URLS = Object.values(WOOD_TEXTURE_URLS)
 
-// Preload all wood textures once on module import so they're cached
-// in drei's loader cache before any Canvas mounts.
-;(useTexture as unknown as { preload: (urls: string[]) => void }).preload(ALL_TEXTURE_URLS)
+// Preload wood textures lazily — defer to browser idle so the first 3D
+// frame paints with whichever texture is needed first instead of competing
+// with downloads of the other 4 finishes the user hasn't selected.
+if (typeof window !== "undefined") {
+  const preload = () =>
+    (useTexture as unknown as { preload: (urls: string[]) => void }).preload(ALL_TEXTURE_URLS)
+  const ric = (window as any).requestIdleCallback as ((cb: () => void) => void) | undefined
+  if (ric) ric(preload)
+  else setTimeout(preload, 1500)
+}
 
 /**
  * Shared hook: returns a per-mesh cloned texture with UV repeat scaled
