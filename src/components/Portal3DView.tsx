@@ -153,11 +153,11 @@ function CanvasCapture({ onReady }: { onReady: (fn: () => Promise<string>) => vo
 function CameraController({ wallWidth, wallHeight, maxDepth, isMobile, resetKey }: {
   wallWidth: number; wallHeight: number; maxDepth: number; isMobile?: boolean; resetKey: number
 }) {
-  const { camera, controls } = useThree()
+  const { camera, controls, size } = useThree()
   const ctrlRef = useRef(controls)
   useEffect(() => { ctrlRef.current = controls }, [controls])
   useEffect(() => {
-    const fov = 60, fovR = (fov * Math.PI) / 180, ar = window.innerWidth / window.innerHeight
+    const fov = 60, fovR = (fov * Math.PI) / 180, ar = size.width / Math.max(size.height, 1)
     const dW = wallWidth / 2 / Math.tan(fovR / 2) / ar
     const dH = wallHeight / 2 / Math.tan(fovR / 2)
     const pad = isMobile ? 0.8 : 1.8

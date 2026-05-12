@@ -485,7 +485,7 @@ function CameraController({
   cornerVariant,
   resetKey,
 }: { width: number; totalHeight: number; maxDepth: number; isMobile?: boolean; isCorner?: boolean; width2?: number; cornerVariant?: "outside" | "inside"; resetKey: number }) {
-  const { camera, controls } = useThree()
+  const { camera, controls, size } = useThree()
   const controlsRef = useRef(controls)
 
   useEffect(() => {
@@ -495,7 +495,7 @@ function CameraController({
   useEffect(() => {
     const fov = 60
     const fovRadians = (fov * Math.PI) / 180
-    const aspectRatio = window.innerWidth / window.innerHeight
+    const aspectRatio = size.width / Math.max(size.height, 1)
 
     const distanceForWidth = width / 2 / Math.tan(fovRadians / 2) / aspectRatio
     const distanceForHeight = totalHeight / 2 / Math.tan(fovRadians / 2)

@@ -32,7 +32,7 @@ function CanvasCapture({ onReady }: { onReady: (fn: () => Promise<string>) => vo
 function CameraController({ w1, w, w2, totalHeight, maxDepth, isMobile, resetKey }: {
   w1: number; w: number; w2: number; totalHeight: number; maxDepth: number; isMobile?: boolean; resetKey: number
 }) {
-  const { camera, controls } = useThree()
+  const { camera, controls, size } = useThree()
   const ctrlRef = useRef(controls)
   useEffect(() => { ctrlRef.current = controls }, [controls])
   useEffect(() => {
@@ -40,8 +40,13 @@ function CameraController({ w1, w, w2, totalHeight, maxDepth, isMobile, resetKey
     const backZ = Math.max(w1, w2)
     const totalWidth = w + maxDepth * 2
     const spread = Math.max(totalWidth, backZ + maxDepth)
-    const pad = isMobile ? 0.8 : 1.8
-    const dist = Math.max(spread, H) * pad
+    const pad = isMobile ? 0.95 : 1.8
+    // Ensure both width and height fit the actual canvas aspect.
+    const fovR = (60 * Math.PI) / 180
+    const ar = size.width / Math.max(size.height, 1)
+    const distForHeight = H / 2 / Math.tan(fovR / 2)
+    const distForWidth = totalWidth / 2 / Math.tan(fovR / 2) / ar
+    const dist = Math.max(spread, H, distForHeight, distForWidth) * pad
 
     // Camera at front-top looking into the open U (opening faces +Z)
     const targetPos = new THREE.Vector3(0, H * 0.7, dist * 0.8)
