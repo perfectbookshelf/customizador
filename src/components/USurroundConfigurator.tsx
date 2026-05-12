@@ -14,6 +14,7 @@ import { FinishPreviewModal } from "./FinishPreviewModal"
 import { FinishPreviewChips } from "./FinishPreviewChips"
 import { FloatingPreview } from "./FloatingPreview"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
+import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 
 import iconHorizontal from "@/assets/icons/Horizontal.png"
@@ -234,17 +235,12 @@ export function USurroundConfigurator({ onTypeChange }: USurroundConfiguratorPro
       if (imageDataUrl) _pbsSet('pbs_cart_image', imageDataUrl)
       // Let parent handle redirect so it can save to localStorage first
       if (window.self !== window.top) {
-        // GA4 events via parent window
         try {
           window.parent.postMessage({ type: 'pbs-ga4-event', eventName: 'add_to_cart', params: { currency: 'USD', value: totalPrice } }, '*')
           window.parent.postMessage({ type: 'pbs-ga4-event', eventName: 'begin_checkout', params: { currency: 'USD', value: totalPrice } }, '*')
         } catch(e) {}
-        // Inside iframe: ask parent to save + redirect
-        window.parent.postMessage({ type: 'pbs-checkout-redirect', checkoutUrl }, '*')
-      } else {
-        // Standalone: redirect directly
-        window.location.href = checkoutUrl
       }
+      redirectToCheckout(checkoutUrl)
     } catch (err) {
       console.error('Checkout error:', err)
       setCheckoutError('Something went wrong. Please try again or contact us.')
