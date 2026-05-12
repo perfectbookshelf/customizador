@@ -481,10 +481,11 @@ function CameraController({
   maxDepth,
   isMobile,
   isCorner,
+  liftModel,
   width2,
   cornerVariant,
   resetKey,
-}: { width: number; totalHeight: number; maxDepth: number; isMobile?: boolean; isCorner?: boolean; width2?: number; cornerVariant?: "outside" | "inside"; resetKey: number }) {
+}: { width: number; totalHeight: number; maxDepth: number; isMobile?: boolean; isCorner?: boolean; liftModel?: boolean; width2?: number; cornerVariant?: "outside" | "inside"; resetKey: number }) {
   const { camera, controls, size } = useThree()
   const controlsRef = useRef(controls)
 
@@ -504,7 +505,8 @@ function CameraController({
     const paddingMultiplier = isMobile ? 1.6 : 1.8
     const optimalDistance = Math.max(distanceForWidth, distanceForHeight, distanceForDepth) * paddingMultiplier
 
-    const targetYOffset = 0
+    const compactPreview = isMobile || size.height <= 360
+    const targetYOffset = liftModel && compactPreview ? -totalHeight * 0.24 : 0
 
     let targetPosition: THREE.Vector3
     let lookAt: THREE.Vector3
@@ -562,7 +564,7 @@ function CameraController({
     }
 
     animate()
-  }, [resetKey, camera, isMobile, isCorner, cornerVariant, width, totalHeight, maxDepth, width2])
+  }, [resetKey, camera, isMobile, isCorner, liftModel, cornerVariant, width, totalHeight, maxDepth, width2, size.height])
 
   return null
 }
@@ -637,7 +639,7 @@ export const Bookshelf3DView = forwardRef<
             }}
           />
 
-          <CameraController width={effectiveWidth} totalHeight={totalHeight} maxDepth={maxDepth} isMobile={isMobile} isCorner={style === "corner"} width2={width2} cornerVariant={cornerVariant} resetKey={resetCount} />
+          <CameraController width={effectiveWidth} totalHeight={totalHeight} maxDepth={maxDepth} isMobile={isMobile} isCorner={style === "corner"} liftModel={style === "bookshelf"} width2={width2} cornerVariant={cornerVariant} resetKey={resetCount} />
 
           <ambientLight intensity={0.6} />
           <directionalLight

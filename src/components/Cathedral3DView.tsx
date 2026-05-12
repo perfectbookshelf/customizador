@@ -261,15 +261,17 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
             <pointLight position={[0, totalHeight * 0.7, maxDepth * 1.5]} intensity={0.8} distance={maxDepth * 4} />
             <pointLight position={[0, totalHeight * 0.5, -maxDepth * 0.3]} intensity={0.7} distance={maxDepth * 3} />
 
-            <CathedralShelf3D
-              rows={rows}
-              modulesPerRow={modulesPerRow}
-              maxWidth={W}
-              internalFinish={internalFinish}
-              frameFinish={frameFinish}
-              backFinish={backFinish}
-              direction={direction}
-            />
+            <group position={[0, totalHeight * 0.16, 0]}>
+              <CathedralShelf3D
+                rows={rows}
+                modulesPerRow={modulesPerRow}
+                maxWidth={W}
+                internalFinish={internalFinish}
+                frameFinish={frameFinish}
+                backFinish={backFinish}
+                direction={direction}
+              />
+            </group>
 
             <Environment preset="studio" environmentIntensity={0.5} />
             <ContactShadows position={[0, -0.1, 0]} opacity={0.3} scale={W * 1.8} blur={2.8} far={totalHeight * 1.5} resolution={1024} />
