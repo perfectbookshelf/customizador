@@ -108,11 +108,10 @@ export function QuoteEmailSheet({ open, onClose, initialEmail, onSubmit }: Quote
               id="quote-email-sheet-title"
               className="font-display text-lg tracking-[0.12em] uppercase text-foreground"
             >
-              Get your quote
+              GET YOUR QUOTE
             </h2>
             <p className="text-sm text-muted-foreground leading-snug">
-              Enter your email and we&rsquo;ll unlock your price plus send the full quote so you
-              can review it later.
+              Enter your email to see your custom price and keep your quote saved for later.
             </p>
           </div>
           <button
@@ -161,12 +160,12 @@ export function QuoteEmailSheet({ open, onClose, initialEmail, onSubmit }: Quote
             disabled={!isValid}
             className="w-full h-11 text-[11px] tracking-[0.25em] uppercase font-medium"
           >
-            View Quote
+            View My Quote
             <ChevronRight className="h-3 w-3 ml-1" />
           </Button>
 
           <p className="text-[11px] text-muted-foreground leading-relaxed text-center">
-            We only use this to send your quote and follow up on your build. No spam.
+            Your quote will be sent to your inbox so you can review it anytime. No spam.
           </p>
         </form>
       </div>
