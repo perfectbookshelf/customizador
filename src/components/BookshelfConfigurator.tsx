@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight, Calendar } from "lucide-react"
+import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
@@ -20,7 +20,6 @@ import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
 import { loadQuoteEmail, saveQuoteEmail } from "@/lib/quote-email"
 import { captureQuoteLead } from "@/lib/capture-lead"
-import { bookConsultation } from "@/lib/book-consultation"
 import { CouponField, type AppliedDiscount } from "./CouponField"
 import { WizardShell, SwatchGrid, Swatch, type WizardStep } from "./wizard/WizardShell"
 import { toast } from "sonner"
@@ -919,37 +918,21 @@ export function BookshelfConfigurator() {
           </div>
         )}
 
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+        <div className="flex items-center justify-between gap-4 pt-2">
           <button
             onClick={() => setStepIndex(stepIndex - 1)}
-            className="text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut self-start sm:self-auto"
+            className="text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut"
           >
             ← Back
           </button>
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
-            <Button
-              variant="outline"
-              onClick={() =>
-                bookConsultation({
-                  email: quoteEmail || null,
-                  productType: bookshelfType,
-                  lastConfig: { mainType, width, width2, totalHeight, finish: selectedFinish, shelves: shelves.length },
-                })
-              }
-              className="h-12 px-6 rounded-none gap-2 border-foreground text-foreground hover:bg-foreground hover:text-background tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
-            >
-              <Calendar className="h-4 w-4" />
-              Book a Consultation
-            </Button>
-            <Button
-              onClick={handleAddToCart}
-              disabled={isAddingToCart || !result}
-              className="h-12 px-8 rounded-none gap-2 bg-foreground hover:bg-brand-walnut text-background tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
-            >
-              <ShoppingCart className="h-4 w-4" />
-              {isAddingToCart ? "Processing…" : "Checkout"}
-            </Button>
-          </div>
+          <Button
+            onClick={handleAddToCart}
+            disabled={isAddingToCart || !result}
+            className="h-12 px-8 rounded-none gap-2 bg-foreground hover:bg-brand-walnut text-background tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {isAddingToCart ? "Processing…" : "Checkout"}
+          </Button>
         </div>
       </div>
     ),

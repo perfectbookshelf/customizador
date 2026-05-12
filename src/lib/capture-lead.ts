@@ -14,18 +14,14 @@ export interface CaptureLeadInput {
   productType?: string
   stepReached?: string
   lastConfig?: unknown
-  extraTags?: string[]
 }
 
 export async function captureQuoteLead(input: CaptureLeadInput): Promise<void> {
   if (typeof window === "undefined") return
   const email = input.email?.trim().toLowerCase() ?? ""
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 255) return
-  // Dedupe key includes intent so the same email can re-submit a consultation
-  // even after the initial step-3 capture went through.
-  const key = `${email}|${input.stepReached ?? ""}`
-  if (sent.has(key) || inflight === key) return
-  inflight = key
+  if (sent.has(email) || inflight === email) return
+  inflight = email
   try {
     const res = await fetch("/api/public/pbs-capture-lead", {
       method: "POST",
@@ -35,13 +31,12 @@ export async function captureQuoteLead(input: CaptureLeadInput): Promise<void> {
         productType: input.productType ?? null,
         stepReached: input.stepReached ?? null,
         lastConfig: input.lastConfig ?? null,
-        extraTags: Array.isArray(input.extraTags) ? input.extraTags : null,
       }),
     })
-    if (res.ok) sent.add(key)
+    if (res.ok) sent.add(email)
   } catch {
     /* swallow — capture is fire-and-forget */
   } finally {
-    if (inflight === key) inflight = null
+    if (inflight === email) inflight = null
   }
 }

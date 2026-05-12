@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Slider } from "@/components/ui/slider"
-import { Plus, Minus, RotateCcw, ShoppingCart, ChevronDown, DoorOpen, Monitor, Flame, HelpCircle, Calendar } from "lucide-react"
+import { Plus, Minus, RotateCcw, ShoppingCart, ChevronDown, DoorOpen, Monitor, Flame, HelpCircle } from "lucide-react"
 import type { ShelfConfig } from "@/lib/types"
 import { calculateBookshelf } from "@/lib/bookshelf-calculator"
 import { PortalSchematic } from "./PortalSchematic"
@@ -27,7 +27,6 @@ import { Portal3DView, type Portal3DViewRef } from "./Portal3DView"
 import { FinishPreviewModal } from "./FinishPreviewModal"
 import { FinishPreviewChips } from "./FinishPreviewChips"
 import { FloatingPreview } from "./FloatingPreview"
-import { bookConsultation } from "@/lib/book-consultation"
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
@@ -650,13 +649,6 @@ export function PortalConfigurator({ onTypeChange }: PortalConfiguratorProps) {
               />
               <Button onClick={handleAddToCart} disabled={isAddingToCart} className="w-full h-12 rounded-xl text-base font-semibold gap-2">
                 <ShoppingCart className="h-4 w-4" />{isAddingToCart ? "Processing..." : "Add to Cart"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => bookConsultation({ productType: "portal" })}
-                className="w-full h-12 rounded-xl text-base font-semibold gap-2"
-              >
-                <Calendar className="h-4 w-4" /> Book a Consultation
               </Button>
             </div>
             <div className="h-8" />
