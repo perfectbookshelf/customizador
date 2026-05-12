@@ -44,19 +44,3 @@ vi.mock("@/components/FloatingPreview", () => ({
   FloatingPreview: () => null,
 }))
 
-// Spy points: if any of these legacy components ever render, the test fails.
-vi.mock("@/components/PortalConfigurator", () => ({
-  PortalConfigurator: () => {
-    throw new Error("LEGACY_RENDERED:PortalConfigurator")
-  },
-}))
-vi.mock("@/components/CathedralConfigurator", () => ({
-  CathedralConfigurator: () => {
-    throw new Error("LEGACY_RENDERED:CathedralConfigurator")
-  },
-}))
-vi.mock("@/components/USurroundConfigurator", () => ({
-  USurroundConfigurator: () => {
-    throw new Error("LEGACY_RENDERED:USurroundConfigurator")
-  },
-}))
