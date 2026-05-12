@@ -160,9 +160,9 @@ function CameraController({ wallWidth, wallHeight, maxDepth, isMobile, resetKey 
     const fov = 60, fovR = (fov * Math.PI) / 180, ar = size.width / Math.max(size.height, 1)
     const dW = wallWidth / 2 / Math.tan(fovR / 2) / ar
     const dH = wallHeight / 2 / Math.tan(fovR / 2)
-    const pad = isMobile ? 0.8 : 1.8
+    const pad = isMobile ? 1.15 : 1.8
     const dist = Math.max(dW, dH, maxDepth * 2.5) * pad
-    const yOff = isMobile ? -0.8 : 0
+    const yOff = 0
     const tgt = new THREE.Vector3(0, wallHeight * 0.5 + yOff, dist)
     const look = new THREE.Vector3(0, wallHeight / 2 + yOff, 0)
     const start = camera.position.clone()

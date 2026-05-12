@@ -501,10 +501,10 @@ function CameraController({
     const distanceForHeight = totalHeight / 2 / Math.tan(fovRadians / 2)
     const distanceForDepth = maxDepth * 2.5
 
-    const paddingMultiplier = isMobile ? 0.8 : 1.8
+    const paddingMultiplier = isMobile ? 1.15 : 1.8
     const optimalDistance = Math.max(distanceForWidth, distanceForHeight, distanceForDepth) * paddingMultiplier
 
-    const targetYOffset = isMobile ? -0.8 : 0
+    const targetYOffset = 0
 
     let targetPosition: THREE.Vector3
     let lookAt: THREE.Vector3
