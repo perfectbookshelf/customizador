@@ -2,16 +2,15 @@ interface CheckoutPayload {
   price: string
   config: Record<string, any>
   imageDataUrl?: string | null
+  schematicDataUrl?: string | null
   discountCode?: string | null
 }
 
 export async function createShopifyCheckout(payload: CheckoutPayload): Promise<string> {
-  const { imageDataUrl: _imageDataUrl, ...checkoutPayload } = payload
-
   const res = await fetch("/api/pbs-create-checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(checkoutPayload),
+    body: JSON.stringify(payload),
   })
 
   const data = await res.json().catch(() => ({}))
