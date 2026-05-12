@@ -46,27 +46,23 @@ async function upsertShopifyLead(
   try {
     const existing = await findExisting()
     if (existing) {
-      {
-        // Make sure pbs-lead tag is present.
-        const tags = (existing.tags || "")
-          .split(",")
-          .map((t) => t.trim())
-          .filter(Boolean)
-        if (!tags.includes("pbs-lead")) {
-          tags.push("pbs-lead")
-          await fetch(
-            `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
-            {
-              method: "PUT",
-              headers,
-              body: JSON.stringify({ customer: { id: existing.id, tags: tags.join(", ") } }),
-            },
-          )
-        }
-        return String(existing.id)
+      // Make sure pbs-lead tag is present.
+      const tags = (existing.tags || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean)
+      if (!tags.includes("pbs-lead")) {
+        tags.push("pbs-lead")
+        await fetch(
+          `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
+          {
+            method: "PUT",
+            headers,
+            body: JSON.stringify({ customer: { id: existing.id, tags: tags.join(", ") } }),
+          },
+        )
       }
-    } else {
-      console.warn("Shopify customer search failed", searchRes.status, await searchRes.text().catch(() => ""))
+      return String(existing.id)
     }
 
     // Create a new customer.
