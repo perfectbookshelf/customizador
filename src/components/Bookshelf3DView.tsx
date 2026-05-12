@@ -506,7 +506,7 @@ function CameraController({
     const optimalDistance = Math.max(distanceForWidth, distanceForHeight, distanceForDepth) * paddingMultiplier
 
     const compactPreview = isMobile || size.height <= 360
-    const targetYOffset = liftModel && compactPreview ? -totalHeight * 0.2 : 0
+    const targetYOffset = liftModel && compactPreview ? -totalHeight * 0.35 : 0
 
     let targetPosition: THREE.Vector3
     let lookAt: THREE.Vector3
