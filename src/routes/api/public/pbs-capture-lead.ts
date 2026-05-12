@@ -22,7 +22,9 @@ async function upsertShopifyLead(
   shopName: string,
   accessToken: string,
   email: string,
+  extraTags: string[] = [],
 ): Promise<string | null> {
+  const baseTags = ["pbs-lead", ...extraTags.filter((t) => typeof t === "string" && t.length <= 64)]
   const headers = {
     "X-Shopify-Access-Token": accessToken,
     "Content-Type": "application/json",
@@ -35,13 +37,19 @@ async function upsertShopifyLead(
       const sj = (await searchRes.json()) as { customers?: Array<{ id: number; tags?: string }> }
       const existing = sj.customers?.[0]
       if (existing) {
-        // Make sure pbs-lead tag is present.
+        // Merge required tags (pbs-lead + any extras) into the existing list.
         const tags = (existing.tags || "")
           .split(",")
           .map((t) => t.trim())
           .filter(Boolean)
-        if (!tags.includes("pbs-lead")) {
-          tags.push("pbs-lead")
+        let changed = false
+        for (const t of baseTags) {
+          if (!tags.includes(t)) {
+            tags.push(t)
+            changed = true
+          }
+        }
+        if (changed) {
           await fetch(
             `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
             {
@@ -66,7 +74,7 @@ async function upsertShopifyLead(
         body: JSON.stringify({
           customer: {
             email,
-            tags: "pbs-lead",
+            tags: baseTags.join(", "),
             accepts_marketing: false,
             email_marketing_consent: { state: "not_subscribed", opt_in_level: "single_opt_in" },
           },
@@ -107,6 +115,11 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
               : null
           const lastConfig =
             body?.lastConfig && typeof body.lastConfig === "object" ? body.lastConfig : null
+          const extraTags = Array.isArray(body?.extraTags)
+            ? (body.extraTags as unknown[]).filter(
+                (t): t is string => typeof t === "string" && t.length > 0 && t.length <= 64,
+              )
+            : []
 
           // 1. Best-effort: create / tag Shopify customer.
           let shopifyCustomerId: string | null = null
@@ -117,6 +130,7 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
               normalizeShopifyStore(SHOPIFY_STORE),
               SHOPIFY_ACCESS_TOKEN,
               rawEmail,
+              extraTags,
             )
           }
 
