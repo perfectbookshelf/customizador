@@ -94,8 +94,6 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
             },
           }
 
-
-          const shopName = normalizeShopifyStore(SHOPIFY_STORE)
           const createResponse = await fetch(
             `https://${shopName}.myshopify.com/admin/api/2025-01/draft_orders.json`,
             {
