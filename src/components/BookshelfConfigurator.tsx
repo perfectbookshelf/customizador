@@ -1074,13 +1074,31 @@ export function BookshelfConfigurator() {
   )
 
   return (
-    <WizardShell
-      preview={preview}
-      steps={steps}
-      index={stepIndex}
-      onIndexChange={(next) => setStepIndex(next > 2 && !isValidQuoteEmail ? Math.min(2, next) : next)}
-      onReset={handleReset}
-    />
+    <>
+      <WizardShell
+        preview={preview}
+        steps={steps}
+        index={stepIndex}
+        onIndexChange={(next) => setStepIndex(next > 2 && !isValidQuoteEmail ? Math.min(2, next) : next)}
+        onReset={handleReset}
+      />
+      <QuoteEmailSheet
+        open={emailSheetOpen}
+        initialEmail={quoteEmail}
+        onClose={() => setEmailSheetOpen(false)}
+        onSubmit={(email) => {
+          setQuoteEmail(email)
+          void captureQuoteLead({
+            email,
+            productType: mainType,
+            stepReached: "step-3-see-quote",
+            lastConfig: quoteLeadConfig(),
+          })
+          setEmailSheetOpen(false)
+          setStepIndex((i) => i + 1)
+        }}
+      />
+    </>
   )
 }
 
