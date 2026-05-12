@@ -43,17 +43,20 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
           const shelves = Array.isArray(config?.shelves) ? config.shelves : []
           const shelvesCount = config?.shelvesCount ?? shelves.length
 
-          const shelfDetails = shelves.length > 0
-            ? shelves.map((shelf: any, index: number) => `Shelf ${index + 1}: ${shelf.height}" H x ${shelf.depth}" D`).join("\n")
-            : "No shelves configured"
-
           const properties: Array<{ name: string; value: string }> = [
             { name: "Width", value: width ? `${width}"` : "Not specified" },
             { name: "Total Height", value: height ? `${Number(height).toFixed(2)}"` : "Not specified" },
             { name: "Number of Shelves", value: shelvesCount ? String(shelvesCount) : "0" },
-            { name: "Shelf Configuration", value: shelfDetails },
-            { name: "Finish", value: config?.finish || "Not selected" },
           ]
+          if (shelves.length > 0) {
+            for (let i = 0; i < shelves.length; i++) {
+              const s = shelves[i]
+              properties.push({ name: `Shelf ${i + 1}`, value: `${s.height}" H x ${s.depth}" D` })
+            }
+          } else {
+            properties.push({ name: "Shelf Configuration", value: "No shelves configured" })
+          }
+          properties.push({ name: "Finish", value: config?.finish || "Not selected" })
 
           const shopName = normalizeShopifyStore(SHOPIFY_STORE)
 
