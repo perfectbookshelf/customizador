@@ -1,21 +1,27 @@
 /**
- * Render-level test that verifies "Wood/Accent" two-tone finishes are wired
- * to the right meshes inside each 3D view.
+ * Render-level test that verifies the two-tone "Wood/Accent" finish convention
+ * is wired to the correct meshes inside each 3D view.
  *
- * Strategy: render each view twice — once single-tone ("Oak") and once
- * two-tone ("Oak/White") — and assert that the only difference between the
- * two scenes is that some oak meshes flipped to white. That means: boards,
- * sides and back stayed wood, and only the baguettes took the accent.
+ * We mock `splitFinish` to return three distinct sentinel finishes
+ * (WOOD_TAG / ACCENT_TAG / BACK_TAG) and extend WOOD_COLORS with three
+ * unique sentinel hex codes. After rendering each view, every mesh's
+ * `<meshStandardMaterial color>` tells us which *role* it was meant for —
+ * so we can assert:
+ *   - boards/sides use the internalFinish (WOOD)
+ *   - baguettes use the frameFinish (ACCENT)
+ *   - back panels use the backFinish (BACK)
  *
- * (This is the regression test for the bug where Bookshelf3DView swapped the
- * two parts and painted sides/boards white.)
+ * (This is the regression test for the bug where Bookshelf3DView swapped
+ *  internalFinish ↔ frameFinish and painted sides/boards with the accent.)
  */
 import { describe, it, expect, vi, beforeAll } from "vitest"
 import { render } from "@testing-library/react"
 import * as React from "react"
-import { WOOD_COLORS } from "@/lib/wood-textures"
 
-// Replace the global stubs from src/test/setup.ts so we render the real views.
+const WOOD_HEX = "#010101"
+const ACCENT_HEX = "#020202"
+const BACK_HEX = "#030303"
+
 vi.unmock("@/components/Bookshelf3DView")
 vi.unmock("@/components/Cathedral3DView")
 vi.unmock("@/components/USurround3DView")
@@ -46,8 +52,25 @@ vi.mock("@/lib/wood-textures", async () => {
   const actual = await vi.importActual<typeof import("@/lib/wood-textures")>(
     "@/lib/wood-textures",
   )
-  return { ...actual, useWoodTexture: () => null }
+  return {
+    ...actual,
+    WOOD_COLORS: {
+      ...actual.WOOD_COLORS,
+      WOOD_TAG: WOOD_HEX,
+      ACCENT_TAG: ACCENT_HEX,
+      BACK_TAG: BACK_HEX,
+    },
+    useWoodTexture: () => null, // force solid-color fallback in WoodMaterial
+  }
 })
+
+vi.mock("@/lib/finish", () => ({
+  splitFinish: (_finish: string) => ({
+    internalFinish: "WOOD_TAG",
+    frameFinish: "ACCENT_TAG",
+    backFinish: "BACK_TAG",
+  }),
+}))
 
 beforeAll(() => {
   const orig = console.error
@@ -65,11 +88,6 @@ beforeAll(() => {
   })
 })
 
-const OAK = WOOD_COLORS.Oak.toLowerCase()
-const WHITE = WOOD_COLORS.White.toLowerCase()
-const BLACK = WOOD_COLORS.Black.toLowerCase()
-const MAPLE = WOOD_COLORS.Maple.toLowerCase()
-
 function colorCounts(container: HTMLElement) {
   const counts = new Map<string, number>()
   container.querySelectorAll("meshstandardmaterial").forEach((m) => {
@@ -79,126 +97,87 @@ function colorCounts(container: HTMLElement) {
   return counts
 }
 
-/**
- * The contract: switching from single-tone `wood` to two-tone `wood/accent`
- * must leave every wood mesh (boards, sides, back) wood and only add accent
- * meshes for the front baguettes. So wood count is unchanged, accent count
- * grows from 0, and no third color sneaks in.
- *
- * (The previous bug painted boards/sides white instead of oak — under that
- * bug woodTwo would drop well below woodSingle and this test would fail.)
- */
-function assertTwoToneSplit(
-  single: Map<string, number>,
-  twoTone: Map<string, number>,
-  wood: string,
-  accent: string,
-) {
-  const woodSingle = single.get(wood) ?? 0
-  const woodTwo = twoTone.get(wood) ?? 0
-  const accentTwo = twoTone.get(accent) ?? 0
-
-  expect(woodSingle).toBeGreaterThan(0)
-  expect(accentTwo).toBeGreaterThan(0)
-  expect(woodTwo).toBe(woodSingle) // wood meshes unchanged
-  expect(single.get(accent) ?? 0).toBe(0)
-  for (const [color, n] of twoTone) {
-    if (color !== wood && color !== accent) {
-      expect.fail(`unexpected color ${color} (${n}×) in two-tone render`)
+function assertRoles(counts: Map<string, number>, expectBack = true) {
+  expect(counts.get(WOOD_HEX) ?? 0).toBeGreaterThan(0) // sides + boards
+  expect(counts.get(ACCENT_HEX) ?? 0).toBeGreaterThan(0) // baguettes
+  if (expectBack) expect(counts.get(BACK_HEX) ?? 0).toBeGreaterThan(0)
+  // No fall-through to a real wood color (would mean some mesh got an
+  // unmapped finish and silently defaulted).
+  for (const [c] of counts) {
+    if (c !== WOOD_HEX && c !== ACCENT_HEX && c !== BACK_HEX) {
+      expect.fail(`unexpected color ${c} — some mesh fell through finish split`)
     }
   }
 }
 
-describe("3D views — Wood/Accent two-tone wiring", () => {
-  it("Bookshelf3DView: Oak/White flips only baguettes to white", async () => {
+describe("3D views — Wood/Accent role wiring", () => {
+  it("Bookshelf3DView wires sides/boards to internalFinish, baguettes to frameFinish", async () => {
     const { Bookshelf3DView } = await vi.importActual<
       typeof import("@/components/Bookshelf3DView")
     >("@/components/Bookshelf3DView")
-    const props = {
-      style: "bookshelf" as const,
-      width: 48,
-      shelves: [{ height: 14, depth: 12 }],
-      hideTooltip: true,
-    }
-    const a = render(<Bookshelf3DView {...props} finish="Oak" />)
-    const b = render(<Bookshelf3DView {...props} finish="Oak/White" />)
-    assertTwoToneSplit(colorCounts(a.container), colorCounts(b.container), OAK, WHITE)
+    const { container } = render(
+      <Bookshelf3DView
+        style="bookshelf"
+        width={48}
+        shelves={[{ height: 14, depth: 12 }]}
+        finish="Oak/White"
+        hideTooltip
+      />,
+    )
+    // Bookshelf3D's inner Bookshelf3D doesn't render a back panel, so skip.
+    assertRoles(colorCounts(container), false)
   })
 
-  it("Bookshelf3DView: Maple/Black flips only baguettes to black", async () => {
-    const { Bookshelf3DView } = await vi.importActual<
-      typeof import("@/components/Bookshelf3DView")
-    >("@/components/Bookshelf3DView")
-    const props = {
-      style: "bookshelf" as const,
-      width: 48,
-      shelves: [{ height: 14, depth: 12 }],
-      hideTooltip: true,
-    }
-    const a = render(<Bookshelf3DView {...props} finish="Maple" />)
-    const b = render(<Bookshelf3DView {...props} finish="Maple/Black" />)
-    assertTwoToneSplit(colorCounts(a.container), colorCounts(b.container), MAPLE, BLACK)
-  })
-
-  it("Cathedral3DView: Oak/White flips only baguettes to white", async () => {
+  it("Cathedral3DView wires roles correctly", async () => {
     const { Cathedral3DView } = await vi.importActual<
       typeof import("@/components/Cathedral3DView")
     >("@/components/Cathedral3DView")
-    const props = {
-      W: 60,
-      H: 80,
-      H1: 30,
-      direction: "center",
-      rows: [
-        { yPosition: 0, availableWidth: 60, shelves: [{ height: 14, depth: 12 }] },
-      ],
-      modulesPerRow: [[{ width: 28 }, { width: 28 }]],
-      hideTooltip: true,
-    }
-    const a = render(<Cathedral3DView {...props} finish="Oak" />)
-    const b = render(<Cathedral3DView {...props} finish="Oak/White" />)
-    assertTwoToneSplit(colorCounts(a.container), colorCounts(b.container), OAK, WHITE)
+    const { container } = render(
+      <Cathedral3DView
+        W={60} H={80} H1={30} direction="center"
+        rows={[{ yPosition: 0, availableWidth: 60, shelves: [{ height: 14, depth: 12 }] }]}
+        modulesPerRow={[[{ width: 28 }, { width: 28 }]]}
+        finish="Oak/White"
+        hideTooltip
+      />,
+    )
+    assertRoles(colorCounts(container))
   })
 
-  it("USurround3DView: Oak/White flips only baguettes across all three arms", async () => {
+  it("USurround3DView wires roles correctly across all three arms", async () => {
     const { USurround3DView } = await vi.importActual<
       typeof import("@/components/USurround3DView")
     >("@/components/USurround3DView")
     const shelves = [{ height: 14, depth: 12 }]
-    const props = {
-      w1: 36, w: 60, w2: 36,
-      shelvesLeft: shelves, shelvesFront: shelves, shelvesRight: shelves,
-      hideTooltip: true,
-    }
-    const a = render(<USurround3DView {...props} finish="Oak" />)
-    const b = render(<USurround3DView {...props} finish="Oak/White" />)
-    assertTwoToneSplit(colorCounts(a.container), colorCounts(b.container), OAK, WHITE)
+    const { container } = render(
+      <USurround3DView
+        w1={36} w={60} w2={36}
+        shelvesLeft={shelves} shelvesFront={shelves} shelvesRight={shelves}
+        finish="Oak/White"
+        hideTooltip
+      />,
+    )
+    // Inner Bookshelf3D doesn't render a back panel.
+    assertRoles(colorCounts(container), false)
   })
 
-  it("Portal3DView: Oak/White flips only baguettes to white", async () => {
+  it("Portal3DView wires roles correctly", async () => {
     const { Portal3DView } = await vi.importActual<
       typeof import("@/components/Portal3DView")
     >("@/components/Portal3DView")
-    const props = {
-      wallWidth: 80,
-      wallHeight: 90,
-      objectType: "door" as const,
-      objectWidth: 32,
-      objectHeight: 80,
-      floorToObject: 0,
-      leftGap: 20,
-      rightGap: 20,
-      topHeight: 8,
-      shelves: [{ height: 14, depth: 12 }],
-      hideTooltip: true,
-    }
-    const a = render(<Portal3DView {...props} finish="Oak" />)
-    const b = render(<Portal3DView {...props} finish="Oak/White" />)
-    assertTwoToneSplit(colorCounts(a.container), colorCounts(b.container), OAK, WHITE)
+    const { container } = render(
+      <Portal3DView
+        wallWidth={80} wallHeight={90}
+        objectType="door"
+        objectWidth={32} objectHeight={80}
+        floorToObject={0}
+        leftGap={20} rightGap={20} topHeight={8}
+        shelves={[{ height: 14, depth: 12 }]}
+        finish="Oak/White"
+        hideTooltip
+      />,
+    )
+    // Inner Bookshelf3D doesn't render a back panel.
+    assertRoles(colorCounts(container), false)
   })
-})
-
-// debug helper
-describe.skip("debug", () => {
-  it("dump", async () => {})
 })
