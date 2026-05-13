@@ -230,6 +230,33 @@ export function BookshelfConfigurator() {
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
 
+  // Step 1 sub-variant flow (Corner / Cathedral): track whether the user has
+  // explicitly confirmed a sub-variant. If they reload with saved state we
+  // treat it as already confirmed so we don't gate them on revisit.
+  const [subVariantConfirmed, setSubVariantConfirmed] = useState<boolean>(
+    () => !!saved.mainType && (saved.mainType === "corner" || saved.mainType === "cathedral" ? true : true),
+  )
+  const subOptionsRef = useRef<HTMLDivElement>(null)
+  const [subOptionsFlash, setSubOptionsFlash] = useState(false)
+  const prevMainTypeRef = useRef(mainType)
+  useEffect(() => {
+    if (prevMainTypeRef.current === mainType) return
+    prevMainTypeRef.current = mainType
+    if (mainType === "corner" || mainType === "cathedral") {
+      setSubVariantConfirmed(false)
+      requestAnimationFrame(() => {
+        subOptionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      })
+    } else {
+      setSubVariantConfirmed(true)
+    }
+  }, [mainType])
+  const flashSubOptions = () => {
+    subOptionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    setSubOptionsFlash(true)
+    window.setTimeout(() => setSubOptionsFlash(false), 1400)
+  }
+
   // ─── Portal debug / scenario runner ───
   const [portalDebug, setPortalDebug] = useState(false)
   const [scenarioIdx, setScenarioIdx] = useState<number | null>(null)
