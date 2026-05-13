@@ -1,6 +1,8 @@
 import * as React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight } from "lucide-react"
+import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight, Sparkles, X, Loader2 } from "lucide-react"
+import { useServerFn } from "@tanstack/react-start"
+import { renderPhotoreal } from "@/lib/render-photo.functions"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
@@ -229,6 +231,11 @@ export function BookshelfConfigurator() {
   const bookshelf3DRef = useRef<Bookshelf3DViewRef>(null)
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
+  const [photoStatus, setPhotoStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const [photoOpen, setPhotoOpen] = useState(false)
+  const callRenderPhoto = useServerFn(renderPhotoreal)
 
   // Step 1 sub-variant flow (Corner / Cathedral): track whether the user has
   // explicitly confirmed a sub-variant. If they reload with saved state we
@@ -922,6 +929,33 @@ export function BookshelfConfigurator() {
     ),
   }
 
+  const handleGeneratePhoto = async () => {
+    if (!bookshelf3DRef.current) return
+    setPhotoStatus("loading")
+    setPhotoError(null)
+    setPhotoUrl(null)
+    setPhotoOpen(true)
+    try {
+      const snapshot = await bookshelf3DRef.current.captureImage()
+      const dims = mainType === "corner"
+        ? `${toFraction(width)} × ${toFraction(width2)} × ${toFraction(totalHeight)}`
+        : `${toFraction(width)} × ${toFraction(totalHeight)}`
+      const res = await callRenderPhoto({
+        data: {
+          imageDataUrl: snapshot,
+          finishLabel: finishOption?.label ?? selectedFinish,
+          typeLabel: activeType.label,
+          dimensions: dims,
+        },
+      })
+      setPhotoUrl(res.imageDataUrl)
+      setPhotoStatus("done")
+    } catch (e) {
+      setPhotoError(e instanceof Error ? e.message : "Something went wrong")
+      setPhotoStatus("error")
+    }
+  }
+
   const reviewStep: WizardStep = {
     label: "Review",
     selectionName: `${activeType.label} · ${finishOption?.label ?? ""}`,
@@ -973,7 +1007,33 @@ export function BookshelfConfigurator() {
           <SummaryRow label="Rate" value={`$${(finishOption?.price ?? 0).toFixed(2)} / sq ft`} />
         </div>
 
-        <div className="border-y border-border py-5 flex items-baseline justify-between">
+        {!isLegacyType && (
+          <div className="border border-border bg-muted/10 p-4 flex items-start gap-4">
+            <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] tracking-[0.25em] uppercase text-muted-foreground">AI Photo Render</div>
+              <div className="text-sm mt-1 leading-relaxed">
+                See your configuration as a photorealistic image with real wood grain — perfect for sharing with your space.
+              </div>
+              <button
+                type="button"
+                onClick={handleGeneratePhoto}
+                disabled={photoStatus === "loading" || !result}
+                className="mt-3 inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground hover:text-brand-walnut disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {photoStatus === "loading" ? (
+                  <><Loader2 className="h-3 w-3 animate-spin" /> Rendering…</>
+                ) : (
+                  <><Sparkles className="h-3 w-3" /> Generate photo →</>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+
           <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
           <span className="text-3xl font-display tracking-tight">${totalPrice.toFixed(2)}</span>
         </div>
