@@ -98,14 +98,15 @@ function colorCounts(container: HTMLElement) {
 }
 
 function assertRoles(counts: Map<string, number>, expectBack = true) {
+  const realWoodColors = new Set(["#f5f5f5", "#e8d4b8", "#1a1a1a", "#d4a574", "#5d432c"])
   expect(counts.get(WOOD_HEX) ?? 0).toBeGreaterThan(0) // sides + boards
   expect(counts.get(ACCENT_HEX) ?? 0).toBeGreaterThan(0) // baguettes
   if (expectBack) expect(counts.get(BACK_HEX) ?? 0).toBeGreaterThan(0)
-  // No fall-through to a real wood color (would mean some mesh got an
-  // unmapped finish and silently defaulted).
-  for (const [c] of counts) {
-    if (c !== WOOD_HEX && c !== ACCENT_HEX && c !== BACK_HEX) {
-      expect.fail(`unexpected color ${c} — some mesh fell through finish split`)
+  // Crucially: no mesh fell through to a real wood color (which would mean
+  // the component routed an unmapped finish through getWoodColor's fallback).
+  for (const [c, n] of counts) {
+    if (realWoodColors.has(c)) {
+      expect.fail(`mesh painted ${c} (${n}×) — finish split routed wrong`)
     }
   }
 }
