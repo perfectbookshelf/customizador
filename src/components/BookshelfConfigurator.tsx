@@ -853,6 +853,35 @@ export function BookshelfConfigurator() {
             )
           })}
         </div>
+        {!isValidQuoteEmail && (
+          <div className="mt-4 p-4 border border-dashed border-brand-walnut/40 bg-secondary/40 space-y-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground">
+                Wood &amp; finish — coming on Step 4
+              </span>
+              <span className="text-[10px] tracking-[0.15em] uppercase text-brand-walnut whitespace-nowrap">
+                Affects price
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-snug">
+              You'll choose your wood and color combination on the next step — final pricing locks in there.
+            </p>
+            <div className="flex items-center gap-2 opacity-70 pointer-events-none select-none">
+              {FINISH_OPTIONS.slice(0, 6).map(f => (
+                <div key={f.id} className="w-9 h-9 rounded-full overflow-hidden border border-border relative flex-shrink-0">
+                  {f.color1 !== f.color2 ? (
+                    <div className="absolute inset-0 flex">
+                      <div className="w-1/2 h-full" style={{ backgroundColor: f.color1 }} />
+                      <div className="w-1/2 h-full" style={{ backgroundColor: f.color2 }} />
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0" style={{ backgroundColor: f.color1 }} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     ),
   }
