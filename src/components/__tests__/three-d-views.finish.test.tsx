@@ -80,10 +80,13 @@ function colorCounts(container: HTMLElement) {
 }
 
 /**
- * The contract we care about: switching finish from `wood` to `wood/accent`
- * must convert a small number of baguette meshes from wood to accent — and
- * leave every other mesh alone. So the wood count must drop by exactly the
- * accent count, and no third color may appear.
+ * The contract: switching from single-tone `wood` to two-tone `wood/accent`
+ * must leave every wood mesh (boards, sides, back) wood and only add accent
+ * meshes for the front baguettes. So wood count is unchanged, accent count
+ * grows from 0, and no third color sneaks in.
+ *
+ * (The previous bug painted boards/sides white instead of oak — under that
+ * bug woodTwo would drop well below woodSingle and this test would fail.)
  */
 function assertTwoToneSplit(
   single: Map<string, number>,
@@ -97,9 +100,7 @@ function assertTwoToneSplit(
 
   expect(woodSingle).toBeGreaterThan(0)
   expect(accentTwo).toBeGreaterThan(0)
-  // Wood count drops by exactly the accent count → baguettes flipped, the rest stayed wood.
-  expect(woodTwo).toBe(woodSingle - accentTwo)
-  // Single-tone has no accent; two-tone introduces no other colors.
+  expect(woodTwo).toBe(woodSingle) // wood meshes unchanged
   expect(single.get(accent) ?? 0).toBe(0)
   for (const [color, n] of twoTone) {
     if (color !== wood && color !== accent) {
