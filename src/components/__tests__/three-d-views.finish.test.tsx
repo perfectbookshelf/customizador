@@ -199,8 +199,10 @@ describe("3D views — finish wiring (Wood/Accent)", () => {
         objectType="door"
         objectWidth={32}
         objectHeight={80}
-        objectXPosition={24}
         floorToObject={0}
+        leftGap={20}
+        rightGap={20}
+        topHeight={8}
         shelves={[{ height: 14, depth: 12 }]}
         finish="Oak/White"
         hideTooltip
