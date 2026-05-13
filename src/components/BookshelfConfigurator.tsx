@@ -1068,17 +1068,7 @@ export function BookshelfConfigurator() {
 
   const preview = (
     <div ref={mainPreviewRef} className="relative w-full h-full min-h-[45vh] lg:min-h-screen flex items-center justify-center">
-      {/* Dimension badge */}
-      {!isLegacyType && (
-        <div className="absolute top-4 right-4 lg:top-8 lg:right-8 z-10 text-right pointer-events-none">
-          <div className="text-[9px] tracking-[0.3em] uppercase text-muted-foreground">Dimensions</div>
-          <div className="text-sm font-medium text-foreground mt-1">
-            {mainType === "corner"
-              ? <>{toFraction(width)} × {toFraction(width2)} × {toFraction(totalHeight)}</>
-              : <>{toFraction(width)} × {toFraction(totalHeight)}</>}
-          </div>
-        </div>
-      )}
+      {/* Dimension badge removed per request — keep canvas clean on all steps */}
       {/* Portal debug + scenario runner */}
       {mainType === "portal" && (
         <div className="absolute bottom-4 right-4 z-20 max-w-[280px] bg-background/95 backdrop-blur border border-border rounded-md shadow-lg p-3 text-xs space-y-2">
