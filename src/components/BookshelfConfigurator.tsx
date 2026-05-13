@@ -1032,8 +1032,7 @@ export function BookshelfConfigurator() {
             </div>
           </div>
         )}
-
-
+        <div className="border-y border-border py-5 flex items-baseline justify-between">
           <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
           <span className="text-3xl font-display tracking-tight">${totalPrice.toFixed(2)}</span>
         </div>
