@@ -3,6 +3,7 @@ import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 import { WOOD_COLORS, useWoodTexture } from "@/lib/wood-textures"
+import { splitFinish } from "@/lib/finish"
 
 export interface Portal3DViewRef {
   captureImage: () => Promise<string>
@@ -367,12 +368,7 @@ function PortalScene({ props, intF, frameF, backF }: { props: Portal3DViewProps;
 export const Portal3DView = forwardRef<Portal3DViewRef, Portal3DViewProps>(
   function Portal3DView(props, ref) {
     const { wallWidth, wallHeight, finish, isMobile, hideTooltip, fillContainer, debug, shelves, objectType, floorToObject, objectHeight } = props
-    // Two-tone convention: "Wood/Accent" — first part is the wood (sides + back),
-    // second part is the baguette/front accent color.
-    const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
-    const intF = parts ? parts[0] : finish
-    const frameF = parts ? parts[1] : finish
-    const backF = parts ? parts[0] : finish
+    const { internalFinish: intF, frameFinish: frameF, backFinish: backF } = splitFinish(finish)
     const [resetCount, setResetCount] = useState(0)
 
     useEffect(() => {
