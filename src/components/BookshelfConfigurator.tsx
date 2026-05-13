@@ -234,7 +234,7 @@ export function BookshelfConfigurator() {
   // explicitly confirmed a sub-variant. If they reload with saved state we
   // treat it as already confirmed so we don't gate them on revisit.
   const [subVariantConfirmed, setSubVariantConfirmed] = useState<boolean>(
-    () => !!saved.mainType && (saved.mainType === "corner" || saved.mainType === "cathedral" ? true : true),
+    () => !!saved.mainType,
   )
   const subOptionsRef = useRef<HTMLDivElement>(null)
   const [subOptionsFlash, setSubOptionsFlash] = useState(false)
