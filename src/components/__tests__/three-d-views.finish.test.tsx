@@ -136,7 +136,10 @@ describe("3D views — Wood/Accent two-tone wiring", () => {
     }
     const a = render(<Bookshelf3DView {...props} finish="Maple" />)
     const b = render(<Bookshelf3DView {...props} finish="Maple/Black" />)
-    assertTwoToneSplit(colorCounts(a.container), colorCounts(b.container), MAPLE, BLACK)
+    const ca = colorCounts(a.container), cb = colorCounts(b.container)
+    console.log("DEBUG maple single:", [...ca.entries()])
+    console.log("DEBUG maple/black:", [...cb.entries()])
+    assertTwoToneSplit(ca, cb, MAPLE, BLACK)
   })
 
   it("Cathedral3DView: Oak/White flips only baguettes to white", async () => {
