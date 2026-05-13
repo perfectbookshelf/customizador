@@ -11,12 +11,15 @@ export const WOOD_COLORS: Record<string, string> = {
 }
 
 // Optimized JPGs (≤200KB each) — replaces the old multi-MB PNGs.
+// Note: "White" is intentionally omitted — it's a painted (flat) finish, not
+// a wood grain, and the current /textures/white.jpg ships an oak-grain image
+// (mislabeled). Falling through to the solid color in WOOD_COLORS gives the
+// correct gallery-white look.
 export const WOOD_TEXTURE_URLS: Record<string, string> = {
   Maple: "/textures/maple.jpg",
   Oak: "/textures/oak.jpg",
   Walnut: "/textures/walnut.jpg",
   Black: "/textures/black.jpg",
-  White: "/textures/white.jpg",
 }
 
 export const ALL_TEXTURE_URLS = Object.values(WOOD_TEXTURE_URLS)
