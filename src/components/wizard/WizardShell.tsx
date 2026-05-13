@@ -104,7 +104,10 @@ export function WizardShell({
                 <button
                   onClick={goPrev}
                   disabled={safeIndex === 0}
-                  className="justify-self-start text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1"
+                  className={cn(
+                    "justify-self-start text-[11px] tracking-[0.2em] font-medium uppercase text-foreground hover:text-brand-walnut disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1",
+                    safeIndex === 0 && "invisible",
+                  )}
                 >
                   <ChevronLeft className="h-3 w-3" />
                   Back
