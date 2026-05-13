@@ -45,6 +45,26 @@ export const Route = createRootRoute({
       { rel: "preload", as: "image", href: "/textures/black.jpg" },
       { rel: "preload", as: "image", href: "/textures/white.jpg" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "Perfect-Bookshelf",
+          url: "https://create-yours.perfectbookshelf.com/",
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "Perfect-Bookshelf",
+          url: "https://create-yours.perfectbookshelf.com/",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,
