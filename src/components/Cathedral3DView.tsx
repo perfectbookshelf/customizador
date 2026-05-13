@@ -214,10 +214,11 @@ function CameraController({ width, totalHeight, maxDepth, isMobile, resetKey }: 
 
 export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewProps>(
   function Cathedral3DView({ W, H, H1, direction, rows, modulesPerRow, finish, isMobile, hideTooltip, fillContainer }, ref) {
+    // Two-tone convention: "Wood/Accent" — first part is the wood (sides + back),
+    // second part is the baguette/front accent color.
     const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
-    const isTwoToneBlack = parts && parts[1] === "Black"
-    const internalFinish = isTwoToneBlack ? parts[0] : parts ? parts[1] : finish
-    const frameFinish = isTwoToneBlack ? "Black" : parts ? parts[0] : finish
+    const internalFinish = parts ? parts[0] : finish
+    const frameFinish = parts ? parts[1] : finish
     const backFinish = parts ? parts[0] : finish
     const [resetCount, setResetCount] = useState(0)
 
