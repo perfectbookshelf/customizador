@@ -139,7 +139,7 @@ export function QuoteEmailSheet({ open, onClose, initialEmail, onSubmit }: Quote
         <div className="mb-4 p-3 border border-dashed border-brand-walnut/40 bg-secondary/40 space-y-2">
           <div className="flex items-baseline justify-between gap-2">
             <span className="text-[10px] tracking-[0.2em] uppercase font-semibold text-foreground">
-              Wood &amp; finish — next step
+              Pick wood &amp; finish on Step 4
             </span>
             <span className="text-[9px] tracking-[0.15em] uppercase text-brand-walnut whitespace-nowrap">
               Affects price
