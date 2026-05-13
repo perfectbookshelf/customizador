@@ -105,10 +105,11 @@ function USurroundScene({ props, intF, frameF, backF }: { props: USurround3DView
 export const USurround3DView = forwardRef<USurround3DViewRef, USurround3DViewProps>(
   function USurround3DView(props, ref) {
     const { w1, w, w2, shelvesLeft, shelvesFront, shelvesRight, finish, isMobile, hideTooltip, fillContainer } = props
+    // Two-tone convention: "Wood/Accent" — first part is the wood (sides + back),
+    // second part is the baguette/front accent color.
     const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
-    const isTwoToneBlack = parts && parts[1] === "Black"
-    const intF = isTwoToneBlack ? parts[0] : parts ? parts[1] : finish
-    const frameF = isTwoToneBlack ? "Black" : parts ? parts[0] : finish
+    const intF = parts ? parts[0] : finish
+    const frameF = parts ? parts[1] : finish
     const backF = parts ? parts[0] : finish
     const [resetCount, setResetCount] = useState(0)
 
