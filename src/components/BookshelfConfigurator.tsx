@@ -230,6 +230,33 @@ export function BookshelfConfigurator() {
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
 
+  // Step 1 sub-variant flow (Corner / Cathedral): track whether the user has
+  // explicitly confirmed a sub-variant. If they reload with saved state we
+  // treat it as already confirmed so we don't gate them on revisit.
+  const [subVariantConfirmed, setSubVariantConfirmed] = useState<boolean>(
+    () => !!saved.mainType,
+  )
+  const subOptionsRef = useRef<HTMLDivElement>(null)
+  const [subOptionsFlash, setSubOptionsFlash] = useState(false)
+  const prevMainTypeRef = useRef(mainType)
+  useEffect(() => {
+    if (prevMainTypeRef.current === mainType) return
+    prevMainTypeRef.current = mainType
+    if (mainType === "corner" || mainType === "cathedral") {
+      setSubVariantConfirmed(false)
+      requestAnimationFrame(() => {
+        subOptionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+      })
+    } else {
+      setSubVariantConfirmed(true)
+    }
+  }, [mainType])
+  const flashSubOptions = () => {
+    subOptionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    setSubOptionsFlash(true)
+    window.setTimeout(() => setSubOptionsFlash(false), 1400)
+  }
+
   // ─── Portal debug / scenario runner ───
   const [portalDebug, setPortalDebug] = useState(false)
   const [scenarioIdx, setScenarioIdx] = useState<number | null>(null)
@@ -551,11 +578,15 @@ export function BookshelfConfigurator() {
 
   /* ─── Step content ─── */
 
+  const needsSubVariant = mainType === "corner" || mainType === "cathedral"
+  const subVariantLabel = mainType === "corner" ? "Corner" : "Cathedral"
   const typeStep: WizardStep = {
     label: "Type",
     selectionName: activeType.label,
     priceDelta: "+ $0",
     description: activeType.description,
+    nextDisabled: needsSubVariant && !subVariantConfirmed,
+    onNextBlocked: needsSubVariant ? flashSubOptions : undefined,
     content: (
       <div className="space-y-6">
         <SwatchGrid cols={3}>
@@ -567,22 +598,65 @@ export function BookshelfConfigurator() {
             </Swatch>
           ))}
         </SwatchGrid>
-        {mainType === "corner" && (
-          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
-            {(["outside", "inside"] as const).map(v => (
-              <button
-                key={v}
-                onClick={() => setCornerVariant(v)}
-                className={cn(
-                  "flex flex-col items-center gap-2 p-4 transition-all",
-                  cornerVariant === v
-                    ? "border border-brand-walnut text-foreground"
-                    : "border border-border text-muted-foreground hover:border-foreground/40",
-                )}
-              >
-                <span className="text-[11px] tracking-[0.2em] uppercase font-medium">{v === "outside" ? "Outside" : "Inside"} Corner</span>
-              </button>
-            ))}
+        {needsSubVariant && (
+          <div
+            ref={subOptionsRef}
+            className={cn(
+              "pt-5 border-t-2 transition-colors scroll-mt-24",
+              subOptionsFlash
+                ? "border-brand-walnut animate-pulse"
+                : subVariantConfirmed ? "border-border" : "border-brand-walnut/60",
+            )}
+          >
+            <div className="flex items-baseline justify-between mb-3">
+              <span className="text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground">
+                Choose your {subVariantLabel} style
+              </span>
+              {!subVariantConfirmed && (
+                <span className="text-[10px] tracking-[0.15em] uppercase text-brand-walnut">
+                  Required
+                </span>
+              )}
+            </div>
+            {mainType === "corner" && (
+              <div className="grid grid-cols-2 gap-3">
+                {(["outside", "inside"] as const).map(v => (
+                  <button
+                    key={v}
+                    onClick={() => { setCornerVariant(v); setSubVariantConfirmed(true) }}
+                    className={cn(
+                      "flex flex-col items-center gap-2 p-4 transition-all",
+                      cornerVariant === v && subVariantConfirmed
+                        ? "border border-brand-walnut text-foreground"
+                        : "border border-border text-muted-foreground hover:border-foreground/40",
+                    )}
+                  >
+                    <span className="text-[11px] tracking-[0.2em] uppercase font-medium">{v === "outside" ? "Outside" : "Inside"} Corner</span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {mainType === "cathedral" && (
+              <div className="grid grid-cols-3 gap-3">
+                {(["left", "right", "both"] as const).map(d => {
+                  const label = d === "both" ? "Center" : d === "left" ? "Left" : "Right"
+                  return (
+                    <button
+                      key={d}
+                      onClick={() => { setCathDir(d); setSubVariantConfirmed(true) }}
+                      className={cn(
+                        "flex flex-col items-center gap-2 p-4 transition-all",
+                        cathDir === d && subVariantConfirmed
+                          ? "border border-brand-walnut text-foreground"
+                          : "border border-border text-muted-foreground hover:border-foreground/40",
+                      )}
+                    >
+                      <span className="text-[11px] tracking-[0.2em] uppercase font-medium">{label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -779,6 +853,35 @@ export function BookshelfConfigurator() {
             )
           })}
         </div>
+        {!isValidQuoteEmail && (
+          <div className="mt-4 p-4 border border-dashed border-brand-walnut/40 bg-secondary/40 space-y-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground">
+                Wood &amp; finish — coming on Step 4
+              </span>
+              <span className="text-[10px] tracking-[0.15em] uppercase text-brand-walnut whitespace-nowrap">
+                Affects price
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-snug">
+              You'll choose your wood and color combination on the next step — final pricing locks in there.
+            </p>
+            <div className="flex items-center gap-2 opacity-70 pointer-events-none select-none">
+              {FINISH_OPTIONS.slice(0, 6).map(f => (
+                <div key={f.id} className="w-9 h-9 rounded-full overflow-hidden border border-border relative flex-shrink-0">
+                  {f.color1 !== f.color2 ? (
+                    <div className="absolute inset-0 flex">
+                      <div className="w-1/2 h-full" style={{ backgroundColor: f.color1 }} />
+                      <div className="w-1/2 h-full" style={{ backgroundColor: f.color2 }} />
+                    </div>
+                  ) : (
+                    <div className="absolute inset-0" style={{ backgroundColor: f.color1 }} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     ),
   }
