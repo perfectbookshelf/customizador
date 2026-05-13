@@ -196,3 +196,8 @@ describe("3D views — Wood/Accent two-tone wiring", () => {
     assertTwoToneSplit(colorCounts(a.container), colorCounts(b.container), OAK, WHITE)
   })
 })
+
+// debug helper
+describe.skip("debug", () => {
+  it("dump", async () => {})
+})
