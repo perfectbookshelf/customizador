@@ -1032,8 +1032,7 @@ export function BookshelfConfigurator() {
             </div>
           </div>
         )}
-
-
+        <div className="border-y border-border py-5 flex items-baseline justify-between">
           <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
           <span className="text-3xl font-display tracking-tight">${totalPrice.toFixed(2)}</span>
         </div>
@@ -1251,6 +1250,58 @@ export function BookshelfConfigurator() {
           setStepIndex((i) => i + 1)
         }}
       />
+      {photoOpen && (
+        <div className="fixed inset-0 z-[100] bg-black/85 flex items-center justify-center p-4 sm:p-8" onClick={() => setPhotoOpen(false)}>
+          <div className="relative max-w-4xl w-full max-h-full flex flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setPhotoOpen(false)}
+              className="absolute -top-2 -right-2 sm:top-2 sm:right-2 z-10 h-10 w-10 rounded-full bg-background text-foreground flex items-center justify-center hover:bg-brand-walnut hover:text-background transition-colors"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <div className="bg-background w-full aspect-square sm:aspect-[4/3] flex items-center justify-center overflow-hidden">
+              {photoStatus === "loading" && (
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                  <div className="text-[11px] tracking-[0.25em] uppercase">Rendering photoreal preview…</div>
+                  <div className="text-xs">This usually takes 10–20 seconds</div>
+                </div>
+              )}
+              {photoStatus === "error" && (
+                <div className="text-sm text-destructive p-6 text-center max-w-md">{photoError}</div>
+              )}
+              {photoStatus === "done" && photoUrl && (
+                <img src={photoUrl} alt="Photoreal bookshelf render" className="w-full h-full object-contain" />
+              )}
+            </div>
+            <div className="flex items-center gap-4">
+              {photoStatus === "done" && photoUrl && (
+                <a
+                  href={photoUrl}
+                  download="bookshelf-render.png"
+                  className="text-[11px] tracking-[0.2em] uppercase font-semibold text-background hover:text-brand-walnut"
+                >
+                  Download ↓
+                </a>
+              )}
+              {(photoStatus === "done" || photoStatus === "error") && (
+                <button
+                  type="button"
+                  onClick={handleGeneratePhoto}
+                  className="text-[11px] tracking-[0.2em] uppercase font-semibold text-background hover:text-brand-walnut"
+                >
+                  Regenerate ↻
+                </button>
+              )}
+            </div>
+            <div className="text-[10px] tracking-[0.2em] uppercase text-white/50 text-center">
+              AI preview · Actual craftsmanship may vary
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
