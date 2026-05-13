@@ -1162,7 +1162,7 @@ export function BookshelfConfigurator() {
         )}
         </React.Suspense>
       </div>
-      {isMobileDevice && result && !isLegacyType && <FloatingPreview mainPreviewRef={mainPreviewRef} />}
+      
     </div>
   )
 
