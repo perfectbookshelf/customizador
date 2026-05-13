@@ -857,7 +857,7 @@ export function BookshelfConfigurator() {
           <div className="mt-4 p-4 border border-dashed border-brand-walnut/40 bg-secondary/40 space-y-3">
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground">
-                Wood &amp; finish — coming on Step 4
+                Pick wood &amp; finish on Step 4
               </span>
               <span className="text-[10px] tracking-[0.15em] uppercase text-brand-walnut whitespace-nowrap">
                 Affects price
