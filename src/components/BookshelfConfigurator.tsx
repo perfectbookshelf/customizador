@@ -14,7 +14,7 @@ import iconUModel from "@/assets/icons/U-Model.png"
 import type { BookshelfConfig, ShelfConfig, BookshelfType, BookshelfResult } from "@/lib/types"
 import { calculateBookshelf } from "@/lib/bookshelf-calculator"
 import type { Bookshelf3DViewRef } from "./Bookshelf3DView"
-import { FloatingPreview } from "./FloatingPreview"
+
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { captureSvgAsPng } from "@/lib/svg-to-png"
 import { redirectToCheckout } from "@/lib/redirect-to-checkout"
@@ -1162,7 +1162,7 @@ export function BookshelfConfigurator() {
         )}
         </React.Suspense>
       </div>
-      {isMobileDevice && result && !isLegacyType && <FloatingPreview mainPreviewRef={mainPreviewRef} />}
+      
     </div>
   )
 
