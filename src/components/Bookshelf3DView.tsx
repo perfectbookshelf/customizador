@@ -4,6 +4,7 @@ import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 import { WOOD_COLORS, useWoodTexture } from "@/lib/wood-textures"
+import { splitFinish } from "@/lib/finish"
 
 interface Shelf {
   height: number
@@ -572,12 +573,7 @@ export const Bookshelf3DView = forwardRef<
   Bookshelf3DViewRef,
   Omit<Bookshelf3DViewProps, "frameFinish"> & { hideTooltip?: boolean; fillContainer?: boolean }
 >(function Bookshelf3DView({ style, width, width2, shelves, shelves2, finish, modules, modules2, cornerVariant, isMobile, hideTooltip, fillContainer }, ref) {
-  // Two-tone convention: "Wood/Accent" — first part is the wood (sides + back + boards),
-  // second part is the baguette/front accent color.
-  const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
-  const internalFinish = parts ? parts[0] : finish
-  const frameFinish = parts ? parts[1] : finish
-  const backFinish = parts ? parts[0] : finish
+  const { internalFinish, frameFinish, backFinish } = splitFinish(finish)
   const [resetCount, setResetCount] = useState(0)
 
   // Auto-fit camera once after the scene mounts (OrbitControls' default `target`

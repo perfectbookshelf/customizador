@@ -4,6 +4,7 @@ import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 import { WOOD_COLORS, useWoodTexture } from "@/lib/wood-textures"
+import { splitFinish } from "@/lib/finish"
 
 export interface Cathedral3DViewRef {
   captureImage: () => Promise<string>
@@ -214,12 +215,7 @@ function CameraController({ width, totalHeight, maxDepth, isMobile, resetKey }: 
 
 export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewProps>(
   function Cathedral3DView({ W, H, H1, direction, rows, modulesPerRow, finish, isMobile, hideTooltip, fillContainer }, ref) {
-    // Two-tone convention: "Wood/Accent" — first part is the wood (sides + back),
-    // second part is the baguette/front accent color.
-    const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
-    const internalFinish = parts ? parts[0] : finish
-    const frameFinish = parts ? parts[1] : finish
-    const backFinish = parts ? parts[0] : finish
+    const { internalFinish, frameFinish, backFinish } = splitFinish(finish)
     const [resetCount, setResetCount] = useState(0)
 
     useEffect(() => {

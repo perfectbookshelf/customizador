@@ -3,6 +3,7 @@ import { Canvas, useThree } from "@react-three/fiber"
 import { OrbitControls, Environment, ContactShadows } from "@react-three/drei"
 import * as THREE from "three"
 import { Bookshelf3D } from "./Bookshelf3DView"
+import { splitFinish } from "@/lib/finish"
 
 export interface USurround3DViewRef {
   captureImage: () => Promise<string>
@@ -105,12 +106,7 @@ function USurroundScene({ props, intF, frameF, backF }: { props: USurround3DView
 export const USurround3DView = forwardRef<USurround3DViewRef, USurround3DViewProps>(
   function USurround3DView(props, ref) {
     const { w1, w, w2, shelvesLeft, shelvesFront, shelvesRight, finish, isMobile, hideTooltip, fillContainer } = props
-    // Two-tone convention: "Wood/Accent" — first part is the wood (sides + back),
-    // second part is the baguette/front accent color.
-    const parts = finish.includes("/") ? finish.split("/").map(s => s.trim()) : null
-    const intF = parts ? parts[0] : finish
-    const frameF = parts ? parts[1] : finish
-    const backF = parts ? parts[0] : finish
+    const { internalFinish: intF, frameFinish: frameF, backFinish: backF } = splitFinish(finish)
     const [resetCount, setResetCount] = useState(0)
 
     useEffect(() => {
