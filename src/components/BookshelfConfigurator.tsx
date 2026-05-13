@@ -231,6 +231,11 @@ export function BookshelfConfigurator() {
   const bookshelf3DRef = useRef<Bookshelf3DViewRef>(null)
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
+  const [photoStatus, setPhotoStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
+  const [photoOpen, setPhotoOpen] = useState(false)
+  const callRenderPhoto = useServerFn(renderPhotoreal)
 
   // Step 1 sub-variant flow (Corner / Cathedral): track whether the user has
   // explicitly confirmed a sub-variant. If they reload with saved state we
