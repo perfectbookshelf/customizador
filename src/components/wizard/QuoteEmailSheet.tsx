@@ -12,6 +12,17 @@ interface QuoteEmailSheetProps {
   onSubmit: (email: string) => void
 }
 
+// Locked wood-swatch preview shown inside the sheet so users see the
+// finishes exist before handing over their email.
+const WOOD_PREVIEW: { c1: string; c2?: string }[] = [
+  { c1: "#D4A574" },                   // White Oak
+  { c1: "#E8D4B8" },                   // Maple
+  { c1: "#D4A574", c2: "#f5f5f5" },    // Oak / White
+  { c1: "#E8D4B8", c2: "#1a1a1a" },    // Maple / Black
+  { c1: "#D4A574", c2: "#1a1a1a" },    // Oak / Black
+  { c1: "#5D432C" },                   // Walnut
+]
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 /**
