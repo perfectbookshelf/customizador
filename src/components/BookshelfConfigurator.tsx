@@ -929,6 +929,33 @@ export function BookshelfConfigurator() {
     ),
   }
 
+  const handleGeneratePhoto = async () => {
+    if (!bookshelf3DRef.current) return
+    setPhotoStatus("loading")
+    setPhotoError(null)
+    setPhotoUrl(null)
+    setPhotoOpen(true)
+    try {
+      const snapshot = await bookshelf3DRef.current.captureImage()
+      const dims = mainType === "corner"
+        ? `${toFraction(width)} × ${toFraction(width2)} × ${toFraction(totalHeight)}`
+        : `${toFraction(width)} × ${toFraction(totalHeight)}`
+      const res = await callRenderPhoto({
+        data: {
+          imageDataUrl: snapshot,
+          finishLabel: finishOption?.label ?? selectedFinish,
+          typeLabel: activeType.label,
+          dimensions: dims,
+        },
+      })
+      setPhotoUrl(res.imageDataUrl)
+      setPhotoStatus("done")
+    } catch (e) {
+      setPhotoError(e instanceof Error ? e.message : "Something went wrong")
+      setPhotoStatus("error")
+    }
+  }
+
   const reviewStep: WizardStep = {
     label: "Review",
     selectionName: `${activeType.label} · ${finishOption?.label ?? ""}`,
