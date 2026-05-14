@@ -39,6 +39,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "preload", as: "image", href: "/textures/oak.jpg" },
       { rel: "preload", as: "image", href: "/textures/maple.jpg" },
       { rel: "preload", as: "image", href: "/textures/walnut.jpg" },
