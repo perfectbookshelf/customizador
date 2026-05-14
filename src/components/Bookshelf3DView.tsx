@@ -274,24 +274,15 @@ export function Bookshelf3D({
       } else {
         const prev = shelves[i - 1]
         if (shelf.depth !== prev.depth) {
-          // Symmetric transition: the previous iteration already pushed a
-          // top-board at this y using prev.depth — upgrade it to the DEEPER
-          // of the two so it fully covers the step (closes the lower module).
-          const deeper = Math.max(prev.depth, shelf.depth)
-          const shallower = Math.min(prev.depth, shelf.depth)
-          boardPositions[boardPositions.length - 1] = {
-            y,
-            depth: deeper,
-            zOffset: -(maxDepth - deeper),
-          }
-          // Then a second board, one board-thickness above, at the SHALLOWER
-          // depth — this is the base of the upper module. Both share back-
-          // alignment because each uses its own zOffset = -(maxDepth - depth).
+          // The previous iteration already pushed the lower module's top board
+          // at this y with prev.depth. Keep it exactly as-is so it closes only
+          // the lower module, then add the upper module's base board one board
+          // thickness above using the current shelf depth. Both are back-aligned.
           y += 0.75
-          boardPositions.push({
+          transitionBoards.push({
             y,
-            depth: shallower,
-            zOffset: -(maxDepth - shallower),
+            depth: shelf.depth,
+            zOffset,
           })
         }
         // else: same depth — reuse previous top board as base, no extra board.
