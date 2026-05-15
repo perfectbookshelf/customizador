@@ -33,7 +33,7 @@ Furniture: ${data.typeLabel} bookshelf, ${data.dimensions}, finish: ${data.finis
 Critical requirements:
 - Preserve EXACTLY the same geometry, proportions, module layout, shelf arrangement, and overall composition shown in the source image. Do not add, remove, or rearrange any compartments.
 - Replace the rendered surfaces with photorealistic solid hardwood matching the finish (${data.finishLabel}) — visible natural wood grain, subtle knots, warm tones, fine joinery details, slight chamfered edges.
-- Place it in a tasteful, minimal, gallery-like interior: soft warm daylight from the side, clean off-white plaster wall, light concrete or oak floor, gentle ambient shadows, shallow depth of field.
+- Place it in a tasteful, minimal modern residential interior (a real home living room or home office, NOT a gallery or loft space). The ceiling MUST be at standard residential height of 2.7m (~9ft) — the ceiling line should be visible at the top of the frame to anchor the scale. Soft warm daylight from a side window, clean off-white plaster wall, warm oak or light wood floor (residential plank flooring, not polished concrete gallery floor), gentle ambient shadows, shallow depth of field.
 - High-end editorial furniture catalog aesthetic (think MENU, Ferm Living, Vitsoe). Crisp focus on the bookshelf, slight cinematic vignette.
 - No people, no text, no logos, no books, no decorative objects on the shelves — leave the shelves empty so the structure reads clearly.
 - Square or 4:3 framing, the bookshelf fully visible with breathing room.`;
