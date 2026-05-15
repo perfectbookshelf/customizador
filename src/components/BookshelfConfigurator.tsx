@@ -1007,8 +1007,13 @@ export function BookshelfConfigurator() {
           <SummaryRow label="Rate" value={`$${(finishOption?.price ?? 0).toFixed(2)} / sq ft`} />
         </div>
 
-        {!isLegacyType && (
-          <div className="border border-border bg-muted/10 p-4 flex items-start gap-4">
+        {(mainType === "bookshelf" || mainType === "cathedral" || mainType === "rack") && (
+          <button
+            type="button"
+            onClick={handleGeneratePhoto}
+            disabled={photoStatus === "loading" || !result}
+            className="w-full text-left border border-border bg-muted/10 p-4 flex items-start gap-4 transition-colors hover:bg-muted/20 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
               <Sparkles className="h-4 w-4" />
             </div>
@@ -1017,20 +1022,15 @@ export function BookshelfConfigurator() {
               <div className="text-sm mt-1 leading-relaxed">
                 See your configuration as a photorealistic image with real wood grain — perfect for sharing with your space.
               </div>
-              <button
-                type="button"
-                onClick={handleGeneratePhoto}
-                disabled={photoStatus === "loading" || !result}
-                className="mt-3 inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground hover:text-brand-walnut disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              <div className="mt-3 inline-flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground">
                 {photoStatus === "loading" ? (
                   <><Loader2 className="h-3 w-3 animate-spin" /> Rendering…</>
                 ) : (
                   <><Sparkles className="h-3 w-3" /> Generate photo →</>
                 )}
-              </button>
+              </div>
             </div>
-          </div>
+          </button>
         )}
         <div className="border-y border-border py-5 flex items-baseline justify-between">
           <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
