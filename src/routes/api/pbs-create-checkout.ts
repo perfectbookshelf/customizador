@@ -99,41 +99,31 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
               ],
               note: `PBS Configurator | ${config?.finish || "N/A"} | ${width || "?"}" W x ${height || "?"}" H | ${shelvesCount} shelves`,
               use_customer_default_address: true,
-              ...(cleanEmail ? { email: cleanEmail } : {}),
+              // NOTE: we intentionally do NOT send `email` to Shopify here.
+              // Some domains are rejected by Shopify ("invalid domain name")
+              // and would break checkout. The email is preserved as a
+              // line-item property ("Quote Email") for our own records.
             },
           }
 
-          const postDraft = (payload: any) =>
-            fetch(`https://${shopName}.myshopify.com/admin/api/2025-01/draft_orders.json`, {
+          const createResponse = await fetch(
+            `https://${shopName}.myshopify.com/admin/api/2025-01/draft_orders.json`,
+            {
               method: "POST",
               headers: {
                 "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(payload),
-            })
+              body: JSON.stringify(draftOrderPayload),
+            },
+          )
 
-          let createResponse = await postDraft(draftOrderPayload)
-          let createText = await createResponse.text()
+          const createText = await createResponse.text()
           let createJson: any
           try {
             createJson = JSON.parse(createText)
           } catch {
             return Response.json({ error: "Invalid Shopify response" }, { status: 500, headers: corsHeaders })
-          }
-
-          // If Shopify rejects the email (e.g. invalid domain), retry without it.
-          // The email is still kept in line item properties as "Quote Email".
-          if (!createResponse.ok && createJson?.errors?.email && cleanEmail) {
-            console.warn("Shopify rejected email, retrying without it:", createJson.errors.email)
-            const { email: _omit, ...draftNoEmail } = draftOrderPayload.draft_order as any
-            createResponse = await postDraft({ draft_order: draftNoEmail })
-            createText = await createResponse.text()
-            try {
-              createJson = JSON.parse(createText)
-            } catch {
-              return Response.json({ error: "Invalid Shopify response" }, { status: 500, headers: corsHeaders })
-            }
           }
 
           if (!createResponse.ok) {
