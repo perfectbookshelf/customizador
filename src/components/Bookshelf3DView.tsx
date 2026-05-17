@@ -698,7 +698,7 @@ export const Bookshelf3DView = forwardRef<
               modules2={modules2}
             />
           ) : (
-            <group position={[0, totalHeight * 0.16, 0]}>
+            <group position={[0, aiCapture ? 0 : totalHeight * 0.16, 0]}>
               <Bookshelf3D
                 style={style}
                 width={width}
@@ -712,14 +712,21 @@ export const Bookshelf3DView = forwardRef<
           )}
 
           <Environment preset="studio" environmentIntensity={0.5} />
-          <ContactShadows
-            position={[0, -0.1, 0]}
-            opacity={0.3}
-            scale={width * 1.8}
-            blur={2.8}
-            far={totalHeight * 1.5}
-            resolution={1024}
-          />
+          {aiCapture ? (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+              <planeGeometry args={[Math.max(width, totalHeight) * 6, Math.max(maxDepth, totalHeight) * 6]} />
+              <meshStandardMaterial color="#e8e2d5" roughness={0.95} metalness={0} />
+            </mesh>
+          ) : (
+            <ContactShadows
+              position={[0, -0.1, 0]}
+              opacity={0.3}
+              scale={width * 1.8}
+              blur={2.8}
+              far={totalHeight * 1.5}
+              resolution={1024}
+            />
+          )}
 
           <OrbitControls
             enableZoom={true}
