@@ -1204,6 +1204,7 @@ export function BookshelfConfigurator() {
           />
         ) : mainType === "cathedral" ? (
           <CathedralLivePreview
+            ref={cathedral3DRef}
             finish={selectedFinish}
             W={cathW} H={cathH} H1={cathH1} direction={cathDir}
             shelves={shelves}
