@@ -58,6 +58,13 @@ import { calculateUSurround } from "@/lib/usurround-calculator"
 import { cn } from "@/lib/utils"
 
 type MainType = "rack" | "bookshelf" | "corner" | "portal" | "cathedral" | "usurround"
+
+/** Single source of truth: product types that support the AI photo render. */
+const PHOTO_RENDER_TYPES: ReadonlySet<MainType> = new Set(["bookshelf", "rack", "cathedral"])
+function isPhotoRenderType(t: string | null | undefined): t is MainType {
+  const norm = String(t ?? "").trim().toLowerCase() as MainType
+  return PHOTO_RENDER_TYPES.has(norm)
+}
 export type CornerVariant = "outside" | "inside"
 
 const TYPE_OPTIONS: {
