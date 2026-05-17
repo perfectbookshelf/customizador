@@ -1314,9 +1314,9 @@ export function BookshelfConfigurator() {
             >
               <X className="h-5 w-5" />
             </button>
-            <div className="bg-background w-full aspect-square sm:aspect-[4/3] flex items-center justify-center overflow-hidden">
+            <div className="bg-background w-full flex items-center justify-center overflow-hidden">
               {photoStatus === "loading" && (
-                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                <div className="flex flex-col items-center gap-3 text-muted-foreground py-24">
                   <Loader2 className="h-8 w-8 animate-spin" />
                   <div className="text-[11px] tracking-[0.25em] uppercase">Rendering photoreal preview…</div>
                   <div className="text-xs">This usually takes 10–20 seconds</div>
@@ -1326,7 +1326,7 @@ export function BookshelfConfigurator() {
                 <div className="text-sm text-destructive p-6 text-center max-w-md">{photoError}</div>
               )}
               {photoStatus === "done" && photoUrl && (
-                <img src={photoUrl} alt="Photoreal bookshelf render" className="w-full h-full object-contain" />
+                <img src={photoUrl} alt="Photoreal bookshelf render" className="max-w-full max-h-[70vh] object-contain" />
               )}
             </div>
             <div className="flex items-center gap-4">
