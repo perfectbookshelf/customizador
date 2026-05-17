@@ -1016,8 +1016,6 @@ export function BookshelfConfigurator() {
               : `${toFraction(width)} × ${toFraction(totalHeight)}`}
           />
           <SummaryRow label="Shelves" value={`${shelves.length}${mainType === "corner" ? ` + ${shelves2.length}` : ""}`} />
-          <SummaryRow label="Area" value={`${totalArea.toFixed(2)} sq ft`} />
-          <SummaryRow label="Rate" value={`$${(finishOption?.price ?? 0).toFixed(2)} / sq ft`} />
         </div>
 
         {isPhotoRenderType(mainType) && (
