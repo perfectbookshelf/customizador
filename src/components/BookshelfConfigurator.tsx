@@ -1023,6 +1023,9 @@ export function BookshelfConfigurator() {
       // AI is used ONLY for the photorealistic room render (variant: "hero").
       // Joinery + Assembly slides are rendered deterministically from local
       // assets / SVG so the AI cannot invent inaccurate construction details.
+      if (!areTechnicalSlidesControlled()) {
+        throw new Error("Technical carousel slides are not configured with controlled sources.")
+      }
       const result = await callRenderPhoto({
         data: { imageDataUrl: snapshot, ...basePayload, variant: "hero" },
       })
