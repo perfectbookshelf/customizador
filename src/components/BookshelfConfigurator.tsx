@@ -67,6 +67,18 @@ function isPhotoRenderType(t: string | null | undefined): t is MainType {
   const norm = String(t ?? "").trim().toLowerCase() as MainType
   return PHOTO_RENDER_TYPES.has(norm)
 }
+const PHOTO_SLIDE_LABELS = ["Room Preview", "Joinery Detail", "Modular Assembly"] as const
+const TECHNICAL_SLIDE_SOURCES = {
+  joinery: "approved-static-reference",
+  assembly: "deterministic-svg",
+} as const
+
+function areTechnicalSlidesControlled() {
+  return (
+    TECHNICAL_SLIDE_SOURCES.joinery === "approved-static-reference" &&
+    TECHNICAL_SLIDE_SOURCES.assembly === "deterministic-svg"
+  )
+}
 export type CornerVariant = "outside" | "inside"
 
 const TYPE_OPTIONS: {
