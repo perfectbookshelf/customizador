@@ -223,11 +223,19 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
       return () => timers.forEach(clearTimeout)
     }, [])
 
-    let captureFunction: (() => Promise<string>) | null = null
+    const captureFnRef = useRef<(() => Promise<string>) | null>(null)
+    const [aiCapture, setAiCapture] = useState(false)
     useImperativeHandle(ref, () => ({
       captureImage: async () => {
-        if (captureFunction) return await captureFunction()
-        throw new Error("Canvas not ready")
+        if (!captureFnRef.current) throw new Error("Canvas not ready")
+        setAiCapture(true)
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r as any)))
+        await new Promise((r) => setTimeout(r, 80))
+        try {
+          return await captureFnRef.current()
+        } finally {
+          setAiCapture(false)
+        }
       },
     }))
 
@@ -249,7 +257,7 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
           gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.0, preserveDrawingBuffer: true }}
         >
           <Suspense fallback={null}>
-            <CanvasCapture onReady={(fn) => { captureFunction = fn }} />
+            <CanvasCapture onReady={(fn) => { captureFnRef.current = fn }} />
             <CameraController width={W} totalHeight={totalHeight} maxDepth={maxDepth} isMobile={isMobile} resetKey={resetCount} />
 
             <ambientLight intensity={0.6} />
@@ -258,7 +266,7 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
             <pointLight position={[0, totalHeight * 0.7, maxDepth * 1.5]} intensity={0.8} distance={maxDepth * 4} />
             <pointLight position={[0, totalHeight * 0.5, -maxDepth * 0.3]} intensity={0.7} distance={maxDepth * 3} />
 
-            <group position={[0, totalHeight * 0.16, 0]}>
+            <group position={[0, aiCapture ? 0 : totalHeight * 0.16, 0]}>
               <CathedralShelf3D
                 rows={rows}
                 modulesPerRow={modulesPerRow}
@@ -271,7 +279,14 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
             </group>
 
             <Environment preset="studio" environmentIntensity={0.5} />
-            <ContactShadows position={[0, -0.1, 0]} opacity={0.3} scale={W * 1.8} blur={2.8} far={totalHeight * 1.5} resolution={1024} />
+            {aiCapture ? (
+              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+                <planeGeometry args={[Math.max(W, totalHeight) * 6, Math.max(maxDepth, totalHeight) * 6]} />
+                <meshStandardMaterial color="#e8e2d5" roughness={0.95} metalness={0} />
+              </mesh>
+            ) : (
+              <ContactShadows position={[0, -0.1, 0]} opacity={0.3} scale={W * 1.8} blur={2.8} far={totalHeight * 1.5} resolution={1024} />
+            )}
             <OrbitControls enableZoom enablePan enableRotate minDistance={20} maxDistance={200} target={[0, totalHeight / 2, 0]} enableDamping dampingFactor={0.05} rotateSpeed={0.5} zoomSpeed={0.5} />
           </Suspense>
         </Canvas>

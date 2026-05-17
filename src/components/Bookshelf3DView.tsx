@@ -595,14 +595,22 @@ export const Bookshelf3DView = forwardRef<
     return () => timers.forEach(clearTimeout)
   }, [])
 
-  let captureFunction: (() => Promise<string>) | null = null
+  const captureFnRef = useRef<(() => Promise<string>) | null>(null)
+  const [aiCapture, setAiCapture] = useState(false)
 
   useImperativeHandle(ref, () => ({
     captureImage: async () => {
-      if (captureFunction) {
-        return await captureFunction()
+      if (!captureFnRef.current) throw new Error("Canvas not ready")
+      // Switch to AI-safe reference: drop model lift, swap floating soft shadow
+      // for a real floor plane so the base clearly sits on the floor.
+      setAiCapture(true)
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r as any)))
+      await new Promise((r) => setTimeout(r, 80))
+      try {
+        return await captureFnRef.current()
+      } finally {
+        setAiCapture(false)
       }
-      throw new Error("Canvas not ready")
     },
   }))
 
@@ -640,7 +648,7 @@ export const Bookshelf3DView = forwardRef<
         <Suspense fallback={null}>
           <CanvasCapture
             onReady={(fn) => {
-              captureFunction = fn
+              captureFnRef.current = fn
             }}
           />
 
@@ -690,7 +698,7 @@ export const Bookshelf3DView = forwardRef<
               modules2={modules2}
             />
           ) : (
-            <group position={[0, totalHeight * 0.16, 0]}>
+            <group position={[0, aiCapture ? 0 : totalHeight * 0.16, 0]}>
               <Bookshelf3D
                 style={style}
                 width={width}
@@ -704,14 +712,21 @@ export const Bookshelf3DView = forwardRef<
           )}
 
           <Environment preset="studio" environmentIntensity={0.5} />
-          <ContactShadows
-            position={[0, -0.1, 0]}
-            opacity={0.3}
-            scale={width * 1.8}
-            blur={2.8}
-            far={totalHeight * 1.5}
-            resolution={1024}
-          />
+          {aiCapture ? (
+            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+              <planeGeometry args={[Math.max(width, totalHeight) * 6, Math.max(maxDepth, totalHeight) * 6]} />
+              <meshStandardMaterial color="#e8e2d5" roughness={0.95} metalness={0} />
+            </mesh>
+          ) : (
+            <ContactShadows
+              position={[0, -0.1, 0]}
+              opacity={0.3}
+              scale={width * 1.8}
+              blur={2.8}
+              far={totalHeight * 1.5}
+              resolution={1024}
+            />
+          )}
 
           <OrbitControls
             enableZoom={true}
