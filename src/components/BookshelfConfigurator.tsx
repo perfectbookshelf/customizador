@@ -1354,7 +1354,7 @@ export function BookshelfConfigurator() {
                 <div className="text-sm text-destructive p-6 text-center max-w-md">{photoError}</div>
               )}
               {photoStatus === "done" && (() => {
-                const labels = ["Room Preview", "Joinery Detail", "Modular Assembly"] as const
+                const labels = PHOTO_SLIDE_LABELS
                 const finishLabel = finishOption?.label ?? selectedFinish
                 // Build deterministic assembly rows from the current config.
                 const assemblyRows: AssemblyRow[] = (() => {
@@ -1396,14 +1396,20 @@ export function BookshelfConfigurator() {
                         )
                       )}
                       {photoSlide === 1 && (
+                        TECHNICAL_SLIDE_SOURCES.joinery === "approved-static-reference" ? (
                         <JoineryDetail
                           finishLabel={finishLabel}
                           finishColor={finishOption?.color1}
                           secondaryColor={finishOption?.color2}
                         />
+                        ) : (
+                          <div className="text-xs text-muted-foreground py-24 text-center max-w-md">
+                            Joinery detail preview coming soon.
+                          </div>
+                        )
                       )}
                       {photoSlide === 2 && (
-                        assemblyRows.length > 0 ? (
+                        TECHNICAL_SLIDE_SOURCES.assembly === "deterministic-svg" && assemblyRows.length > 0 ? (
                           <AssemblyDiagram
                             rows={assemblyRows}
                             totalWidth={diagramTotalWidth}
