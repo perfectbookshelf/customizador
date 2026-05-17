@@ -494,6 +494,18 @@ export function BookshelfConfigurator() {
     }
 
     try {
+      // Final sync: make sure the quote_leads row reflects the latest finish
+      // and price before the customer is redirected to checkout.
+      if (isValidQuoteEmail) {
+        try {
+          await captureQuoteLead({
+            email: quoteEmail.trim(),
+            productType: mainType,
+            stepReached: "checkout",
+            lastConfig: quoteLeadConfig(),
+          })
+        } catch { /* never block checkout */ }
+      }
       const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code, email: quoteEmail })
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch { /* ignore */ }
