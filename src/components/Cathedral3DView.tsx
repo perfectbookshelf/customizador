@@ -223,11 +223,19 @@ export const Cathedral3DView = forwardRef<Cathedral3DViewRef, Cathedral3DViewPro
       return () => timers.forEach(clearTimeout)
     }, [])
 
-    let captureFunction: (() => Promise<string>) | null = null
+    const captureFnRef = useRef<(() => Promise<string>) | null>(null)
+    const [aiCapture, setAiCapture] = useState(false)
     useImperativeHandle(ref, () => ({
       captureImage: async () => {
-        if (captureFunction) return await captureFunction()
-        throw new Error("Canvas not ready")
+        if (!captureFnRef.current) throw new Error("Canvas not ready")
+        setAiCapture(true)
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r as any)))
+        await new Promise((r) => setTimeout(r, 80))
+        try {
+          return await captureFnRef.current()
+        } finally {
+          setAiCapture(false)
+        }
       },
     }))
 
