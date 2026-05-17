@@ -7,7 +7,7 @@ interface RenderInput {
   finishLabel: string;
   typeLabel: string;
   dimensions: string;
-  variant?: PhotoRenderVariant;
+  variant?: string;
 }
 
 /**
