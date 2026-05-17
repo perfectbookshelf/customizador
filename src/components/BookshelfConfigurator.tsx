@@ -3,6 +3,8 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight, Sparkles, X, Loader2, ChevronLeft } from "lucide-react"
 import { useServerFn } from "@tanstack/react-start"
 import { renderPhotoreal } from "@/lib/render-photo.functions"
+import { JoineryDetail } from "@/components/JoineryDetail"
+import { AssemblyDiagram, type AssemblyRow } from "@/components/AssemblyDiagram"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
@@ -241,7 +243,7 @@ export function BookshelfConfigurator() {
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
   const [photoStatus, setPhotoStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
-  const [photoUrls, setPhotoUrls] = useState<(string | null)[]>([null, null, null])
+  const [heroPhotoUrl, setHeroPhotoUrl] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [photoOpen, setPhotoOpen] = useState(false)
   const [photoSlide, setPhotoSlide] = useState(0)
@@ -991,7 +993,7 @@ export function BookshelfConfigurator() {
     if (!activeRef) return
     setPhotoStatus("loading")
     setPhotoError(null)
-    setPhotoUrls([null, null, null])
+    setHeroPhotoUrl(null)
     setPhotoSlide(0)
     setPhotoOpen(true)
     try {
@@ -1006,39 +1008,13 @@ export function BookshelfConfigurator() {
         dimensions: dims,
       }
 
-      if (import.meta.env.DEV) {
-        try {
-          const { buildRenderPrompt } = await import("@/lib/render-photo.functions")
-          for (const v of ["hero", "joinery", "assembly"] as const) {
-            const built = buildRenderPrompt({ ...basePayload, variant: v })
-            console.groupCollapsed(
-              `%c[AI Photo Render] payload preview — ${built.kind}/${v}`,
-              "color:#8b5cf6;font-weight:bold",
-            )
-            console.log("positive prompt:\n" + built.prompt)
-            console.log("negative prompt:\n" + built.negativePrompt)
-            console.groupEnd()
-          }
-        } catch (logErr) {
-          console.warn("[AI Photo Render] debug log failed", logErr)
-        }
-      }
-
-      const variants = ["hero", "joinery", "assembly"] as const
-      const results = await Promise.allSettled(
-        variants.map((variant) =>
-          callRenderPhoto({ data: { imageDataUrl: snapshot, ...basePayload, variant } }),
-        ),
-      )
-      const urls: (string | null)[] = results.map((r) =>
-        r.status === "fulfilled" ? r.value.imageDataUrl : null,
-      )
-      // Require at least the hero to consider it a success.
-      if (!urls[0]) {
-        const heroErr = results[0].status === "rejected" ? (results[0].reason as Error)?.message : "Render failed"
-        throw new Error(heroErr || "Render failed")
-      }
-      setPhotoUrls(urls)
+      // AI is used ONLY for the photorealistic room render (variant: "hero").
+      // Joinery + Assembly slides are rendered deterministically from local
+      // assets / SVG so the AI cannot invent inaccurate construction details.
+      const result = await callRenderPhoto({
+        data: { imageDataUrl: snapshot, ...basePayload, variant: "hero" },
+      })
+      setHeroPhotoUrl(result.imageDataUrl)
       setPhotoStatus("done")
     } catch (e) {
       setPhotoError(e instanceof Error ? e.message : "Something went wrong")
