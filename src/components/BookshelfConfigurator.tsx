@@ -1,6 +1,6 @@
 import * as React from "react"
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight, Sparkles, X, Loader2 } from "lucide-react"
+import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight, Sparkles, X, Loader2, ChevronLeft } from "lucide-react"
 import { useServerFn } from "@tanstack/react-start"
 import { renderPhotoreal } from "@/lib/render-photo.functions"
 import { Button } from "@/components/ui/button"
