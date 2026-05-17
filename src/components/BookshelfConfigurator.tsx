@@ -3,6 +3,8 @@ import { useState, useEffect, useMemo, useRef } from "react"
 import { Plus, Minus, ShoppingCart, DoorOpen, Monitor, Flame, HelpCircle, ChevronRight, Sparkles, X, Loader2, ChevronLeft } from "lucide-react"
 import { useServerFn } from "@tanstack/react-start"
 import { renderPhotoreal } from "@/lib/render-photo.functions"
+import { JoineryDetail } from "@/components/JoineryDetail"
+import { AssemblyDiagram, type AssemblyRow } from "@/components/AssemblyDiagram"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Input } from "@/components/ui/input"
@@ -241,7 +243,7 @@ export function BookshelfConfigurator() {
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
   const [photoStatus, setPhotoStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
-  const [photoUrls, setPhotoUrls] = useState<(string | null)[]>([null, null, null])
+  const [heroPhotoUrl, setHeroPhotoUrl] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [photoOpen, setPhotoOpen] = useState(false)
   const [photoSlide, setPhotoSlide] = useState(0)
@@ -991,7 +993,7 @@ export function BookshelfConfigurator() {
     if (!activeRef) return
     setPhotoStatus("loading")
     setPhotoError(null)
-    setPhotoUrls([null, null, null])
+    setHeroPhotoUrl(null)
     setPhotoSlide(0)
     setPhotoOpen(true)
     try {
@@ -1006,39 +1008,13 @@ export function BookshelfConfigurator() {
         dimensions: dims,
       }
 
-      if (import.meta.env.DEV) {
-        try {
-          const { buildRenderPrompt } = await import("@/lib/render-photo.functions")
-          for (const v of ["hero", "joinery", "assembly"] as const) {
-            const built = buildRenderPrompt({ ...basePayload, variant: v })
-            console.groupCollapsed(
-              `%c[AI Photo Render] payload preview — ${built.kind}/${v}`,
-              "color:#8b5cf6;font-weight:bold",
-            )
-            console.log("positive prompt:\n" + built.prompt)
-            console.log("negative prompt:\n" + built.negativePrompt)
-            console.groupEnd()
-          }
-        } catch (logErr) {
-          console.warn("[AI Photo Render] debug log failed", logErr)
-        }
-      }
-
-      const variants = ["hero", "joinery", "assembly"] as const
-      const results = await Promise.allSettled(
-        variants.map((variant) =>
-          callRenderPhoto({ data: { imageDataUrl: snapshot, ...basePayload, variant } }),
-        ),
-      )
-      const urls: (string | null)[] = results.map((r) =>
-        r.status === "fulfilled" ? r.value.imageDataUrl : null,
-      )
-      // Require at least the hero to consider it a success.
-      if (!urls[0]) {
-        const heroErr = results[0].status === "rejected" ? (results[0].reason as Error)?.message : "Render failed"
-        throw new Error(heroErr || "Render failed")
-      }
-      setPhotoUrls(urls)
+      // AI is used ONLY for the photorealistic room render (variant: "hero").
+      // Joinery + Assembly slides are rendered deterministically from local
+      // assets / SVG so the AI cannot invent inaccurate construction details.
+      const result = await callRenderPhoto({
+        data: { imageDataUrl: snapshot, ...basePayload, variant: "hero" },
+      })
+      setHeroPhotoUrl(result.imageDataUrl)
       setPhotoStatus("done")
     } catch (e) {
       setPhotoError(e instanceof Error ? e.message : "Something went wrong")
@@ -1355,31 +1331,64 @@ export function BookshelfConfigurator() {
               {photoStatus === "loading" && (
                 <div className="flex flex-col items-center gap-3 text-muted-foreground py-24">
                   <Loader2 className="h-8 w-8 animate-spin" />
-                  <div className="text-[11px] tracking-[0.25em] uppercase">Rendering 3 views…</div>
-                  <div className="text-xs">Hero · Joinery · Assembly — usually 15–30 seconds</div>
+                  <div className="text-[11px] tracking-[0.25em] uppercase">Rendering room preview…</div>
+                  <div className="text-xs">Usually 15–30 seconds</div>
                 </div>
               )}
               {photoStatus === "error" && (
                 <div className="text-sm text-destructive p-6 text-center max-w-md">{photoError}</div>
               )}
               {photoStatus === "done" && (() => {
-                const labels = ["Hero render", "Joinery detail", "Assembly view"] as const
-                const current = photoUrls[photoSlide]
+                const labels = ["Room Preview", "Joinery Detail", "Modular Assembly"] as const
+                const finishLabel = finishOption?.label ?? selectedFinish
+                // Build deterministic assembly rows from the current config.
+                const assemblyRows: AssemblyRow[] = (() => {
+                  try {
+                    if (mainType === "cathedral") {
+                      const c = calculateCathedral(cathW, cathH, cathH1, shelves, cathDir, selectedFinish)
+                      return c.rows.map((row, i) => ({
+                        rowWidth: row.availableWidth,
+                        moduleWidths: (c.modulesPerRow[i] ?? []).map((m) => m.width),
+                      }))
+                    }
+                    const r = calculateBookshelf({ type: "bookshelf", totalWidth: width, shelves, finish: selectedFinish })
+                    return r.shelves.map((s) => ({
+                      rowWidth: width,
+                      moduleWidths: s.modules.map((m) => m.width),
+                    }))
+                  } catch {
+                    return []
+                  }
+                })()
+                const diagramTotalWidth = mainType === "cathedral" ? cathW : width
+                const slideCount = 3
                 const go = (delta: number) =>
-                  setPhotoSlide((i) => (i + delta + photoUrls.length) % photoUrls.length)
+                  setPhotoSlide((i) => (i + delta + slideCount) % slideCount)
                 return (
                   <div className="w-full flex flex-col items-center gap-3">
                     <div className="relative w-full flex items-center justify-center min-h-[40vh]">
-                      {current ? (
-                        <img
-                          src={current}
-                          alt={labels[photoSlide]}
-                          className="max-w-full max-h-[70vh] object-contain"
-                        />
-                      ) : (
-                        <div className="text-xs text-muted-foreground py-24">
-                          This view failed to render. Try Regenerate.
-                        </div>
+                      {photoSlide === 0 && (
+                        heroPhotoUrl ? (
+                          <img
+                            src={heroPhotoUrl}
+                            alt={labels[0]}
+                            className="max-w-full max-h-[70vh] object-contain"
+                          />
+                        ) : (
+                          <div className="text-xs text-muted-foreground py-24 text-center max-w-md">
+                            Room preview failed to render. Try Regenerate.
+                          </div>
+                        )
+                      )}
+                      {photoSlide === 1 && <JoineryDetail finishLabel={finishLabel} />}
+                      {photoSlide === 2 && (
+                        assemblyRows.length > 0 ? (
+                          <AssemblyDiagram rows={assemblyRows} totalWidth={diagramTotalWidth} finishLabel={finishLabel} />
+                        ) : (
+                          <div className="text-xs text-muted-foreground py-24 text-center max-w-md">
+                            Modular assembly diagram unavailable for this configuration.
+                          </div>
+                        )
                       )}
                       <button
                         type="button"
@@ -1400,19 +1409,18 @@ export function BookshelfConfigurator() {
                     </div>
                     <div className="flex flex-col items-center gap-2">
                       <div className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
-                        {photoSlide + 1} / {photoUrls.length} · {labels[photoSlide]}
+                        {photoSlide + 1} / {slideCount} · {labels[photoSlide]}
                       </div>
                       <div className="flex items-center gap-2">
-                        {photoUrls.map((u, i) => (
+                        {labels.map((lbl, i) => (
                           <button
                             key={i}
                             type="button"
-                            aria-label={`Go to ${labels[i]}`}
+                            aria-label={`Go to ${lbl}`}
                             onClick={() => setPhotoSlide(i)}
                             className={cn(
                               "h-1.5 rounded-full transition-all",
                               i === photoSlide ? "w-6 bg-foreground" : "w-1.5 bg-muted-foreground/50",
-                              !u && "opacity-40",
                             )}
                           />
                         ))}
@@ -1423,13 +1431,13 @@ export function BookshelfConfigurator() {
               })()}
             </div>
             <div className="flex items-center gap-4 flex-wrap justify-center">
-              {photoStatus === "done" && photoUrls[photoSlide] && (
+              {photoStatus === "done" && photoSlide === 0 && heroPhotoUrl && (
                 <a
-                  href={photoUrls[photoSlide]!}
-                  download={`bookshelf-${["hero", "joinery", "assembly"][photoSlide]}.png`}
+                  href={heroPhotoUrl}
+                  download={`bookshelf-room-preview.png`}
                   className="text-[11px] tracking-[0.2em] uppercase font-semibold text-background hover:text-brand-walnut"
                 >
-                  Download current ↓
+                  Download render ↓
                 </a>
               )}
               {(photoStatus === "done" || photoStatus === "error") && (
@@ -1438,7 +1446,7 @@ export function BookshelfConfigurator() {
                   onClick={handleGeneratePhoto}
                   className="text-[11px] tracking-[0.2em] uppercase font-semibold text-background hover:text-brand-walnut"
                 >
-                  Regenerate all ↻
+                  Regenerate render ↻
                 </button>
               )}
             </div>
