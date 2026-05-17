@@ -595,14 +595,22 @@ export const Bookshelf3DView = forwardRef<
     return () => timers.forEach(clearTimeout)
   }, [])
 
-  let captureFunction: (() => Promise<string>) | null = null
+  const captureFnRef = useRef<(() => Promise<string>) | null>(null)
+  const [aiCapture, setAiCapture] = useState(false)
 
   useImperativeHandle(ref, () => ({
     captureImage: async () => {
-      if (captureFunction) {
-        return await captureFunction()
+      if (!captureFnRef.current) throw new Error("Canvas not ready")
+      // Switch to AI-safe reference: drop model lift, swap floating soft shadow
+      // for a real floor plane so the base clearly sits on the floor.
+      setAiCapture(true)
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r as any)))
+      await new Promise((r) => setTimeout(r, 80))
+      try {
+        return await captureFnRef.current()
+      } finally {
+        setAiCapture(false)
       }
-      throw new Error("Canvas not ready")
     },
   }))
 
