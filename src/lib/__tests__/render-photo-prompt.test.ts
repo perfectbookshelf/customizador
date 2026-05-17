@@ -21,11 +21,7 @@ const REQUIRED_PHRASES = [
 ];
 
 const CASES = [
-  {
-    type: "Bookshelf",
-    finish: "Walnut",
-    framing: /50–65% of the image height and 45–60% of the image width/,
-  },
+  { type: "Bookshelf", finish: "Walnut", framing: /50–65% of the image height and 45–60% of the image width/ },
   { type: "Horizontal", finish: "Walnut", framing: /65–75% of the image width/ },
   { type: "Cathedral", finish: "White Oak", framing: /55–70% of the image width/ },
 ] as const;
@@ -49,13 +45,7 @@ describe("buildRenderPrompt — supported types", () => {
       expect(built.prompt).toMatch(c.framing);
 
       // negative prompt covers the critical exclusions
-      for (const neg of [
-        "floating",
-        "wall-mounted",
-        "hovering",
-        "cropped product",
-        "excessive empty floor",
-      ]) {
+      for (const neg of ["floating", "wall-mounted", "hovering", "cropped product", "excessive empty floor"]) {
         expect(built.negativePrompt).toContain(neg);
       }
     });
@@ -89,39 +79,5 @@ describe("classifyRenderType — guard against unsupported types", () => {
     expect(() =>
       buildRenderPrompt({ typeLabel: "Portal", finishLabel: "Walnut", dimensions: "36 × 72" }),
     ).toThrowError(/Unsupported AI render type/);
-  });
-});
-
-describe("buildRenderPrompt — carousel AI safety guard", () => {
-  const base = { typeLabel: "Bookshelf", finishLabel: "Walnut", dimensions: '36" × 72"' } as const;
-
-  it("hero variant keeps grounding + framing phrases", () => {
-    const p = buildRenderPrompt({ ...base, variant: "hero" });
-    expect(p.variant).toBe("hero");
-    expect(p.prompt).toContain("standing directly on the floor");
-    expect(p.prompt).toContain("product-focused camera distance");
-  });
-
-  it.each(["joinery", "assembly"])(
-    "rejects uncontrolled AI generation for %s technical slide",
-    (variant) => {
-      expect(() => buildRenderPrompt({ ...base, variant })).toThrowError(
-        /controlled deterministic\/reference-based slides and must not be AI-generated/,
-      );
-    },
-  );
-
-  it("contains no free-form technical prompt branch for joinery or assembly", () => {
-    expect(() => buildRenderPrompt({ ...base, variant: "joinery" })).toThrowError(
-      /Unsupported AI render variant/,
-    );
-    expect(() => buildRenderPrompt({ ...base, variant: "assembly" })).toThrowError(
-      /Unsupported AI render variant/,
-    );
-  });
-
-  it("defaults to hero when no variant given", () => {
-    const p = buildRenderPrompt(base);
-    expect(p.variant).toBe("hero");
   });
 });

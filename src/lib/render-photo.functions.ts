@@ -1,13 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 
-export type PhotoRenderVariant = "hero";
-
 interface RenderInput {
   imageDataUrl: string;
   finishLabel: string;
   typeLabel: string;
   dimensions: string;
-  variant?: string;
 }
 
 /**
@@ -25,19 +22,13 @@ export const SUPPORTED_RENDER_TYPE_LABELS = ["Bookshelf", "Horizontal", "Cathedr
  * U-Surround, Portal, anything unknown).
  */
 export function classifyRenderType(typeLabel: string): PhotoRenderKind | null {
-  const t = String(typeLabel || "")
-    .trim()
-    .toLowerCase();
+  const t = String(typeLabel || "").trim().toLowerCase();
   if (!t) return null;
   if (t.includes("cathedral")) return "cathedral";
   if (t.includes("horizontal") || t.includes("rack")) return "horizontal";
   if (t === "bookshelf" || t.startsWith("bookshelf")) return "bookshelf";
-  if (
-    t.includes("corner") ||
-    t.includes("u-surround") ||
-    t.includes("usurround") ||
-    t.includes("portal")
-  ) {
+  // Explicitly unsupported types we want to block:
+  if (t.includes("corner") || t.includes("u-surround") || t.includes("usurround") || t.includes("portal")) {
     return null;
   }
   return null;
@@ -45,7 +36,6 @@ export function classifyRenderType(typeLabel: string): PhotoRenderKind | null {
 
 export interface BuiltRenderPrompt {
   kind: PhotoRenderKind;
-  variant: PhotoRenderVariant;
   prompt: string;
   negativePrompt: string;
   typeGuidance: string;
@@ -56,17 +46,6 @@ export interface BuiltRenderPrompt {
 }
 
 /**
- * Construction-system context for the AI room render only.
- *
- * Joinery/detail and assembly carousel slides must remain deterministic or
- * approved-reference based. Do not add free-form AI prompts for those slides:
- * prior attempts hallucinated incorrect baguettes, hardware, random boards,
- * and impossible exploded views.
- */
-const SYSTEM_DESCRIPTION =
-  "Perfect Bookshelf is a modular solid-hardwood shelving system. It is built from horizontal BOARDS and rectangular MODULES of various sizes. Each module is composed of exactly 1 back panel, 2 side panels, and 2 slim vertical baguettes (the baguettes are the interlocking structural fitting elements at the front edges of the module). Modules sit and interlock onto the boards through the baguettes. The whole system assembles WITHOUT any visible screws, brackets, hinges or fasteners — clean, precise, almost Lego-like but premium and architectural.";
-
-/**
  * Pure prompt builder. No network calls, no secrets, no env reads.
  * Throws on unsupported types so callers fail fast before billing.
  */
@@ -74,18 +53,10 @@ export function buildRenderPrompt(input: {
   finishLabel: string;
   typeLabel: string;
   dimensions: string;
-  variant?: string;
 }): BuiltRenderPrompt {
   const finishLabel = String(input.finishLabel || "").slice(0, 120);
   const typeLabel = String(input.typeLabel || "").slice(0, 120);
   const dimensions = String(input.dimensions || "").slice(0, 120);
-  const rawVariant = String(input.variant ?? "hero");
-  if (rawVariant !== "hero") {
-    throw new Error(
-      `Unsupported AI render variant: "${rawVariant}". Joinery Detail and Modular Assembly are controlled deterministic/reference-based slides and must not be AI-generated.`,
-    );
-  }
-  const variant: PhotoRenderVariant = "hero";
 
   const kind = classifyRenderType(typeLabel);
   if (!kind) {
@@ -113,15 +84,12 @@ export function buildRenderPrompt(input: {
       "The vertical bookshelf should occupy around 50–65% of the image height and 45–60% of the image width, fully visible, standing directly on the floor.";
   }
 
-  const baseNegative =
-    "floating, hovering, levitating, suspended, wall-mounted, attached to the wall, hanging, mounted brackets, visible screws, visible fasteners, metal brackets, gap under the base, shadow below the object without floor contact, object not touching floor, unrealistic placement, floating UI preview shadow, drop-shadow halo under the unit, cropped product, far away, tiny product, excessive empty floor, wide real estate photo, ultra-wide lens";
+  const negativePrompt =
+    "far away, tiny product, excessive empty floor, wide real estate photo, product too small, distant back wall, ultra-wide lens, cropped product, floating, hovering, levitating, suspended, wall-mounted, attached to the wall, hanging, mounted brackets, gap under the base, shadow below the object without floor contact, object not touching floor, unrealistic placement, floating UI preview shadow, product hovering above floor, drop-shadow halo under the unit";
 
-  const negativePrompt = baseNegative;
   const prompt = `Re-render this 3D bookshelf model as an ultra-realistic photograph of the actual handcrafted piece of furniture in a real-world setting.
 
 Furniture: ${typeLabel} bookshelf, ${dimensions}, finish: ${finishLabel}.
-
-PRODUCT SYSTEM CONTEXT: ${SYSTEM_DESCRIPTION}
 
 REFERENCE IMAGE USAGE (critical):
 - The reference image is provided ONLY to convey the bookshelf's silhouette, proportions, module/compartment layout, shelf count, and finish.
@@ -146,7 +114,7 @@ NEGATIVE — do NOT render any of: ${negativePrompt}. Do NOT add a black outline
 
 Geometry fidelity (critical):
 - Preserve EXACTLY the same geometry, proportions, module layout, shelf count, compartment arrangement, and overall silhouette shown in the source image. Do not add, remove, or rearrange any compartments or shelves. Do not invent a different bookshelf shape.
-- Replace the rendered surfaces with photorealistic solid hardwood matching the finish (${finishLabel}) — visible natural wood grain, subtle knots, warm tones, fine joinery details, slight chamfered edges. The construction reads as screw-free modular assembly (boards + modules + slim vertical baguettes at the front edges), but no hardware should be visible.
+- Replace the rendered surfaces with photorealistic solid hardwood matching the finish (${finishLabel}) — visible natural wood grain, subtle knots, warm tones, fine joinery details, slight chamfered edges. If the finish is walnut, use rich warm walnut tones with characteristic grain.
 
 Scene:
 - Tasteful minimal modern residential interior (real home living room or home office, NOT a gallery or loft). Standard residential ceiling height ~2.7m (~9ft) with the ceiling line visible at the top of the frame to anchor scale. Soft warm daylight from a side window, clean off-white plaster wall, warm oak or light wood plank residential flooring (NOT polished concrete).
@@ -154,26 +122,12 @@ Scene:
 - No people, no text, no logos, no books, no decorative objects on the shelves — leave the shelves empty so the structure reads clearly.
 - The bookshelf fully visible with breathing room, base of the bookshelf clearly visible touching the floor.`;
 
-  return {
-    kind,
-    variant,
-    prompt,
-    negativePrompt,
-    typeGuidance,
-    framingGuidance,
-    finishLabel,
-    typeLabel,
-    dimensions,
-  };
+  return { kind, prompt, negativePrompt, typeGuidance, framingGuidance, finishLabel, typeLabel, dimensions };
 }
 
 export const renderPhotoreal = createServerFn({ method: "POST" })
   .inputValidator((input: RenderInput) => {
-    if (
-      !input ||
-      typeof input.imageDataUrl !== "string" ||
-      !input.imageDataUrl.startsWith("data:image/")
-    ) {
+    if (!input || typeof input.imageDataUrl !== "string" || !input.imageDataUrl.startsWith("data:image/")) {
       throw new Error("Invalid image input");
     }
     if (input.imageDataUrl.length > 8_000_000) {
@@ -185,18 +139,11 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
         `Unsupported AI render type: "${typeLabel}". AI Photo Render is only available for: ${SUPPORTED_RENDER_TYPE_LABELS.join(", ")}.`,
       );
     }
-    const rawVariant = String(input.variant ?? "hero");
-    if (rawVariant !== "hero") {
-      throw new Error(
-        `Unsupported AI render variant: "${rawVariant}". Joinery Detail and Modular Assembly are controlled deterministic/reference-based slides and must not be AI-generated.`,
-      );
-    }
     return {
       imageDataUrl: input.imageDataUrl,
       finishLabel: String(input.finishLabel || "").slice(0, 120),
       typeLabel,
       dimensions: String(input.dimensions || "").slice(0, 120),
-      variant: "hero" as const,
     };
   })
   .handler(async ({ data }) => {
@@ -207,7 +154,6 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
       finishLabel: data.finishLabel,
       typeLabel: data.typeLabel,
       dimensions: data.dimensions,
-      variant: data.variant,
     });
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -234,8 +180,7 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       if (res.status === 429) throw new Error("Rate limit reached. Please try again in a moment.");
-      if (res.status === 402)
-        throw new Error("AI credits exhausted. Please add credits in workspace settings.");
+      if (res.status === 402) throw new Error("AI credits exhausted. Please add credits in workspace settings.");
       throw new Error(`Render failed (${res.status}): ${body.slice(0, 300)}`);
     }
 
@@ -250,5 +195,5 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
 
     const url = json.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     if (!url) throw new Error("No image returned by AI");
-    return { imageDataUrl: url, variant: data.variant };
+    return { imageDataUrl: url };
   });
