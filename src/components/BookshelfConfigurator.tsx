@@ -1376,22 +1376,23 @@ function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectH
   )
 }
 
-function CathedralLivePreview({ finish, W, H, H1, direction, shelves }: {
+const CathedralLivePreview = React.forwardRef<Cathedral3DViewRef, {
   finish: string; W: number; H: number; H1: number; direction: "left" | "right" | "both"; shelves: ShelfConfig[]
-}) {
+}>(function CathedralLivePreview({ finish, W, H, H1, direction, shelves }, ref) {
   const data = useMemo(() => {
     try { return calculateCathedral(W, H, H1, shelves, direction, finish) }
     catch { return { rows: [], modulesPerRow: [], totalArea: 0, allSkus: [] as any[] } }
   }, [W, H, H1, shelves, direction, finish])
   return (
     <Cathedral3DView
+      ref={ref}
       W={W} H={H} H1={H1} direction={direction}
       rows={data.rows}
       modulesPerRow={data.modulesPerRow}
       finish={finish} hideTooltip fillContainer
     />
   )
-}
+})
 
 function USurroundLivePreview({ finish, w1, w, w2, shelves }: {
   finish: string; w1: number; w: number; w2: number; shelves: ShelfConfig[]
