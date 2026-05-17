@@ -16,6 +16,7 @@ import iconUModel from "@/assets/icons/U-Model.png"
 import type { BookshelfConfig, ShelfConfig, BookshelfType, BookshelfResult } from "@/lib/types"
 import { calculateBookshelf } from "@/lib/bookshelf-calculator"
 import type { Bookshelf3DViewRef } from "./Bookshelf3DView"
+import type { Cathedral3DViewRef } from "./Cathedral3DView"
 
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { captureSvgAsPng } from "@/lib/svg-to-png"
