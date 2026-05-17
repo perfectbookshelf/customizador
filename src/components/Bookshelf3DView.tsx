@@ -648,7 +648,7 @@ export const Bookshelf3DView = forwardRef<
         <Suspense fallback={null}>
           <CanvasCapture
             onReady={(fn) => {
-              captureFunction = fn
+              captureFnRef.current = fn
             }}
           />
 
