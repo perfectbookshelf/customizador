@@ -905,7 +905,7 @@ export function BookshelfConfigurator() {
   const finishStep: WizardStep = {
     label: "Finish",
     selectionName: finishOption?.label ?? "—",
-    priceDelta: `$${totalPrice.toFixed(2)} · $${(finishOption?.price ?? 0).toFixed(2)}/sq ft`,
+    priceDelta: `$${totalPrice.toFixed(2)}`,
     description: finishOption?.description ?? "Choose your wood and color combination. The pair (front / interior) is shown on each swatch.",
     nextLabel: "Review",
     content: (
@@ -1016,8 +1016,6 @@ export function BookshelfConfigurator() {
               : `${toFraction(width)} × ${toFraction(totalHeight)}`}
           />
           <SummaryRow label="Shelves" value={`${shelves.length}${mainType === "corner" ? ` + ${shelves2.length}` : ""}`} />
-          <SummaryRow label="Area" value={`${totalArea.toFixed(2)} sq ft`} />
-          <SummaryRow label="Rate" value={`$${(finishOption?.price ?? 0).toFixed(2)} / sq ft`} />
         </div>
 
         {isPhotoRenderType(mainType) && (
