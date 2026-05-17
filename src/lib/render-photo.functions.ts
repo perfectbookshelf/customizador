@@ -116,11 +116,8 @@ export function buildRenderPrompt(input: {
   const baseNegative =
     "floating, hovering, levitating, suspended, wall-mounted, attached to the wall, hanging, mounted brackets, visible screws, visible fasteners, metal brackets, gap under the base, shadow below the object without floor contact, object not touching floor, unrealistic placement, floating UI preview shadow, drop-shadow halo under the unit, cropped product, far away, tiny product, excessive empty floor, wide real estate photo, ultra-wide lens";
 
-  let prompt: string;
-  let negativePrompt: string;
-
-  negativePrompt = baseNegative;
-  prompt = `Re-render this 3D bookshelf model as an ultra-realistic photograph of the actual handcrafted piece of furniture in a real-world setting.
+  const negativePrompt = baseNegative;
+  const prompt = `Re-render this 3D bookshelf model as an ultra-realistic photograph of the actual handcrafted piece of furniture in a real-world setting.
 
 Furniture: ${typeLabel} bookshelf, ${dimensions}, finish: ${finishLabel}.
 
