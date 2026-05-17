@@ -25,9 +25,11 @@ interface AssemblyDiagramProps {
   rows: AssemblyRow[]
   totalWidth: number
   finishLabel?: string
+  finishColor?: string
+  secondaryColor?: string
 }
 
-export function AssemblyDiagram({ rows, totalWidth, finishLabel }: AssemblyDiagramProps) {
+export function AssemblyDiagram({ rows, totalWidth, finishLabel, finishColor, secondaryColor }: AssemblyDiagramProps) {
   // Canvas in viewBox units. We render bottom-to-top so the lowest shelf is
   // visually at the bottom.
   const VB_W = 1000
@@ -44,6 +46,9 @@ export function AssemblyDiagram({ rows, totalWidth, finishLabel }: AssemblyDiagr
   const moduleH = Math.min(rowH * 0.78, 90)
   const boardH = 8
   const scaleX = drawableW / Math.max(1, totalWidth)
+  const boardFill = finishColor ?? "hsl(35 25% 78%)"
+  const backPanelFill = secondaryColor ?? finishColor ?? "hsl(35 20% 88%)"
+  const incomingFill = secondaryColor ?? finishColor ?? "hsl(35 20% 92%)"
 
   // We highlight the top row, second module from the left, as the "incoming"
   // module floating above its slot with a thin arrow indicating it drops in.
@@ -75,7 +80,7 @@ export function AssemblyDiagram({ rows, totalWidth, finishLabel }: AssemblyDiagr
           y={yBoard - boardH}
           width={row.rowWidth * scaleX}
           height={boardH}
-          fill="hsl(35 25% 78%)"
+          fill={boardFill}
           stroke="hsl(0 0% 20%)"
           strokeWidth={1.2}
         />
@@ -117,7 +122,7 @@ export function AssemblyDiagram({ rows, totalWidth, finishLabel }: AssemblyDiagr
                 y={yModuleTop + 2}
                 width={Math.max(0, widthPx - 4)}
                 height={moduleH - 4}
-                fill="hsl(35 20% 88%)"
+                fill={backPanelFill}
                 stroke="hsl(0 0% 35%)"
                 strokeWidth={0.8}
               />
@@ -160,7 +165,7 @@ export function AssemblyDiagram({ rows, totalWidth, finishLabel }: AssemblyDiagr
             return (
               <g>
                 {/* Floating module */}
-                <rect x={x + 2} y={floatY + 2} width={Math.max(0, w - 4)} height={h - 4} fill="hsl(35 20% 92%)" stroke="hsl(0 0% 30%)" strokeWidth={0.8} />
+                <rect x={x + 2} y={floatY + 2} width={Math.max(0, w - 4)} height={h - 4} fill={incomingFill} stroke="hsl(0 0% 30%)" strokeWidth={0.8} />
                 <rect x={x} y={floatY} width={3} height={h} fill="hsl(0 0% 25%)" />
                 <rect x={x + w - 3} y={floatY} width={3} height={h} fill="hsl(0 0% 25%)" />
                 <rect x={x + 4} y={floatY} width={2} height={h} fill="hsl(0 0% 15%)" />
