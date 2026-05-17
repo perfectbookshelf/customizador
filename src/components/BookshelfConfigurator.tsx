@@ -1020,17 +1020,18 @@ export function BookshelfConfigurator() {
           <SummaryRow label="Rate" value={`$${(finishOption?.price ?? 0).toFixed(2)} / sq ft`} />
         </div>
 
-        {(mainType === "bookshelf" || mainType === "cathedral" || mainType === "rack") && (
+        {isPhotoRenderType(mainType) && (
           <button
             type="button"
             onClick={handleGeneratePhoto}
-            disabled={photoStatus === "loading" || !result}
-            className="w-full text-left border border-border bg-muted/10 p-4 flex items-start gap-4 transition-colors hover:bg-muted/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={photoStatus === "loading"}
+            aria-label="Generate AI photo render of your bookshelf"
+            className="w-full text-left border border-border bg-muted/10 p-4 flex items-start gap-4 transition-colors hover:bg-muted/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+            <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background pointer-events-none">
               <Sparkles className="h-4 w-4" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pointer-events-none">
               <div className="text-[11px] tracking-[0.25em] uppercase text-muted-foreground">AI Photo Render</div>
               <div className="text-sm mt-1 leading-relaxed">
                 See your configuration as a photorealistic image with real wood grain — perfect for sharing with your space.
