@@ -1,4 +1,4 @@
-import joineryPhoto from "@/assets/joinery-detail.png"
+import joineryPhoto from "@/assets/joinery-detail.png";
 
 /**
  * Joinery detail card.
@@ -17,16 +17,16 @@ export function JoineryDetail({
   finishColor,
   secondaryColor,
 }: {
-  finishLabel: string
-  finishColor?: string
-  secondaryColor?: string
+  finishLabel: string;
+  finishColor?: string;
+  secondaryColor?: string;
 }) {
   const tintStyle = finishColor
     ? {
         background: `linear-gradient(135deg, ${finishColor}, ${secondaryColor ?? finishColor})`,
         mixBlendMode: "color" as const,
       }
-    : undefined
+    : undefined;
 
   return (
     <figure className="w-full max-w-3xl flex flex-col items-center gap-3">
@@ -37,14 +37,22 @@ export function JoineryDetail({
           className="max-w-full max-h-[70vh] object-contain bg-background block"
           loading="lazy"
         />
-        {tintStyle ? <div className="absolute inset-0 pointer-events-none opacity-40" style={tintStyle} aria-hidden="true" /> : null}
+        {tintStyle ? (
+          <div
+            className="absolute inset-0 pointer-events-none opacity-40"
+            style={tintStyle}
+            aria-hidden="true"
+          />
+        ) : null}
       </div>
       <figcaption className="text-[11px] tracking-[0.2em] uppercase text-white/70 text-center max-w-xl leading-relaxed">
         Screw-free baguette joinery — actual construction detail.
         {finishLabel ? (
-          <span className="block mt-1 text-white/50">Approved reference, finish-tinted for your selection: {finishLabel}</span>
+          <span className="block mt-1 text-white/50">
+            Approved reference, finish-tinted for your selection: {finishLabel}
+          </span>
         ) : null}
       </figcaption>
     </figure>
-  )
+  );
 }

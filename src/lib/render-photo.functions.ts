@@ -25,12 +25,19 @@ export const SUPPORTED_RENDER_TYPE_LABELS = ["Bookshelf", "Horizontal", "Cathedr
  * U-Surround, Portal, anything unknown).
  */
 export function classifyRenderType(typeLabel: string): PhotoRenderKind | null {
-  const t = String(typeLabel || "").trim().toLowerCase();
+  const t = String(typeLabel || "")
+    .trim()
+    .toLowerCase();
   if (!t) return null;
   if (t.includes("cathedral")) return "cathedral";
   if (t.includes("horizontal") || t.includes("rack")) return "horizontal";
   if (t === "bookshelf" || t.startsWith("bookshelf")) return "bookshelf";
-  if (t.includes("corner") || t.includes("u-surround") || t.includes("usurround") || t.includes("portal")) {
+  if (
+    t.includes("corner") ||
+    t.includes("u-surround") ||
+    t.includes("usurround") ||
+    t.includes("portal")
+  ) {
     return null;
   }
   return null;
@@ -150,12 +157,26 @@ Scene:
 - No people, no text, no logos, no books, no decorative objects on the shelves — leave the shelves empty so the structure reads clearly.
 - The bookshelf fully visible with breathing room, base of the bookshelf clearly visible touching the floor.`;
 
-  return { kind, variant, prompt, negativePrompt, typeGuidance, framingGuidance, finishLabel, typeLabel, dimensions };
+  return {
+    kind,
+    variant,
+    prompt,
+    negativePrompt,
+    typeGuidance,
+    framingGuidance,
+    finishLabel,
+    typeLabel,
+    dimensions,
+  };
 }
 
 export const renderPhotoreal = createServerFn({ method: "POST" })
   .inputValidator((input: RenderInput) => {
-    if (!input || typeof input.imageDataUrl !== "string" || !input.imageDataUrl.startsWith("data:image/")) {
+    if (
+      !input ||
+      typeof input.imageDataUrl !== "string" ||
+      !input.imageDataUrl.startsWith("data:image/")
+    ) {
       throw new Error("Invalid image input");
     }
     if (input.imageDataUrl.length > 8_000_000) {
@@ -216,7 +237,8 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       if (res.status === 429) throw new Error("Rate limit reached. Please try again in a moment.");
-      if (res.status === 402) throw new Error("AI credits exhausted. Please add credits in workspace settings.");
+      if (res.status === 402)
+        throw new Error("AI credits exhausted. Please add credits in workspace settings.");
       throw new Error(`Render failed (${res.status}): ${body.slice(0, 300)}`);
     }
 
