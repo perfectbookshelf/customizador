@@ -82,7 +82,7 @@ describe("classifyRenderType — guard against unsupported types", () => {
   });
 });
 
-describe("buildRenderPrompt — carousel variants", () => {
+describe("buildRenderPrompt — carousel AI safety guard", () => {
   const base = { typeLabel: "Bookshelf", finishLabel: "Walnut", dimensions: '36" × 72"' } as const;
 
   it("hero variant keeps grounding + framing phrases", () => {
@@ -92,25 +92,18 @@ describe("buildRenderPrompt — carousel variants", () => {
     expect(p.prompt).toContain("product-focused camera distance");
   });
 
-  it("joinery variant emphasizes baguettes, screw-free interlocking, close-up", () => {
-    const p = buildRenderPrompt({ ...base, variant: "joinery" });
-    expect(p.variant).toBe("joinery");
-    expect(p.prompt).toMatch(/baguette/i);
-    expect(p.prompt).toMatch(/back panel/i);
-    expect(p.prompt).toMatch(/side panel/i);
-    expect(p.prompt).toMatch(/macro|close-up/i);
-    expect(p.prompt).toMatch(/screw[- ]?free|no screws|NOT by screws/i);
-    expect(p.negativePrompt).toMatch(/screws/i);
-  });
+  it.each(["joinery", "assembly"])(
+    "rejects uncontrolled AI generation for %s technical slide",
+    (variant) => {
+      expect(() => buildRenderPrompt({ ...base, variant })).toThrowError(
+        /controlled deterministic\/reference-based slides and must not be AI-generated/,
+      );
+    },
+  );
 
-  it("assembly variant produces an exploded/diagram composition", () => {
-    const p = buildRenderPrompt({ ...base, variant: "assembly" });
-    expect(p.variant).toBe("assembly");
-    expect(p.prompt).toMatch(/exploded|assembly/i);
-    expect(p.prompt).toMatch(/board/i);
-    expect(p.prompt).toMatch(/module/i);
-    expect(p.prompt).toMatch(/baguette/i);
-    expect(p.negativePrompt).toMatch(/photograph|room/i);
+  it("contains no free-form technical prompt branch for joinery or assembly", () => {
+    expect(() => buildRenderPrompt({ ...base, variant: "joinery" })).toThrowError(/Unsupported AI render variant/);
+    expect(() => buildRenderPrompt({ ...base, variant: "assembly" })).toThrowError(/Unsupported AI render variant/);
   });
 
   it("defaults to hero when no variant given", () => {
