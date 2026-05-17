@@ -568,6 +568,10 @@ export function BookshelfConfigurator() {
     width,
     width2: mainType === "corner" ? width2 : undefined,
     selectedFinish,
+    selectedFinishLabel: FINISH_OPTIONS.find((f) => f.id === selectedFinish)?.label ?? selectedFinish,
+    totalHeight,
+    totalPrice: Number(totalPrice.toFixed(2)),
+    totalArea: Number(totalArea.toFixed(2)),
     shelves,
     shelves2: mainType === "corner" ? shelves2 : undefined,
     uSurround:
