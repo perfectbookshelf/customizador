@@ -1,51 +1,41 @@
 /**
- * Navigate the current tab to an external URL (Shopify checkout, consultation, etc.).
+ * Redirect the user to an external URL (Shopify checkout, consultation, etc.).
  *
- * Strict same-tab policy:
- *  - Never calls window.open (no popup, no new tab, no _blank).
- *  - Never sets target="_blank".
- *  - Prefers top-level navigation so the user leaves any embedding iframe.
- *  - Falls back to navigating the current frame if the top frame is cross-origin.
+ * Preference order:
+ *  1. Top-level navigation in the same tab (works when not iframed, or when
+ *     the iframe is same-origin / allow-top-navigation).
+ *  2. postMessage to the parent so an integrator can handle the redirect.
+ *  3. Fallback: open in a new tab (only if same-tab navigation isn't possible).
  *
- * Returns true if a navigation was issued, false otherwise.
+ * Returns true if some redirect path was attempted, false otherwise.
  */
 export function redirectToCheckout(checkoutUrl: string): boolean {
   if (typeof window === "undefined") return false
 
-  // Basic URL validation — refuse empty / non-http(s) values.
-  if (typeof checkoutUrl !== "string" || checkoutUrl.trim() === "") return false
-  try {
-    const parsed = new URL(checkoutUrl, window.location.href)
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false
-  } catch {
-    return false
+  const inIframe = window.self !== window.top
+  if (!inIframe) {
+    window.location.href = checkoutUrl
+    return true
   }
 
-  if (import.meta.env.DEV) {
-    console.debug("[checkout] same-tab redirect →", checkoutUrl)
-  }
-
-  // Notify any embedding page (no-op if nobody's listening). Embedders that
-  // want to handle navigation themselves can listen for this message.
+  // Notify the embedding page (no-op if nobody's listening).
   try {
-    if (window.self !== window.top) {
-      window.parent.postMessage({ type: "pbs-checkout-redirect", checkoutUrl }, "*")
-    }
+    window.parent.postMessage({ type: "pbs-checkout-redirect", checkoutUrl }, "*")
   } catch {
     /* ignore */
   }
 
-  // Prefer top-level same-tab navigation when allowed (escapes the iframe).
+  // Try to navigate the top window in the same tab.
   try {
-    if (window.top && window.top !== window.self) {
+    if (window.top) {
       window.top.location.href = checkoutUrl
       return true
     }
   } catch {
-    /* cross-origin top — fall through to current-frame navigation */
+    /* cross-origin — fall through to new-tab fallback */
   }
 
-  // Same-tab navigation in the current frame. No window.open, no popup.
-  window.location.assign(checkoutUrl)
-  return true
+  // Last resort: new tab (popup may be blocked).
+  const w = window.open(checkoutUrl, "_blank", "noopener,noreferrer")
+  return !!w
 }
