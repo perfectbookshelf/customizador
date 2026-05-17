@@ -26,17 +26,39 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) throw new Error("Missing LOVABLE_API_KEY");
 
+    const typeLower = data.typeLabel.toLowerCase()
+    let typeGuidance = ""
+    if (typeLower.includes("cathedral")) {
+      typeGuidance =
+        "Render as a stepped/cathedral-shaped FREESTANDING bookshelf with a sloped/vaulted top profile, standing directly on the floor. The full base of the unit rests on the floor with realistic contact shadows."
+    } else if (typeLower.includes("horizontal") || typeLower.includes("rack")) {
+      typeGuidance =
+        "Render as a LOW, WIDE, HORIZONTAL freestanding bookshelf (like a sideboard or media console) standing directly on the floor — NOT wall-mounted, NOT floating. The entire bottom edge touches the floor."
+    } else {
+      typeGuidance =
+        "Render as a TALL VERTICAL freestanding bookshelf standing directly on the floor. The entire bottom edge touches the floor."
+    }
+
     const prompt = `Re-render this 3D bookshelf model as an ultra-realistic photograph of the actual handcrafted piece of furniture in a real-world setting.
 
 Furniture: ${data.typeLabel} bookshelf, ${data.dimensions}, finish: ${data.finishLabel}.
 
-Critical requirements:
-- Preserve EXACTLY the same geometry, proportions, module layout, shelf arrangement, and overall composition shown in the source image. Do not add, remove, or rearrange any compartments.
-- Replace the rendered surfaces with photorealistic solid hardwood matching the finish (${data.finishLabel}) — visible natural wood grain, subtle knots, warm tones, fine joinery details, slight chamfered edges.
-- Place it in a tasteful, minimal modern residential interior (a real home living room or home office, NOT a gallery or loft space). The ceiling MUST be at standard residential height of 2.7m (~9ft) — the ceiling line should be visible at the top of the frame to anchor the scale. Soft warm daylight from a side window, clean off-white plaster wall, warm oak or light wood floor (residential plank flooring, not polished concrete gallery floor), gentle ambient shadows, shallow depth of field.
-- High-end editorial furniture catalog aesthetic (think MENU, Ferm Living, Vitsoe). Crisp focus on the bookshelf, slight cinematic vignette.
+Type-specific guidance: ${typeGuidance}
+
+GROUNDING (critical, do not deviate):
+- The bookshelf is FREESTANDING, FLOOR-SUPPORTED furniture. It MUST stand directly on the floor with the bottom edge fully touching the floor across its entire base.
+- Render natural contact shadows where the bookshelf meets the floor to anchor it visually.
+- NEGATIVE: do NOT render the bookshelf as floating, levitating, hanging on the wall, wall-mounted, hovering, suspended, with a gap under the base, or with no floor contact. Do NOT add a black outline/frame unless the selected finish explicitly is black.
+
+Geometry fidelity (critical):
+- Preserve EXACTLY the same geometry, proportions, module layout, shelf count, compartment arrangement, and overall silhouette shown in the source image. Do not add, remove, or rearrange any compartments or shelves. Do not invent a different bookshelf shape.
+- Replace the rendered surfaces with photorealistic solid hardwood matching the finish (${data.finishLabel}) — visible natural wood grain, subtle knots, warm tones, fine joinery details, slight chamfered edges. If the finish is walnut, use rich warm walnut tones with characteristic grain.
+
+Scene:
+- Tasteful minimal modern residential interior (real home living room or home office, NOT a gallery or loft). Standard residential ceiling height ~2.7m (~9ft) with the ceiling line visible at the top of the frame to anchor scale. Soft warm daylight from a side window, clean off-white plaster wall, warm oak or light wood plank residential flooring (NOT polished concrete).
+- High-end editorial furniture catalog aesthetic (think MENU, Ferm Living, Vitsoe). Crisp focus on the bookshelf, subtle cinematic vignette, gentle ambient shadows, shallow depth of field.
 - No people, no text, no logos, no books, no decorative objects on the shelves — leave the shelves empty so the structure reads clearly.
-- Square or 4:3 framing, the bookshelf fully visible with breathing room.`;
+- Square or 4:3 framing, the bookshelf fully visible with breathing room, base of the bookshelf clearly visible touching the floor.`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

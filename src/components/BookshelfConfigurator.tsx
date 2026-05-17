@@ -16,6 +16,7 @@ import iconUModel from "@/assets/icons/U-Model.png"
 import type { BookshelfConfig, ShelfConfig, BookshelfType, BookshelfResult } from "@/lib/types"
 import { calculateBookshelf } from "@/lib/bookshelf-calculator"
 import type { Bookshelf3DViewRef } from "./Bookshelf3DView"
+import type { Cathedral3DViewRef } from "./Cathedral3DView"
 
 import { createShopifyCheckout } from "@/lib/shopify-checkout"
 import { captureSvgAsPng } from "@/lib/svg-to-png"
@@ -57,6 +58,13 @@ import { calculateUSurround } from "@/lib/usurround-calculator"
 import { cn } from "@/lib/utils"
 
 type MainType = "rack" | "bookshelf" | "corner" | "portal" | "cathedral" | "usurround"
+
+/** Single source of truth: product types that support the AI photo render. */
+const PHOTO_RENDER_TYPES: ReadonlySet<MainType> = new Set(["bookshelf", "rack", "cathedral"])
+function isPhotoRenderType(t: string | null | undefined): t is MainType {
+  const norm = String(t ?? "").trim().toLowerCase() as MainType
+  return PHOTO_RENDER_TYPES.has(norm)
+}
 export type CornerVariant = "outside" | "inside"
 
 const TYPE_OPTIONS: {
@@ -229,6 +237,7 @@ export function BookshelfConfigurator() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
   const bookshelf3DRef = useRef<Bookshelf3DViewRef>(null)
+  const cathedral3DRef = useRef<Cathedral3DViewRef>(null)
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
   const [photoStatus, setPhotoStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
@@ -930,16 +939,20 @@ export function BookshelfConfigurator() {
   }
 
   const handleGeneratePhoto = async () => {
-    if (!bookshelf3DRef.current) return
+    if (!isPhotoRenderType(mainType)) return
+    const activeRef =
+      mainType === "cathedral" ? cathedral3DRef.current : bookshelf3DRef.current
+    if (!activeRef) return
     setPhotoStatus("loading")
     setPhotoError(null)
     setPhotoUrl(null)
     setPhotoOpen(true)
     try {
-      const snapshot = await bookshelf3DRef.current.captureImage()
-      const dims = mainType === "corner"
-        ? `${toFraction(width)} × ${toFraction(width2)} × ${toFraction(totalHeight)}`
-        : `${toFraction(width)} × ${toFraction(totalHeight)}`
+      const snapshot = await activeRef.captureImage()
+      const dims =
+        mainType === "cathedral"
+          ? `${toFraction(cathW)} × ${toFraction(cathH)}–${toFraction(cathH1)}`
+          : `${toFraction(width)} × ${toFraction(totalHeight)}`
       const res = await callRenderPhoto({
         data: {
           imageDataUrl: snapshot,
@@ -1007,17 +1020,18 @@ export function BookshelfConfigurator() {
           <SummaryRow label="Rate" value={`$${(finishOption?.price ?? 0).toFixed(2)} / sq ft`} />
         </div>
 
-        {(mainType === "bookshelf" || mainType === "cathedral" || mainType === "rack") && (
+        {isPhotoRenderType(mainType) && (
           <button
             type="button"
             onClick={handleGeneratePhoto}
-            disabled={photoStatus === "loading" || !result}
-            className="w-full text-left border border-border bg-muted/10 p-4 flex items-start gap-4 transition-colors hover:bg-muted/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={photoStatus === "loading"}
+            aria-label="Generate AI photo render of your bookshelf"
+            className="w-full text-left border border-border bg-muted/10 p-4 flex items-start gap-4 transition-colors hover:bg-muted/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background">
+            <div className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-foreground text-background pointer-events-none">
               <Sparkles className="h-4 w-4" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 pointer-events-none">
               <div className="text-[11px] tracking-[0.25em] uppercase text-muted-foreground">AI Photo Render</div>
               <div className="text-sm mt-1 leading-relaxed">
                 See your configuration as a photorealistic image with real wood grain — perfect for sharing with your space.
@@ -1190,6 +1204,7 @@ export function BookshelfConfigurator() {
           />
         ) : mainType === "cathedral" ? (
           <CathedralLivePreview
+            ref={cathedral3DRef}
             finish={selectedFinish}
             W={cathW} H={cathH} H1={cathH1} direction={cathDir}
             shelves={shelves}
@@ -1361,22 +1376,23 @@ function PortalLivePreview({ finish, wallWidth, wallHeight, objectWidth, objectH
   )
 }
 
-function CathedralLivePreview({ finish, W, H, H1, direction, shelves }: {
+const CathedralLivePreview = React.forwardRef<Cathedral3DViewRef, {
   finish: string; W: number; H: number; H1: number; direction: "left" | "right" | "both"; shelves: ShelfConfig[]
-}) {
+}>(function CathedralLivePreview({ finish, W, H, H1, direction, shelves }, ref) {
   const data = useMemo(() => {
     try { return calculateCathedral(W, H, H1, shelves, direction, finish) }
     catch { return { rows: [], modulesPerRow: [], totalArea: 0, allSkus: [] as any[] } }
   }, [W, H, H1, shelves, direction, finish])
   return (
     <Cathedral3DView
+      ref={ref}
       W={W} H={H} H1={H1} direction={direction}
       rows={data.rows}
       modulesPerRow={data.modulesPerRow}
       finish={finish} hideTooltip fillContainer
     />
   )
-}
+})
 
 function USurroundLivePreview({ finish, w1, w, w2, shelves }: {
   finish: string; w1: number; w: number; w2: number; shelves: ShelfConfig[]
