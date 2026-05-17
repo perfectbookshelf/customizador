@@ -81,3 +81,41 @@ describe("classifyRenderType — guard against unsupported types", () => {
     ).toThrowError(/Unsupported AI render type/);
   });
 });
+
+describe("buildRenderPrompt — carousel variants", () => {
+  const base = { typeLabel: "Bookshelf", finishLabel: "Walnut", dimensions: '36" × 72"' } as const;
+
+  it("hero variant keeps grounding + framing phrases", () => {
+    const p = buildRenderPrompt({ ...base, variant: "hero" });
+    expect(p.variant).toBe("hero");
+    expect(p.prompt).toContain("standing directly on the floor");
+    expect(p.prompt).toContain("product-focused camera distance");
+  });
+
+  it("joinery variant emphasizes baguettes, screw-free interlocking, close-up", () => {
+    const p = buildRenderPrompt({ ...base, variant: "joinery" });
+    expect(p.variant).toBe("joinery");
+    expect(p.prompt).toMatch(/baguette/i);
+    expect(p.prompt).toMatch(/back panel/i);
+    expect(p.prompt).toMatch(/side panel/i);
+    expect(p.prompt).toMatch(/macro|close-up/i);
+    expect(p.prompt).toMatch(/screw[- ]?free|no screws|NOT by screws/i);
+    expect(p.negativePrompt).toMatch(/screws/i);
+  });
+
+  it("assembly variant produces an exploded/diagram composition", () => {
+    const p = buildRenderPrompt({ ...base, variant: "assembly" });
+    expect(p.variant).toBe("assembly");
+    expect(p.prompt).toMatch(/exploded|assembly/i);
+    expect(p.prompt).toMatch(/board/i);
+    expect(p.prompt).toMatch(/module/i);
+    expect(p.prompt).toMatch(/baguette/i);
+    expect(p.negativePrompt).toMatch(/photograph|room/i);
+  });
+
+  it("defaults to hero when no variant given", () => {
+    const p = buildRenderPrompt(base);
+    expect(p.variant).toBe("hero");
+  });
+});
+
