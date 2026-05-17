@@ -230,6 +230,7 @@ export function BookshelfConfigurator() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
   const bookshelf3DRef = useRef<Bookshelf3DViewRef>(null)
+  const cathedral3DRef = useRef<Cathedral3DViewRef>(null)
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
   const [photoStatus, setPhotoStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
