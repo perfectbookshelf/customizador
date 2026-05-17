@@ -991,7 +991,8 @@ export function BookshelfConfigurator() {
     if (!activeRef) return
     setPhotoStatus("loading")
     setPhotoError(null)
-    setPhotoUrl(null)
+    setPhotoUrls([null, null, null])
+    setPhotoSlide(0)
     setPhotoOpen(true)
     try {
       const snapshot = await activeRef.captureImage()
@@ -999,7 +1000,7 @@ export function BookshelfConfigurator() {
         mainType === "cathedral"
           ? `${toFraction(cathW)} × ${toFraction(cathH)}–${toFraction(cathH1)}`
           : `${toFraction(width)} × ${toFraction(totalHeight)}`
-      const payload = {
+      const basePayload = {
         finishLabel: finishOption?.label ?? selectedFinish,
         typeLabel: activeType.label,
         dimensions: dims,
@@ -1008,35 +1009,36 @@ export function BookshelfConfigurator() {
       if (import.meta.env.DEV) {
         try {
           const { buildRenderPrompt } = await import("@/lib/render-photo.functions")
-          const built = buildRenderPrompt(payload)
-          // No secrets, no emails, no checkout/Supabase data — prompt + config only.
-          console.groupCollapsed(
-            `%c[AI Photo Render] payload preview — ${built.kind}`,
-            "color:#8b5cf6;font-weight:bold",
-          )
-          console.table({
-            type: payload.typeLabel,
-            kind: built.kind,
-            finish: payload.finishLabel,
-            dimensions: payload.dimensions,
-            shelfCount: shelves.length,
-            referenceImage: snapshot.startsWith("data:image/") ? "data-url" : "none",
-            aiSafeCaptureMode: true,
-            previewShadowExcluded: true,
-            referenceImageBytes: snapshot.length,
-          })
-          console.log("positive prompt:\n" + built.prompt)
-          console.log("negative prompt:\n" + built.negativePrompt)
-          console.groupEnd()
+          for (const v of ["hero", "joinery", "assembly"] as const) {
+            const built = buildRenderPrompt({ ...basePayload, variant: v })
+            console.groupCollapsed(
+              `%c[AI Photo Render] payload preview — ${built.kind}/${v}`,
+              "color:#8b5cf6;font-weight:bold",
+            )
+            console.log("positive prompt:\n" + built.prompt)
+            console.log("negative prompt:\n" + built.negativePrompt)
+            console.groupEnd()
+          }
         } catch (logErr) {
           console.warn("[AI Photo Render] debug log failed", logErr)
         }
       }
 
-      const res = await callRenderPhoto({
-        data: { imageDataUrl: snapshot, ...payload },
-      })
-      setPhotoUrl(res.imageDataUrl)
+      const variants = ["hero", "joinery", "assembly"] as const
+      const results = await Promise.allSettled(
+        variants.map((variant) =>
+          callRenderPhoto({ data: { imageDataUrl: snapshot, ...basePayload, variant } }),
+        ),
+      )
+      const urls: (string | null)[] = results.map((r) =>
+        r.status === "fulfilled" ? r.value.imageDataUrl : null,
+      )
+      // Require at least the hero to consider it a success.
+      if (!urls[0]) {
+        const heroErr = results[0].status === "rejected" ? (results[0].reason as Error)?.message : "Render failed"
+        throw new Error(heroErr || "Render failed")
+      }
+      setPhotoUrls(urls)
       setPhotoStatus("done")
     } catch (e) {
       setPhotoError(e instanceof Error ? e.message : "Something went wrong")
