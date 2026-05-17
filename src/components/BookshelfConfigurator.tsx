@@ -939,16 +939,20 @@ export function BookshelfConfigurator() {
   }
 
   const handleGeneratePhoto = async () => {
-    if (!bookshelf3DRef.current) return
+    if (!isPhotoRenderType(mainType)) return
+    const activeRef =
+      mainType === "cathedral" ? cathedral3DRef.current : bookshelf3DRef.current
+    if (!activeRef) return
     setPhotoStatus("loading")
     setPhotoError(null)
     setPhotoUrl(null)
     setPhotoOpen(true)
     try {
-      const snapshot = await bookshelf3DRef.current.captureImage()
-      const dims = mainType === "corner"
-        ? `${toFraction(width)} × ${toFraction(width2)} × ${toFraction(totalHeight)}`
-        : `${toFraction(width)} × ${toFraction(totalHeight)}`
+      const snapshot = await activeRef.captureImage()
+      const dims =
+        mainType === "cathedral"
+          ? `${toFraction(cathW)} × ${toFraction(cathH)}–${toFraction(cathH1)}`
+          : `${toFraction(width)} × ${toFraction(totalHeight)}`
       const res = await callRenderPhoto({
         data: {
           imageDataUrl: snapshot,
