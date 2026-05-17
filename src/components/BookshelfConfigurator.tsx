@@ -241,9 +241,10 @@ export function BookshelfConfigurator() {
   const mainPreviewRef = useRef<HTMLDivElement>(null)
   const [isMobileDevice, setIsMobileDevice] = useState(false)
   const [photoStatus, setPhotoStatus] = useState<"idle" | "loading" | "done" | "error">("idle")
-  const [photoUrl, setPhotoUrl] = useState<string | null>(null)
+  const [photoUrls, setPhotoUrls] = useState<(string | null)[]>([null, null, null])
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [photoOpen, setPhotoOpen] = useState(false)
+  const [photoSlide, setPhotoSlide] = useState(0)
   const callRenderPhoto = useServerFn(renderPhotoreal)
 
   // Step 1 sub-variant flow (Corner / Cathedral): track whether the user has
