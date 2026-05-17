@@ -1380,10 +1380,22 @@ export function BookshelfConfigurator() {
                           </div>
                         )
                       )}
-                      {photoSlide === 1 && <JoineryDetail finishLabel={finishLabel} />}
+                      {photoSlide === 1 && (
+                        <JoineryDetail
+                          finishLabel={finishLabel}
+                          finishColor={finishOption?.color1}
+                          secondaryColor={finishOption?.color2}
+                        />
+                      )}
                       {photoSlide === 2 && (
                         assemblyRows.length > 0 ? (
-                          <AssemblyDiagram rows={assemblyRows} totalWidth={diagramTotalWidth} finishLabel={finishLabel} />
+                          <AssemblyDiagram
+                            rows={assemblyRows}
+                            totalWidth={diagramTotalWidth}
+                            finishLabel={finishLabel}
+                            finishColor={finishOption?.color1}
+                            secondaryColor={finishOption?.color2}
+                          />
                         ) : (
                           <div className="text-xs text-muted-foreground py-24 text-center max-w-md">
                             Modular assembly diagram unavailable for this configuration.
