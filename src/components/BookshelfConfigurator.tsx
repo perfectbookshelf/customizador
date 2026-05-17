@@ -596,6 +596,30 @@ export function BookshelfConfigurator() {
         : undefined,
   })
 
+  // After the email is captured, keep the same quote_leads row in sync with
+  // every meaningful configuration change (wood/finish on Step 4, shelves,
+  // dimensions, price, etc.). The API upserts by email so this never creates
+  // duplicate rows. Debounced to avoid spamming while sliders/clicks fire.
+  const latestConfigRef = useRef(quoteLeadConfig())
+  latestConfigRef.current = quoteLeadConfig()
+  useEffect(() => {
+    if (!isValidQuoteEmail) return
+    const t = window.setTimeout(() => {
+      void captureQuoteLead({
+        email: quoteEmail.trim(),
+        productType: mainType,
+        stepReached: `step-${stepIndex + 1}`,
+        lastConfig: latestConfigRef.current,
+      })
+    }, 700)
+    return () => window.clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isValidQuoteEmail, quoteEmail, stepIndex, mainType, bookshelfType, cornerVariant,
+    width, width2, selectedFinish, totalHeight, totalPrice, totalArea,
+    shelves, shelves2, uW1, uW, uW2,
+  ])
+
   /* ─── Step content ─── */
 
   const needsSubVariant = mainType === "corner" || mainType === "cathedral"
