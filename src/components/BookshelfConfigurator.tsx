@@ -1351,29 +1351,85 @@ export function BookshelfConfigurator() {
             >
               <X className="h-5 w-5" />
             </button>
-            <div className="bg-background w-full flex items-center justify-center overflow-hidden">
+            <div className="bg-background w-full flex items-center justify-center overflow-hidden relative">
               {photoStatus === "loading" && (
                 <div className="flex flex-col items-center gap-3 text-muted-foreground py-24">
                   <Loader2 className="h-8 w-8 animate-spin" />
-                  <div className="text-[11px] tracking-[0.25em] uppercase">Rendering photoreal preview…</div>
-                  <div className="text-xs">This usually takes 10–20 seconds</div>
+                  <div className="text-[11px] tracking-[0.25em] uppercase">Rendering 3 views…</div>
+                  <div className="text-xs">Hero · Joinery · Assembly — usually 15–30 seconds</div>
                 </div>
               )}
               {photoStatus === "error" && (
                 <div className="text-sm text-destructive p-6 text-center max-w-md">{photoError}</div>
               )}
-              {photoStatus === "done" && photoUrl && (
-                <img src={photoUrl} alt="Photoreal bookshelf render" className="max-w-full max-h-[70vh] object-contain" />
-              )}
+              {photoStatus === "done" && (() => {
+                const labels = ["Hero render", "Joinery detail", "Assembly view"] as const
+                const current = photoUrls[photoSlide]
+                const go = (delta: number) =>
+                  setPhotoSlide((i) => (i + delta + photoUrls.length) % photoUrls.length)
+                return (
+                  <div className="w-full flex flex-col items-center gap-3">
+                    <div className="relative w-full flex items-center justify-center min-h-[40vh]">
+                      {current ? (
+                        <img
+                          src={current}
+                          alt={labels[photoSlide]}
+                          className="max-w-full max-h-[70vh] object-contain"
+                        />
+                      ) : (
+                        <div className="text-xs text-muted-foreground py-24">
+                          This view failed to render. Try Regenerate.
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => go(-1)}
+                        aria-label="Previous"
+                        className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 text-foreground flex items-center justify-center hover:bg-brand-walnut hover:text-background transition-colors"
+                      >
+                        <ChevronLeft className="h-5 w-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => go(1)}
+                        aria-label="Next"
+                        className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/90 text-foreground flex items-center justify-center hover:bg-brand-walnut hover:text-background transition-colors"
+                      >
+                        <ChevronRight className="h-5 w-5" />
+                      </button>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground">
+                        {photoSlide + 1} / {photoUrls.length} · {labels[photoSlide]}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {photoUrls.map((u, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            aria-label={`Go to ${labels[i]}`}
+                            onClick={() => setPhotoSlide(i)}
+                            className={cn(
+                              "h-1.5 rounded-full transition-all",
+                              i === photoSlide ? "w-6 bg-foreground" : "w-1.5 bg-muted-foreground/50",
+                              !u && "opacity-40",
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
             </div>
-            <div className="flex items-center gap-4">
-              {photoStatus === "done" && photoUrl && (
+            <div className="flex items-center gap-4 flex-wrap justify-center">
+              {photoStatus === "done" && photoUrls[photoSlide] && (
                 <a
-                  href={photoUrl}
-                  download="bookshelf-render.png"
+                  href={photoUrls[photoSlide]!}
+                  download={`bookshelf-${["hero", "joinery", "assembly"][photoSlide]}.png`}
                   className="text-[11px] tracking-[0.2em] uppercase font-semibold text-background hover:text-brand-walnut"
                 >
-                  Download ↓
+                  Download current ↓
                 </a>
               )}
               {(photoStatus === "done" || photoStatus === "error") && (
@@ -1382,7 +1438,7 @@ export function BookshelfConfigurator() {
                   onClick={handleGeneratePhoto}
                   className="text-[11px] tracking-[0.2em] uppercase font-semibold text-background hover:text-brand-walnut"
                 >
-                  Regenerate ↻
+                  Regenerate all ↻
                 </button>
               )}
             </div>
