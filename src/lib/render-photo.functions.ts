@@ -43,18 +43,12 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
 
 Furniture: ${data.typeLabel} bookshelf, ${data.dimensions}, finish: ${data.finishLabel}.
 
-REFERENCE IMAGE USAGE (critical):
-- The reference image is provided ONLY to convey the bookshelf's silhouette, proportions, module/compartment layout, shelf count, and finish.
-- Do NOT copy lighting, framing, background, ground plane, or any shadow from the reference image into the final render.
-- If the reference shows any soft shadow under the bookshelf, IGNORE IT. Treat the bookshelf as a solid freestanding object that must physically rest on a real floor in the new scene.
-
 Type-specific guidance: ${typeGuidance}
 
 GROUNDING (critical, do not deviate):
-- The bookshelf is FREESTANDING, FLOOR-SUPPORTED furniture. It MUST stand directly on the floor with the entire bottom edge of its base in full contact with the floor across its whole footprint.
-- Render natural, tight contact shadows ONLY where the wood base meets the floor, anchoring it visually.
-- The base of the bookshelf must be clearly visible at the bottom of the frame, touching the floor — leave room below the unit to show the floor line.
-- NEGATIVE — do NOT render any of: floating, hovering, levitating, suspended, wall-mounted, attached to the wall, hanging, mounted brackets, gap under the base, shadow below the object without floor contact, object not touching floor, unrealistic placement, floating UI preview shadow, product hovering above floor, drop-shadow halo under the unit. Do NOT add a black outline/frame unless the selected finish explicitly is black.
+- The bookshelf is FREESTANDING, FLOOR-SUPPORTED furniture. It MUST stand directly on the floor with the bottom edge fully touching the floor across its entire base.
+- Render natural contact shadows where the bookshelf meets the floor to anchor it visually.
+- NEGATIVE: do NOT render the bookshelf as floating, levitating, hanging on the wall, wall-mounted, hovering, suspended, with a gap under the base, or with no floor contact. Do NOT add a black outline/frame unless the selected finish explicitly is black.
 
 Geometry fidelity (critical):
 - Preserve EXACTLY the same geometry, proportions, module layout, shelf count, compartment arrangement, and overall silhouette shown in the source image. Do not add, remove, or rearrange any compartments or shelves. Do not invent a different bookshelf shape.
