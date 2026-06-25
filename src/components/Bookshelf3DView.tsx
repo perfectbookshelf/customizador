@@ -43,23 +43,18 @@ function WoodMaterial({
   seed?: number
 }) {
   const tex = useWoodTexture(finish, size || {}, seed)
-
-  if (!tex) {
-    return (
-      <meshStandardMaterial
-        color={getWoodColor(finish)}
-        roughness={isFrame ? 0.7 : 0.8}
-        metalness={0.0}
-        side={THREE.DoubleSide}
-        envMapIntensity={0.3}
-      />
-    )
-  }
-
+  // CRITICAL: key forces R3F to dispose & recreate the underlying THREE
+  // material whenever `finish` changes. Without this, R3F mutates the same
+  // material instance in place and stale `map`/`color` from the previous
+  // finish can persist, causing the wrong wood to render after a swap.
+  // We also always set BOTH `map` and `color` explicitly so neither prop
+  // can leak across renders.
   return (
     <meshStandardMaterial
-      map={tex}
-      roughness={isFrame ? 0.6 : 0.7}
+      key={`mat-${finish}-${tex ? "tex" : "solid"}`}
+      map={tex ?? null}
+      color={tex ? "#ffffff" : getWoodColor(finish)}
+      roughness={isFrame ? (tex ? 0.6 : 0.7) : tex ? 0.7 : 0.8}
       metalness={0.0}
       side={THREE.DoubleSide}
       envMapIntensity={0.3}
