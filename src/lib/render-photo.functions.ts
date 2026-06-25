@@ -28,22 +28,15 @@ export const renderPhotoreal = createServerFn({ method: "POST" })
 
     const typeLower = data.typeLabel.toLowerCase()
     let typeGuidance = ""
-    let framingGuidance = ""
     if (typeLower.includes("cathedral")) {
       typeGuidance =
         "Render as a stepped/cathedral-shaped FREESTANDING bookshelf with a sloped/vaulted top profile, standing directly on the floor. The full base of the unit rests on the floor with realistic contact shadows."
-      framingGuidance =
-        "The cathedral bookshelf should occupy around 55–70% of the image width, fully visible, standing directly on the floor."
     } else if (typeLower.includes("horizontal") || typeLower.includes("rack")) {
       typeGuidance =
         "Render as a LOW, WIDE, HORIZONTAL freestanding bookshelf (like a sideboard or media console) standing directly on the floor — NOT wall-mounted, NOT floating. The entire bottom edge touches the floor."
-      framingGuidance =
-        "The horizontal bookshelf should occupy around 65–75% of the image width, fully visible, standing directly on the floor."
     } else {
       typeGuidance =
         "Render as a TALL VERTICAL freestanding bookshelf standing directly on the floor. The entire bottom edge touches the floor."
-      framingGuidance =
-        "The vertical bookshelf should occupy around 50–65% of the image height and 45–60% of the image width, fully visible, standing directly on the floor."
     }
 
     const prompt = `Re-render this 3D bookshelf model as an ultra-realistic photograph of the actual handcrafted piece of furniture in a real-world setting.
@@ -61,15 +54,7 @@ GROUNDING (critical, do not deviate):
 - The bookshelf is FREESTANDING, FLOOR-SUPPORTED furniture. It MUST stand directly on the floor with the entire bottom edge of its base in full contact with the floor across its whole footprint.
 - Render natural, tight contact shadows ONLY where the wood base meets the floor, anchoring it visually.
 - The base of the bookshelf must be clearly visible at the bottom of the frame, touching the floor — leave room below the unit to show the floor line.
-- The bookshelf stands directly on the floor. The entire bottom edge/base touches the floor. Add realistic contact shadows only where the base meets the floor. It is not floating, not wall-mounted, not hovering, and not suspended.
-
-FRAMING AND CAMERA (critical):
-- Frame the bookshelf as the main subject of the image. Use a product-focused camera distance, not a wide real-estate room shot.
-- ${framingGuidance}
-- Camera at normal standing eye level or slightly lower, straight-on front perspective, realistic interior product photography, medium shot, balanced composition.
-- Avoid excessive empty floor space in the foreground. Do not use an ultra-wide room perspective. Do not place the bookshelf far away on the back wall.
-
-NEGATIVE — do NOT render any of: far away, tiny product, excessive empty floor, wide real estate photo, product too small, distant back wall, ultra-wide lens, cropped product, floating, hovering, levitating, suspended, wall-mounted, attached to the wall, hanging, mounted brackets, gap under the base, shadow below the object without floor contact, object not touching floor, unrealistic placement, floating UI preview shadow, product hovering above floor, drop-shadow halo under the unit. Do NOT add a black outline/frame unless the selected finish explicitly is black.
+- NEGATIVE — do NOT render any of: floating, hovering, levitating, suspended, wall-mounted, attached to the wall, hanging, mounted brackets, gap under the base, shadow below the object without floor contact, object not touching floor, unrealistic placement, floating UI preview shadow, product hovering above floor, drop-shadow halo under the unit. Do NOT add a black outline/frame unless the selected finish explicitly is black.
 
 Geometry fidelity (critical):
 - Preserve EXACTLY the same geometry, proportions, module layout, shelf count, compartment arrangement, and overall silhouette shown in the source image. Do not add, remove, or rearrange any compartments or shelves. Do not invent a different bookshelf shape.
@@ -79,7 +64,7 @@ Scene:
 - Tasteful minimal modern residential interior (real home living room or home office, NOT a gallery or loft). Standard residential ceiling height ~2.7m (~9ft) with the ceiling line visible at the top of the frame to anchor scale. Soft warm daylight from a side window, clean off-white plaster wall, warm oak or light wood plank residential flooring (NOT polished concrete).
 - High-end editorial furniture catalog aesthetic (think MENU, Ferm Living, Vitsoe). Crisp focus on the bookshelf, subtle cinematic vignette, gentle ambient shadows, shallow depth of field.
 - No people, no text, no logos, no books, no decorative objects on the shelves — leave the shelves empty so the structure reads clearly.
-- The bookshelf fully visible with breathing room, base of the bookshelf clearly visible touching the floor.`;
+- Square or 4:3 framing, the bookshelf fully visible with breathing room, base of the bookshelf clearly visible touching the floor.`;
 
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
