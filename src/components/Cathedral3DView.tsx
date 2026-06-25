@@ -22,19 +22,10 @@ const getWoodColor = (finish: string): string => WOOD_COLORS[finish] || WOOD_COL
 
 function WoodMaterial({ finish, isFrame = false, size, seed = 0 }: { finish: string; isFrame?: boolean; size?: { w?: number; h?: number; d?: number }; seed?: number }) {
   const tex = useWoodTexture(finish, size || {}, seed)
-  // See Bookshelf3DView.WoodMaterial — `key` forces material remount on
-  // finish change so stale map/color cannot leak across swaps.
-  return (
-    <meshStandardMaterial
-      key={`mat-${finish}-${tex ? "tex" : "solid"}`}
-      map={tex ?? null}
-      color={tex ? "#ffffff" : getWoodColor(finish)}
-      roughness={isFrame ? (tex ? 0.6 : 0.7) : tex ? 0.7 : 0.8}
-      metalness={0.0}
-      side={THREE.DoubleSide}
-      envMapIntensity={0.3}
-    />
-  )
+  if (!tex) {
+    return <meshStandardMaterial color={getWoodColor(finish)} roughness={isFrame ? 0.7 : 0.8} metalness={0.0} side={THREE.DoubleSide} envMapIntensity={0.3} />
+  }
+  return <meshStandardMaterial map={tex} roughness={isFrame ? 0.6 : 0.7} metalness={0.0} side={THREE.DoubleSide} envMapIntensity={0.3} />
 }
 
 function Board({ position, width, depth, finish, zOffset = 0 }: {

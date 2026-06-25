@@ -246,26 +246,6 @@ export function BookshelfConfigurator() {
   const [photoOpen, setPhotoOpen] = useState(false)
   const callRenderPhoto = useServerFn(renderPhotoreal)
 
-  // Dev-only diagnostic: log every finish change so we can detect any
-  // divergence between the user-clicked finish ID and what's flowing to
-  // the 3D preview. If preview ever shows a different wood than logged
-  // here, the bug is downstream in the renderer, not in state.
-  useEffect(() => {
-    if (!import.meta.env.DEV) return
-    const opt = FINISH_OPTIONS.find((f) => f.id === selectedFinish)
-    // eslint-disable-next-line no-console
-    console.debug("[finish] selected", {
-      selectedFinishId: selectedFinish,
-      label: opt?.label ?? "(unknown)",
-      found: !!opt,
-      ts: Date.now(),
-    })
-    if (!opt) {
-      // eslint-disable-next-line no-console
-      console.warn("[finish] selectedFinish is not in FINISH_OPTIONS — preview will fall back to defaults", selectedFinish)
-    }
-  }, [selectedFinish])
-
   // Step 1 sub-variant flow (Corner / Cathedral): track whether the user has
   // explicitly confirmed a sub-variant. If they reload with saved state we
   // treat it as already confirmed so we don't gate them on revisit.

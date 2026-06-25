@@ -31,8 +31,7 @@ export const ALL_TEXTURE_URLS = Object.values(WOOD_TEXTURE_URLS)
 /**
  * Shared hook: returns a per-mesh cloned texture with UV repeat scaled
  * so the wood pattern tiles roughly every 30 inches regardless of board size.
- * Returns null for finishes without a wood-grain texture (painted White/Black).
- * Always calls useTexture with a stable URL to keep hook order across swaps.
+ * This lets us use small (~80KB) JPGs without visual stretching.
  */
 export function useWoodTexture(
   finish: string,
@@ -54,12 +53,6 @@ export function useWoodTexture(
     const offY = (Math.abs(randomSeed) * 0.23) % 1
     t.offset.set(offX, offY)
     t.needsUpdate = true
-    if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.debug("[wood-texture] applied", { finish, url, ts: Date.now() })
-    }
     return t
-    // `finish` is in deps so identical-source clones still trigger a fresh
-    // memo entry on finish change — defends against stale clone reuse.
-  }, [texture, url, finish, size.w, size.h, size.d, randomSeed])
+  }, [texture, url, size.w, size.h, size.d, randomSeed])
 }
