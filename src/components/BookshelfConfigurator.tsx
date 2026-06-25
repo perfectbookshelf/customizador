@@ -979,12 +979,7 @@ export function BookshelfConfigurator() {
   }
 
   const handleGeneratePhoto = async () => {
-    if (!isPhotoRenderType(mainType)) {
-      if (import.meta.env.DEV) {
-        console.warn("[AI Photo Render] Blocked: unsupported type", { mainType })
-      }
-      return
-    }
+    if (!isPhotoRenderType(mainType)) return
     const activeRef =
       mainType === "cathedral" ? cathedral3DRef.current : bookshelf3DRef.current
     if (!activeRef) return
@@ -998,42 +993,13 @@ export function BookshelfConfigurator() {
         mainType === "cathedral"
           ? `${toFraction(cathW)} × ${toFraction(cathH)}–${toFraction(cathH1)}`
           : `${toFraction(width)} × ${toFraction(totalHeight)}`
-      const payload = {
-        finishLabel: finishOption?.label ?? selectedFinish,
-        typeLabel: activeType.label,
-        dimensions: dims,
-      }
-
-      if (import.meta.env.DEV) {
-        try {
-          const { buildRenderPrompt } = await import("@/lib/render-photo.functions")
-          const built = buildRenderPrompt(payload)
-          // No secrets, no emails, no checkout/Supabase data — prompt + config only.
-          console.groupCollapsed(
-            `%c[AI Photo Render] payload preview — ${built.kind}`,
-            "color:#8b5cf6;font-weight:bold",
-          )
-          console.table({
-            type: payload.typeLabel,
-            kind: built.kind,
-            finish: payload.finishLabel,
-            dimensions: payload.dimensions,
-            shelfCount: shelves.length,
-            referenceImage: snapshot.startsWith("data:image/") ? "data-url" : "none",
-            aiSafeCaptureMode: true,
-            previewShadowExcluded: true,
-            referenceImageBytes: snapshot.length,
-          })
-          console.log("positive prompt:\n" + built.prompt)
-          console.log("negative prompt:\n" + built.negativePrompt)
-          console.groupEnd()
-        } catch (logErr) {
-          console.warn("[AI Photo Render] debug log failed", logErr)
-        }
-      }
-
       const res = await callRenderPhoto({
-        data: { imageDataUrl: snapshot, ...payload },
+        data: {
+          imageDataUrl: snapshot,
+          finishLabel: finishOption?.label ?? selectedFinish,
+          typeLabel: activeType.label,
+          dimensions: dims,
+        },
       })
       setPhotoUrl(res.imageDataUrl)
       setPhotoStatus("done")
