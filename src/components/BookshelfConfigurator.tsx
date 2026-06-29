@@ -494,18 +494,6 @@ export function BookshelfConfigurator() {
     }
 
     try {
-      // Final sync: make sure the quote_leads row reflects the latest finish
-      // and price before the customer is redirected to checkout.
-      if (isValidQuoteEmail) {
-        try {
-          await captureQuoteLead({
-            email: quoteEmail.trim(),
-            productType: mainType,
-            stepReached: "checkout",
-            lastConfig: quoteLeadConfig(),
-          })
-        } catch { /* never block checkout */ }
-      }
       const checkoutUrl = await createShopifyCheckout({ price: totalPrice.toFixed(2), config, imageDataUrl, schematicDataUrl, discountCode: appliedDiscount?.code, email: quoteEmail })
       const _pbsSet = (key: string, value: string) => {
         try { localStorage.setItem(key, value) } catch { /* ignore */ }
@@ -580,10 +568,6 @@ export function BookshelfConfigurator() {
     width,
     width2: mainType === "corner" ? width2 : undefined,
     selectedFinish,
-    selectedFinishLabel: FINISH_OPTIONS.find((f) => f.id === selectedFinish)?.label ?? selectedFinish,
-    totalHeight,
-    totalPrice: Number(totalPrice.toFixed(2)),
-    totalArea: Number(totalArea.toFixed(2)),
     shelves,
     shelves2: mainType === "corner" ? shelves2 : undefined,
     uSurround:
@@ -607,30 +591,6 @@ export function BookshelfConfigurator() {
           }
         : undefined,
   })
-
-  // After the email is captured, keep the same quote_leads row in sync with
-  // every meaningful configuration change (wood/finish on Step 4, shelves,
-  // dimensions, price, etc.). The API upserts by email so this never creates
-  // duplicate rows. Debounced to avoid spamming while sliders/clicks fire.
-  const latestConfigRef = useRef(quoteLeadConfig())
-  latestConfigRef.current = quoteLeadConfig()
-  useEffect(() => {
-    if (!isValidQuoteEmail) return
-    const t = window.setTimeout(() => {
-      void captureQuoteLead({
-        email: quoteEmail.trim(),
-        productType: mainType,
-        stepReached: `step-${stepIndex + 1}`,
-        lastConfig: latestConfigRef.current,
-      })
-    }, 700)
-    return () => window.clearTimeout(t)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    isValidQuoteEmail, quoteEmail, stepIndex, mainType, bookshelfType, cornerVariant,
-    width, width2, selectedFinish, totalHeight, totalPrice, totalArea,
-    shelves, shelves2, uW1, uW, uW2,
-  ])
 
   /* ─── Step content ─── */
 
