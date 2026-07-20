@@ -10,6 +10,36 @@ const corsHeaders = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const API_VERSION = "2025-01"
 
+// Opt-in mode: "double" enables Shopify's confirmation email flow (leads land
+// as "pending" until they click the confirm link). Defaults to "single" so
+// existing behavior is preserved unless MARKETING_OPT_IN_MODE=double is set.
+type OptInMode = "single" | "double"
+function resolveOptInMode(): OptInMode {
+  const raw = (process.env.MARKETING_OPT_IN_MODE || "").trim().toLowerCase()
+  return raw === "double" ? "double" : "single"
+}
+
+interface MarketingConsent {
+  accepts_marketing: true // invariant — always true at capture time
+  opt_in_level: "single_opt_in" | "confirmed_opt_in"
+  state: "subscribed" | "pending"
+  consent_updated_at: string
+}
+
+function buildMarketingConsent(mode: OptInMode): MarketingConsent {
+  const consent: MarketingConsent = {
+    accepts_marketing: true,
+    opt_in_level: mode === "double" ? "confirmed_opt_in" : "single_opt_in",
+    state: mode === "double" ? "pending" : "subscribed",
+    consent_updated_at: new Date().toISOString(),
+  }
+  // Runtime guard: never send a payload without accepts_marketing=true.
+  if (consent.accepts_marketing !== true) {
+    throw new Error("Marketing consent invariant violated: accepts_marketing must be true")
+  }
+  return consent
+}
+
 function normalizeShopifyStore(store: string) {
   return store
     .trim()
@@ -22,38 +52,46 @@ async function upsertShopifyLead(
   shopName: string,
   accessToken: string,
   email: string,
+  consent: MarketingConsent,
 ): Promise<string | null> {
   const headers = {
     "X-Shopify-Access-Token": accessToken,
     "Content-Type": "application/json",
   }
   const findExisting = async (): Promise<{ id: number; tags?: string } | null> => {
-    const queries = [
-      `email:${email}`,
-      `email:"${email}"`,
-      email,
-    ]
+    const queries = [`email:${email}`, `email:"${email}"`, email]
     for (const q of queries) {
       const url = `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/search.json?query=${encodeURIComponent(q)}`
       const r = await fetch(url, { headers })
       if (!r.ok) continue
-      const j = (await r.json()) as { customers?: Array<{ id: number; tags?: string; email?: string }> }
+      const j = (await r.json()) as {
+        customers?: Array<{ id: number; tags?: string; email?: string }>
+      }
       const match = j.customers?.find((c) => (c.email || "").toLowerCase() === email)
       if (match) return match
     }
     return null
   }
+
+  const customerConsentPayload = {
+    accepts_marketing: consent.accepts_marketing,
+    accepts_marketing_updated_at: consent.consent_updated_at,
+    marketing_opt_in_level: consent.opt_in_level,
+    email_marketing_consent: {
+      state: consent.state,
+      opt_in_level: consent.opt_in_level,
+      consent_updated_at: consent.consent_updated_at,
+    },
+  }
+
   try {
     const existing = await findExisting()
     if (existing) {
-      // Make sure pbs-lead tag is present.
       const tags = (existing.tags || "")
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean)
-      const needsTag = !tags.includes("pbs-lead")
-      if (needsTag) tags.push("pbs-lead")
-      const nowIso = new Date().toISOString()
+      if (!tags.includes("pbs-lead")) tags.push("pbs-lead")
       await fetch(
         `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
         {
@@ -63,14 +101,7 @@ async function upsertShopifyLead(
             customer: {
               id: existing.id,
               tags: tags.join(", "),
-              accepts_marketing: true,
-              accepts_marketing_updated_at: nowIso,
-              marketing_opt_in_level: "single_opt_in",
-              email_marketing_consent: {
-                state: "subscribed",
-                opt_in_level: "single_opt_in",
-                consent_updated_at: nowIso,
-              },
+              ...customerConsentPayload,
             },
           }),
         },
@@ -78,7 +109,6 @@ async function upsertShopifyLead(
       return String(existing.id)
     }
 
-    // Create a new customer.
     const createRes = await fetch(
       `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers.json`,
       {
@@ -88,14 +118,7 @@ async function upsertShopifyLead(
           customer: {
             email,
             tags: "pbs-lead",
-            accepts_marketing: true,
-            accepts_marketing_updated_at: new Date().toISOString(),
-            marketing_opt_in_level: "single_opt_in",
-            email_marketing_consent: {
-              state: "subscribed",
-              opt_in_level: "single_opt_in",
-              consent_updated_at: new Date().toISOString(),
-            },
+            ...customerConsentPayload,
           },
         }),
       },
@@ -103,7 +126,6 @@ async function upsertShopifyLead(
     if (!createRes.ok) {
       const errText = await createRes.text().catch(() => "")
       console.warn("Shopify customer create failed", createRes.status, errText)
-      // 422 "already taken" → search index lagged. Retry lookup.
       if (createRes.status === 422 && /already.*taken/i.test(errText)) {
         await new Promise((r) => setTimeout(r, 600))
         const retry = await findExisting()
@@ -118,6 +140,7 @@ async function upsertShopifyLead(
     return null
   }
 }
+
 
 export const Route = createFileRoute("/api/public/pbs-capture-lead")({
   server: {
