@@ -20,6 +20,9 @@ export type Database = {
           email: string
           id: string
           last_config: Json | null
+          marketing_consent_state: string | null
+          marketing_consent_updated_at: string | null
+          marketing_opt_in_level: string | null
           product_type: string | null
           shopify_customer_id: string | null
           step_reached: string | null
@@ -30,6 +33,9 @@ export type Database = {
           email: string
           id?: string
           last_config?: Json | null
+          marketing_consent_state?: string | null
+          marketing_consent_updated_at?: string | null
+          marketing_opt_in_level?: string | null
           product_type?: string | null
           shopify_customer_id?: string | null
           step_reached?: string | null
@@ -40,6 +46,9 @@ export type Database = {
           email?: string
           id?: string
           last_config?: Json | null
+          marketing_consent_state?: string | null
+          marketing_consent_updated_at?: string | null
+          marketing_opt_in_level?: string | null
           product_type?: string | null
           shopify_customer_id?: string | null
           step_reached?: string | null
