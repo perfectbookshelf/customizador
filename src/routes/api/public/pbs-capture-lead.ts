@@ -51,17 +51,30 @@ async function upsertShopifyLead(
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean)
-      if (!tags.includes("pbs-lead")) {
-        tags.push("pbs-lead")
-        await fetch(
-          `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
-          {
-            method: "PUT",
-            headers,
-            body: JSON.stringify({ customer: { id: existing.id, tags: tags.join(", ") } }),
-          },
-        )
-      }
+      const needsTag = !tags.includes("pbs-lead")
+      if (needsTag) tags.push("pbs-lead")
+      const nowIso = new Date().toISOString()
+      await fetch(
+        `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
+        {
+          method: "PUT",
+          headers,
+          body: JSON.stringify({
+            customer: {
+              id: existing.id,
+              tags: tags.join(", "),
+              accepts_marketing: true,
+              accepts_marketing_updated_at: nowIso,
+              marketing_opt_in_level: "single_opt_in",
+              email_marketing_consent: {
+                state: "subscribed",
+                opt_in_level: "single_opt_in",
+                consent_updated_at: nowIso,
+              },
+            },
+          }),
+        },
+      )
       return String(existing.id)
     }
 
@@ -75,8 +88,14 @@ async function upsertShopifyLead(
           customer: {
             email,
             tags: "pbs-lead",
-            accepts_marketing: false,
-            email_marketing_consent: { state: "not_subscribed", opt_in_level: "single_opt_in" },
+            accepts_marketing: true,
+            accepts_marketing_updated_at: new Date().toISOString(),
+            marketing_opt_in_level: "single_opt_in",
+            email_marketing_consent: {
+              state: "subscribed",
+              opt_in_level: "single_opt_in",
+              consent_updated_at: new Date().toISOString(),
+            },
           },
         }),
       },
