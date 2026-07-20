@@ -217,13 +217,6 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
             },
             { headers: corsHeaders },
           )
-
-          }
-
-          return Response.json(
-            { ok: true, savedShopify: !!shopifyCustomerId },
-            { headers: corsHeaders },
-          )
         } catch (err: any) {
           console.error("pbs-capture-lead error", err)
           return Response.json(
