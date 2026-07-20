@@ -165,6 +165,10 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
           const lastConfig =
             body?.lastConfig && typeof body.lastConfig === "object" ? body.lastConfig : null
 
+          // Build (and assert) the marketing consent payload once.
+          const optInMode = resolveOptInMode()
+          const consent = buildMarketingConsent(optInMode)
+
           // 1. Best-effort: create / tag Shopify customer.
           let shopifyCustomerId: string | null = null
           const SHOPIFY_STORE = process.env.SHOPIFY_STORE
@@ -174,19 +178,25 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
               normalizeShopifyStore(SHOPIFY_STORE),
               SHOPIFY_ACCESS_TOKEN,
               rawEmail,
+              consent,
             )
           }
 
           // 2. Upsert into quote_leads. Only set shopify_customer_id when we
           // actually have one — never overwrite an existing id with null.
+          // Persist consent state so we always know if a lead is subscribed
+          // (single opt-in) or still pending confirmation (double opt-in).
           const row = {
             email: rawEmail,
             product_type: productType,
             step_reached: stepReached,
             last_config: lastConfig as never,
+            marketing_opt_in_level: consent.opt_in_level,
+            marketing_consent_state: consent.state,
+            marketing_consent_updated_at: consent.consent_updated_at,
             updated_at: new Date().toISOString(),
             ...(shopifyCustomerId ? { shopify_customer_id: shopifyCustomerId } : {}),
-          }
+          } as never
           const { error } = await supabaseAdmin
             .from("quote_leads")
             .upsert(row, { onConflict: "email" })
@@ -196,6 +206,18 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
               { ok: false, savedShopify: !!shopifyCustomerId, error: error.message },
               { status: 500, headers: corsHeaders },
             )
+          }
+
+          return Response.json(
+            {
+              ok: true,
+              savedShopify: !!shopifyCustomerId,
+              optInMode,
+              consentState: consent.state,
+            },
+            { headers: corsHeaders },
+          )
+
           }
 
           return Response.json(
