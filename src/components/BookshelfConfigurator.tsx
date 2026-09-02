@@ -440,6 +440,17 @@ export function BookshelfConfigurator() {
     }
   }, [bookshelfType, width, width2, shelves, shelves2, selectedFinish, totalHeight, mainType, maxShelfDepth, cornerVariant])
 
+  const discountAmount = useMemo(() => {
+    if (!appliedDiscount) return 0
+    const raw = Math.abs(Number.parseFloat(appliedDiscount.value))
+    if (!Number.isFinite(raw) || raw <= 0) return 0
+    return appliedDiscount.valueType === "percentage"
+      ? (totalPrice * raw) / 100
+      : Math.min(raw, totalPrice)
+  }, [appliedDiscount, totalPrice])
+  const discountedTotal = Math.max(0, totalPrice - discountAmount)
+
+
   const corner3DModules = useMemo(() => {
     if (mainType !== "corner") return { arm1: undefined, arm2: undefined }
     try {
