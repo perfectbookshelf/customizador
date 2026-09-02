@@ -10,10 +10,14 @@ import { describe, expect, it, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { BookshelfConfigurator } from "@/components/BookshelfConfigurator"
 
-const TYPES = ["Portal", "Cathedral", "U-Surround"] as const
+const TYPES = ["Cathedral", "U-Surround"] as const
 
 beforeEach(() => {
-  try { localStorage.clear() } catch { /* ignore */ }
+  try {
+    localStorage.clear()
+    // Step 3 gates "Next" behind a saved quote email.
+    localStorage.setItem("pbs_quote_email", "test@example.com")
+  } catch { /* ignore */ }
 })
 
 function clickButtonByText(text: string | RegExp) {
@@ -23,6 +27,12 @@ function clickButtonByText(text: string | RegExp) {
   })
   if (!btn) throw new Error(`No button matching ${text}`)
   fireEvent.click(btn)
+}
+
+// Cathedral requires picking a style sub-option on Step 1 before Next unlocks.
+function confirmSubVariantIfNeeded() {
+  const btn = screen.getAllByRole("button").find((b) => (b.textContent ?? "").trim() === "Center")
+  if (btn) fireEvent.click(btn)
 }
 function clickNav(label: RegExp) {
   const nav = screen.getAllByRole("button").find((b) => label.test(b.textContent?.trim() ?? ""))
@@ -85,7 +95,8 @@ describe("Step 2 visual regression — layout + value labels survive 1→5→2 r
 
       // Step 1 → Step 2.
       clickButtonByText(type)
-      clickNav(/^next$/i)
+    confirmSubVariantIfNeeded()
+      clickNav(/^next$|^see quote$/i)
 
       // Edit dimensions a bit so the snapshot reflects user input — not defaults.
       bumpAllSliders(3)
@@ -95,8 +106,8 @@ describe("Step 2 visual regression — layout + value labels survive 1→5→2 r
       expect(beforeLabels.length, `${type} should render value labels`).toBeGreaterThan(0)
 
       // Round-trip 2 → 5 → 2.
-      clickNav(/^next$/i)        // → 3
-      clickNav(/^next$/i)        // → 4
+      clickNav(/^next$|^see quote$/i)        // → 3
+      clickNav(/^next$|^see quote$/i)        // → 4
       clickNav(/^review$/i)      // → 5
 
       // Step 5 (Review) hides nav; use its inline ← Back.

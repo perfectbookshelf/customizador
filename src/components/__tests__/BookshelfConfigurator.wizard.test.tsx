@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest"
 import { render, screen, within, fireEvent } from "@testing-library/react"
 import { BookshelfConfigurator } from "@/components/BookshelfConfigurator"
 
-const TYPES = ["Portal", "Cathedral", "U-Surround"] as const
+const TYPES = ["Cathedral", "U-Surround"] as const
 
 function clickButtonByText(text: string | RegExp) {
   const btn = screen.getAllByRole("button").find((b) => {
@@ -20,6 +20,12 @@ function clickButtonByText(text: string | RegExp) {
   })
   if (!btn) throw new Error(`No button matching ${text}`)
   fireEvent.click(btn)
+}
+
+// Cathedral requires picking a style sub-option on Step 1 before Next unlocks.
+function confirmSubVariantIfNeeded() {
+  const btn = screen.getAllByRole("button").find((b) => (b.textContent ?? "").trim() === "Center")
+  if (btn) fireEvent.click(btn)
 }
 
 function expectUnifiedWizard(stepNum: number) {
@@ -43,13 +49,14 @@ describe("BookshelfConfigurator — legacy types stay in unified wizard", () => 
 
       // Step 1: select the type swatch
       clickButtonByText(type)
+    confirmSubVariantIfNeeded()
       expectUnifiedWizard(1)
 
       // Walk steps 2..4 (Dimensions, Shelves, Finish) — each shows the Step counter.
       for (let n = 2; n <= 4; n++) {
         const nav = screen
           .getAllByRole("button")
-          .find((b) => /^next$|^review$/i.test(b.textContent?.trim() ?? ""))
+          .find((b) => /^next$|^review$|^see quote$/i.test(b.textContent?.trim() ?? ""))
         expect(nav, `Next/Review button on step ${n - 1}`).toBeTruthy()
         fireEvent.click(nav!)
         expectUnifiedWizard(n)

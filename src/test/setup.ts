@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest"
-import { vi } from "vitest"
+import { beforeEach, vi } from "vitest"
 
 // jsdom doesn't implement matchMedia / ResizeObserver / IntersectionObserver
 if (!window.matchMedia) {
@@ -44,3 +44,13 @@ vi.mock("@/components/FloatingPreview", () => ({
   FloatingPreview: () => null,
 }))
 
+
+// jsdom lacks scrollIntoView; wizard sub-option flashing calls it.
+if (!(Element.prototype as any).scrollIntoView) {
+  ;(Element.prototype as any).scrollIntoView = function () {}
+}
+
+// The Step 3 email gate blocks navigation; seed a saved quote email for tests.
+beforeEach(() => {
+  try { window.localStorage.setItem("pbs_quote_email", "test@example.com") } catch { /* ignore */ }
+})

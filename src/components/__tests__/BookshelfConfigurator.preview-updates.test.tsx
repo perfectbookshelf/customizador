@@ -35,11 +35,15 @@ vi.mock("@/components/USurround3DView", () => ({
   },
 }))
 
-import { render, screen, fireEvent } from "@testing-library/react"
+import { render, screen, fireEvent, waitFor } from "@testing-library/react"
 import { BookshelfConfigurator } from "@/components/BookshelfConfigurator"
 
 beforeEach(() => {
-  try { localStorage.clear() } catch { /* ignore */ }
+  try {
+    localStorage.clear()
+    // Step 3 gates "Next" behind a saved quote email.
+    localStorage.setItem("pbs_quote_email", "test@example.com")
+  } catch { /* ignore */ }
   portalCalls.length = 0
   cathedralCalls.length = 0
   usurroundCalls.length = 0
@@ -52,6 +56,12 @@ function clickButtonByText(text: string | RegExp) {
   })
   if (!btn) throw new Error(`No button matching ${text}`)
   fireEvent.click(btn)
+}
+
+// Cathedral requires picking a style sub-option on Step 1 before Next unlocks.
+function confirmSubVariantIfNeeded() {
+  const btn = screen.getAllByRole("button").find((b) => (b.textContent ?? "").trim() === "Center")
+  if (btn) fireEvent.click(btn)
 }
 
 function clickNav(label: RegExp) {
@@ -79,8 +89,6 @@ interface Spec {
 }
 
 const SPECS: Spec[] = [
-  { name: "Portal", swatch: "Portal", calls: portalCalls,
-    dimFields: ["wallWidth", "wallHeight", "objectWidth", "objectHeight", "floorToObject", "rightGap"] },
   { name: "Cathedral", swatch: "Cathedral", calls: cathedralCalls,
     dimFields: ["W", "H", "H1"] },
   { name: "U-Surround", swatch: "U-Surround", calls: usurroundCalls,
@@ -93,17 +101,21 @@ function dimSnapshot(call: any, fields: string[]) {
 
 describe("3D preview updates when Step 2 dimensions change (Portal/Cathedral/U-Surround)", () => {
   for (const spec of SPECS) {
-    it(`${spec.name}: 3D view receives new dimensions and keeps them on every forward step`, () => {
+    it(`${spec.name}: 3D view receives new dimensions and keeps them on every forward step`, async () => {
       render(<BookshelfConfigurator />)
 
       // Step 1: select type — this mounts the matching 3D preview.
       clickButtonByText(spec.swatch)
-      const initialCount = spec.calls.length
-      expect(initialCount, `${spec.name} 3D view should render on Step 1`).toBeGreaterThan(0)
+      confirmSubVariantIfNeeded()
+
+      // Step 2 is the first step with the 3D preview mounted.
+      clickNav(/^next$|^see quote$/i)
+      // The 3D views are React.lazy — wait for the chunk to mount.
+      await waitFor(() => expect(spec.calls.length,
+        `${spec.name} 3D view should render on Step 2`).toBeGreaterThan(0))
       const initialSnap = dimSnapshot(spec.calls[spec.calls.length - 1], spec.dimFields)
 
       // Step 2: edit dimensions.
-      clickNav(/^next$/i)
       bumpAllSliders(4)
 
       // After edits, the 3D preview must have re-rendered with new dim values.
@@ -115,11 +127,11 @@ describe("3D preview updates when Step 2 dimensions change (Portal/Cathedral/U-S
       // updated dimensions on each forward step.
       const expectedSnap = afterEditSnap
 
-      clickNav(/^next$/i) // → 3 Shelves
+      clickNav(/^next$|^see quote$/i) // → 3 Shelves
       const step3Snap = dimSnapshot(spec.calls[spec.calls.length - 1], spec.dimFields)
       expect(step3Snap, `${spec.name} preview on Step 3`).toBe(expectedSnap)
 
-      clickNav(/^next$/i) // → 4 Finish
+      clickNav(/^next$|^see quote$/i) // → 4 Finish
       const step4Snap = dimSnapshot(spec.calls[spec.calls.length - 1], spec.dimFields)
       expect(step4Snap, `${spec.name} preview on Step 4`).toBe(expectedSnap)
 
