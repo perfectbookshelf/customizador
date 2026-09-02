@@ -22,7 +22,7 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
       POST: async ({ request }: { request: Request }) => {
         try {
           const body = await request.json()
-          const { price, config, imageDataUrl, schematicDataUrl, email } = body
+          const { price, config, imageDataUrl, schematicDataUrl, email, discountCode } = body
           const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
           const cleanEmail =
             typeof email === "string" && EMAIL_RE.test(email.trim()) && email.trim().length <= 255
