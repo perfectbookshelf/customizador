@@ -87,6 +87,53 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
             if (url) properties.push({ name: "Schematic", value: url })
           }
 
+          // Resolve coupon -> Shopify draft order discount
+          let appliedDiscount: Record<string, string> | null = null
+          const cleanCode =
+            typeof discountCode === "string" && discountCode.trim().length > 0
+              ? discountCode.trim().toUpperCase()
+              : null
+          if (cleanCode) {
+            try {
+              const lookupRes = await fetch(
+                `https://${shopName}.myshopify.com/admin/api/2025-01/discount_codes/lookup.json?code=${encodeURIComponent(cleanCode)}`,
+                { headers: { "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN }, redirect: "follow" },
+              )
+              if (lookupRes.ok) {
+                const dc = (await lookupRes.json())?.discount_code
+                if (dc?.price_rule_id) {
+                  const prRes = await fetch(
+                    `https://${shopName}.myshopify.com/admin/api/2025-01/price_rules/${dc.price_rule_id}.json`,
+                    { headers: { "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN } },
+                  )
+                  if (prRes.ok) {
+                    const rule = (await prRes.json()).price_rule
+                    const rawValue = Math.abs(Number.parseFloat(rule.value))
+                    if (!Number.isNaN(rawValue) && rawValue > 0) {
+                      const isPercentage = rule.value_type === "percentage"
+                      const discountAmount = isPercentage
+                        ? (amount * rawValue) / 100
+                        : Math.min(rawValue, amount)
+                      appliedDiscount = {
+                        description: rule.title || cleanCode,
+                        title: rule.title || cleanCode,
+                        value_type: isPercentage ? "percentage" : "fixed_amount",
+                        value: rawValue.toString(),
+                        amount: discountAmount.toFixed(2),
+                      }
+                      properties.push({
+                        name: "Coupon",
+                        value: `${cleanCode} (${isPercentage ? `${rawValue}%` : `$${rawValue.toFixed(2)}`} off)`,
+                      })
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              console.error("Discount lookup failed:", e)
+            }
+          }
+
           const draftOrderPayload = {
             draft_order: {
               line_items: [
@@ -97,8 +144,9 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
                   properties,
                 },
               ],
-              note: `PBS Configurator | ${config?.finish || "N/A"} | ${width || "?"}" W x ${height || "?"}" H | ${shelvesCount} shelves`,
+              note: `PBS Configurator | ${config?.finish || "N/A"} | ${width || "?"}" W x ${height || "?"}" H | ${shelvesCount} shelves${appliedDiscount ? ` | Coupon: ${cleanCode}` : ""}`,
               use_customer_default_address: true,
+              ...(appliedDiscount ? { applied_discount: appliedDiscount } : {}),
               // NOTE: we intentionally do NOT send `email` to Shopify here.
               // Some domains are rejected by Shopify ("invalid domain name")
               // and would break checkout. The email is preserved as a
