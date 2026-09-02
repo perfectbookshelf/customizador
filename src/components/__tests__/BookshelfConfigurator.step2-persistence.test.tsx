@@ -11,11 +11,15 @@ import { describe, expect, it, beforeEach } from "vitest"
 import { render, screen, fireEvent } from "@testing-library/react"
 import { BookshelfConfigurator } from "@/components/BookshelfConfigurator"
 
-const TYPES = ["Portal", "Cathedral", "U-Surround"] as const
+const TYPES = ["Cathedral", "U-Surround"] as const
 
 beforeEach(() => {
   // Always start from a clean wizard — defaults restored, no leftover saved state.
-  try { localStorage.clear() } catch { /* ignore */ }
+  try {
+    localStorage.clear()
+    // Step 3 gates "Next" behind a saved quote email.
+    localStorage.setItem("pbs_quote_email", "test@example.com")
+  } catch { /* ignore */ }
 })
 
 function clickButtonByText(text: string | RegExp) {
@@ -27,11 +31,17 @@ function clickButtonByText(text: string | RegExp) {
   fireEvent.click(btn)
 }
 
+// Cathedral requires picking a style sub-option on Step 1 before Next unlocks.
+function confirmSubVariantIfNeeded() {
+  const btn = screen.getAllByRole("button").find((b) => (b.textContent ?? "").trim() === "Center")
+  if (btn) fireEvent.click(btn)
+}
+
 function clickNav(label: RegExp) {
   const nav = screen
     .getAllByRole("button")
     .find((b) => label.test(b.textContent?.trim() ?? ""))
-  if (!nav) throw new Error(`Nav button matching ${label} not found`)
+  if (!nav) throw new Error(`Nav button matching ${label} not found :: ${screen.getAllByRole("button").map((b) => b.textContent?.trim()).join(" | ")}`)
   fireEvent.click(nav)
 }
 
@@ -67,7 +77,8 @@ describe("Step 2 dimensions persist across step navigation (Portal/Cathedral/U-S
 
       // Step 1: pick type, advance to Step 2.
       clickButtonByText(type)
-      clickNav(/^next$/i)
+    confirmSubVariantIfNeeded()
+      clickNav(/^next$|^see quote$/i)
 
       // Step 2: edit every dimension slider.
       bumpAllSliders(3)
@@ -76,8 +87,8 @@ describe("Step 2 dimensions persist across step navigation (Portal/Cathedral/U-S
       expect(beforeValues.length, `${type} should expose Step 2 sliders`).toBeGreaterThan(0)
 
       // Forward 2 → 3 → 4 → 5 (Review hides the unified nav).
-      clickNav(/^next$/i)        // → 3 Shelves
-      clickNav(/^next$/i)        // → 4 Finish
+      clickNav(/^next$|^see quote$/i)        // → 3 Shelves
+      clickNav(/^next$|^see quote$/i)        // → 4 Finish
       clickNav(/^review$/i)      // → 5 Review
 
       // Confirm we landed on Review.

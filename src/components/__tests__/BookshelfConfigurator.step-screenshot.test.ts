@@ -34,7 +34,6 @@ const PIXEL_DIFF_THRESHOLD = 0.1
 const MAX_DIFF_RATIO = 0.005 // 0.5% of pixels may differ
 
 const TYPES = [
-  { label: "Portal", id: "portal" },
   { label: "Cathedral", id: "cathedral" },
   { label: "U-Surround", id: "usurround" },
 ] as const
@@ -75,7 +74,13 @@ afterAll(async () => {
 async function gotoFreshConfigurator(page: Page) {
   // Clear any persisted state so every test starts from defaults.
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" })
-  await page.evaluate(() => { try { localStorage.clear() } catch { /* ignore */ } })
+  await page.evaluate(() => {
+    try {
+      localStorage.clear()
+      // Step 3 gates "Next" behind a saved quote email.
+      localStorage.setItem("pbs_quote_email", "test@example.com")
+    } catch { /* ignore */ }
+  })
   await page.goto(BASE_URL, { waitUntil: "networkidle" })
 }
 
@@ -143,10 +148,13 @@ describe("Step 2/3/4 screenshot regression — Portal / Cathedral / U-Surround",
 
           // Step 1: pick the type.
           await clickButtonByText(page, type.label)
+          // Cathedral requires a style sub-option before Next unlocks.
+          const center = page.locator("button").filter({ hasText: /^Center$/ }).first()
+          if (await center.count()) await center.click()
 
           // Advance to the target step.
           for (let s = 1; s < step.index; s++) {
-            await clickButtonByText(page, /^next$/i)
+            await clickButtonByText(page, /^next$|^see quote$/i)
             // Brief settle for transition + slider mount.
             await page.waitForTimeout(150)
           }

@@ -23,6 +23,12 @@ function clickButtonByText(text: string | RegExp) {
   if (!btn) throw new Error(`No button matching ${text}`)
   fireEvent.click(btn)
 }
+
+// Cathedral requires picking a style sub-option on Step 1 before Next unlocks.
+function confirmSubVariantIfNeeded() {
+  const btn = screen.getAllByRole("button").find((b) => (b.textContent ?? "").trim() === "Center")
+  if (btn) fireEvent.click(btn)
+}
 function clickNav(label: RegExp) {
   const nav = screen.getAllByRole("button").find((b) => label.test(b.textContent?.trim() ?? ""))
   if (!nav) throw new Error(`Nav button matching ${label} not found`)
@@ -69,8 +75,9 @@ describe("Cathedral Step 3: header height equals summed tier heights + caps", ()
   it("default cathedral config: header equals computed stack height", () => {
     render(<BookshelfConfigurator />)
     clickButtonByText("Cathedral")
-    clickNav(/^next$/i)        // → Step 2 Dimensions
-    clickNav(/^next$/i)        // → Step 3 Shelves (Tiers)
+    confirmSubVariantIfNeeded()
+    clickNav(/^next$|^see quote$/i)        // → Step 2 Dimensions
+    clickNav(/^next$|^see quote$/i)        // → Step 3 Shelves (Tiers)
 
     const headerHeight = readHeaderHeight()
 
@@ -87,8 +94,9 @@ describe("Cathedral Step 3: header height equals summed tier heights + caps", ()
   it("after adding two more tiers: header still tracks visible-tier stack height", () => {
     render(<BookshelfConfigurator />)
     clickButtonByText("Cathedral")
-    clickNav(/^next$/i)
-    clickNav(/^next$/i)
+    confirmSubVariantIfNeeded()
+    clickNav(/^next$|^see quote$/i)
+    clickNav(/^next$|^see quote$/i)
 
     // Find the "Number of tiers" label, then walk to its row container and grab the +/- buttons.
     const labels = Array.from(document.querySelectorAll("span")) as HTMLSpanElement[]

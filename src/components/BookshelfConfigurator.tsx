@@ -56,8 +56,9 @@ import { USurroundSchematic } from "./USurroundSchematic"
 import { computeCathedralRows, calculateCathedral } from "@/lib/cathedral-calculator"
 import { calculateUSurround } from "@/lib/usurround-calculator"
 import { cn } from "@/lib/utils"
+import { computeAreaSqFt } from "@/lib/pricing"
 
-type MainType = "rack" | "bookshelf" | "corner" | "portal" | "cathedral" | "usurround"
+type MainType = "rack" | "bookshelf" | "corner" | "cathedral" | "usurround"
 
 /** Single source of truth: product types that support the AI photo render. */
 const PHOTO_RENDER_TYPES: ReadonlySet<MainType> = new Set(["bookshelf", "rack", "cathedral"])
@@ -78,7 +79,7 @@ const TYPE_OPTIONS: {
   { id: "corner", label: "Corner", icon: iconCorner, description: "Two arms that meet in the corner of a room. Choose inside or outside corner on the next step." },
   { id: "usurround", label: "U-Surround", icon: iconUModel, description: "Three-walled built-in that wraps a nook, reading bench, or doorway into a single composition." },
   { id: "cathedral", label: "Cathedral", icon: iconCathedral, description: "Sloped, vaulted shelving that follows the line of a pitched roof or stairwell." },
-  { id: "portal", label: "Portal", icon: iconPortal, description: "Built-ins framed around a door, window, TV or fireplace — your shelves, custom-fit around the architecture." },
+  
 ]
 
 const FINISH_OPTIONS = [
@@ -179,8 +180,10 @@ export function BookshelfConfigurator() {
     try { return JSON.parse(raw) || {} } catch { return {} }
   }, [])
 
-  const [mainType, setMainType] = useState<MainType>(saved.mainType ?? "bookshelf")
-  const isLegacyType = mainType === "portal" || mainType === "cathedral" || mainType === "usurround"
+  const [mainType, setMainType] = useState<MainType>(
+    saved.mainType && saved.mainType !== "portal" ? saved.mainType : "bookshelf",
+  )
+  const isLegacyType = mainType === "cathedral" || mainType === "usurround"
   const [cornerVariant, setCornerVariant] = useState<CornerVariant>(saved.cornerVariant ?? "outside")
   const [width, setWidth] = useState<number>(saved.width ?? defaultWidth)
   const [width2, setWidth2] = useState<number>(saved.width2 ?? 50)
@@ -205,33 +208,6 @@ export function BookshelfConfigurator() {
   const [cathH1, setCathH1] = useState<number>(saved.cathH1 ?? 96)
   const [cathDir, setCathDir] = useState<"left" | "right" | "both">(saved.cathDir ?? "left")
 
-  // Portal dims
-  type PortalObject = "door" | "window" | "tv" | "fireplace" | "other"
-  const savedPortalObjType = (saved.portalObjType ?? "door") as PortalObject
-  const savedPortalWallH = savedPortalObjType === "door" && (saved.portalWallH ?? 108) <= 60 && (saved.portalObjH ?? 82) <= 48
-    ? 108
-    : saved.portalWallH ?? 108
-  const savedPortalObjH = savedPortalObjType === "door" && (saved.portalWallH ?? 108) <= 60 && (saved.portalObjH ?? 82) <= 48
-    ? 82
-    : saved.portalObjH ?? 82
-  const [portalWallW, setPortalWallW] = useState<number>(saved.portalWallW ?? 100)
-  const [portalWallH, setPortalWallH] = useState<number>(savedPortalWallH)
-  const [portalObjW, setPortalObjW] = useState<number>(saved.portalObjW ?? 36)
-  const [portalObjH, setPortalObjH] = useState<number>(savedPortalObjH)
-  const [portalFloorToObj, setPortalFloorToObj] = useState<number>(saved.portalFloorToObj ?? 0)
-  const [portalRightGap, setPortalRightGap] = useState<number>(saved.portalRightGap ?? 32)
-  const [portalObjType, setPortalObjType] = useState<PortalObject>(savedPortalObjType)
-
-
-  // Keep portal object dims inside the wall whenever the wall shrinks.
-  useEffect(() => {
-    setPortalObjW(w => Math.min(w, Math.max(12, portalWallW - 14)))
-    setPortalRightGap(g => Math.min(g, Math.max(0, portalWallW - Math.min(portalObjW, portalWallW - 14))))
-  }, [portalWallW]) // eslint-disable-line react-hooks/exhaustive-deps
-  // Doors must sit on the floor — never let saved/in-flight state lift them.
-  useEffect(() => {
-    if (portalObjType === "door" && portalFloorToObj !== 0) setPortalFloorToObj(0)
-  }, [portalObjType, portalFloorToObj])
 
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
@@ -268,98 +244,23 @@ export function BookshelfConfigurator() {
     }
   }, [mainType])
   const flashSubOptions = () => {
-    subOptionsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
+    subOptionsRef.current?.scrollIntoView?.({ behavior: "smooth", block: "center" })
     setSubOptionsFlash(true)
     window.setTimeout(() => setSubOptionsFlash(false), 1400)
   }
 
-  // ─── Portal debug / scenario runner ───
-  const [portalDebug, setPortalDebug] = useState(false)
-  const [scenarioIdx, setScenarioIdx] = useState<number | null>(null)
-  type PortalScenario = {
-    name: string
-    desc: string
-    apply: () => void
-    expect: string
-  }
-  const portalScenarios: PortalScenario[] = useMemo(() => [
-    {
-      name: "Baseline door",
-      desc: "100w × 108h wall, 36×82 door on floor, 6 shelves",
-      expect: "Frame hugs the door zone. No phantom top board crossing the door.",
-      apply: () => {
-        setPortalWallW(100); setPortalWallH(108)
-        setPortalObjType("door"); setPortalObjW(36); setPortalObjH(82); setPortalFloorToObj(0)
-        setPortalRightGap(32)
-        setShelves(Array(6).fill(null).map(() => ({ height: 14, depth: 14 })))
-      },
-    },
-    {
-      name: "Tall wall, few shelves (PHANTOM TOP BOARD BUG)",
-      desc: "108h wall but only 2 shelves → shelvesTop ≈ 30\", lastTop forced to 107.25\"",
-      expect: "Debug overlay should warn: ⚠ phantom top board, top board mode = full.",
-      apply: () => {
-        setPortalWallW(100); setPortalWallH(108)
-        setPortalObjType("door"); setPortalObjW(36); setPortalObjH(82); setPortalFloorToObj(0)
-        setPortalRightGap(32)
-        setShelves(Array(2).fill(null).map(() => ({ height: 14, depth: 14 })))
-      },
-    },
-    {
-      name: "Shelves exceed wall (clipping)",
-      desc: "Wall=60\", 8 shelves of 14\" → 4–5 should clip out",
-      expect: "Debug shows 'shelves rendered: X/8' with ⚠ clipped count.",
-      apply: () => {
-        setPortalWallH(60); setPortalWallW(100)
-        setPortalObjType("door"); setPortalObjW(28); setPortalObjH(58); setPortalFloorToObj(0)
-        setPortalRightGap(36)
-        setShelves(Array(8).fill(null).map(() => ({ height: 14, depth: 14 })))
-      },
-    },
-    {
-      name: "Window lifted off floor",
-      desc: "Window 36×48 at floorToObj=36, wall 108h",
-      expect: "Floor board spans full width (no door zone). floor→obj = 36.00\".",
-      apply: () => {
-        setPortalObjType("window"); setPortalObjW(36); setPortalObjH(48); setPortalFloorToObj(36)
-        setPortalWallW(100); setPortalWallH(108); setPortalRightGap(32)
-        setShelves(Array(6).fill(null).map(() => ({ height: 14, depth: 14 })))
-      },
-    },
-    {
-      name: "Object pushed against wall ceiling",
-      desc: "TV 55×31 at floorToObj=75 → top of object = 106\", wallH=108",
-      expect: "lastTop ≈ shelvesTop, top board mode should be 'split' or 'none', no phantom warning.",
-      apply: () => {
-        setPortalObjType("tv"); setPortalObjW(55); setPortalObjH(31); setPortalFloorToObj(75)
-        setPortalWallW(100); setPortalWallH(108); setPortalRightGap(22)
-        setShelves(Array(7).fill(null).map(() => ({ height: 14, depth: 14 })))
-      },
-    },
-  ], [])
-  const runScenario = (i: number) => {
-    setPortalDebug(true)
-    setScenarioIdx(i)
-    portalScenarios[i].apply()
-  }
 
   const bookshelfType: BookshelfType =
-    (mainType === "portal" || mainType === "cathedral" || mainType === "usurround") ? "bookshelf" : mainType
+    (mainType === "cathedral" || mainType === "usurround") ? "bookshelf" : mainType
 
   // Reset shelf count when user changes type (skip the very first mount so saved state survives)
   const didMountTypeRef = useRef(false)
   useEffect(() => {
     if (!didMountTypeRef.current) { didMountTypeRef.current = true; return }
-    const defaults: Record<MainType, number> = { rack: 2, bookshelf: 4, corner: 4, portal: 6, cathedral: 5, usurround: 4 }
+    const defaults: Record<MainType, number> = { rack: 2, bookshelf: 4, corner: 4, cathedral: 5, usurround: 4 }
     const count = defaults[mainType]
     setShelves(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
     setShelves2(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
-    if (mainType === "portal") {
-      // Seed portal so the bookshelf wraps OVER the door by default
-      setPortalWallW(100); setPortalWallH(108)
-      setPortalObjType("door"); setPortalObjW(36); setPortalObjH(82); setPortalFloorToObj(0)
-      setPortalRightGap(32)
-    }
   }, [mainType])
 
   useEffect(() => {
@@ -367,12 +268,10 @@ export function BookshelfConfigurator() {
       mainType, cornerVariant, width, width2, selectedFinish, shelves, shelves2,
       uW1, uW, uW2,
       cathW, cathH, cathH1, cathDir,
-      portalWallW, portalWallH, portalObjW, portalObjH, portalFloorToObj, portalRightGap, portalObjType,
     }))
     setCheckoutError(null)
   }, [mainType, cornerVariant, width, width2, selectedFinish, shelves, shelves2,
-      uW1, uW, uW2, cathW, cathH, cathH1, cathDir,
-      portalWallW, portalWallH, portalObjW, portalObjH, portalFloorToObj, portalRightGap, portalObjType])
+      uW1, uW, uW2, cathW, cathH, cathH1, cathDir])
 
   useEffect(() => {
     const check = () => setIsMobileDevice(window.innerWidth < 768)
@@ -423,35 +322,18 @@ export function BookshelfConfigurator() {
       }
 
       const finishOption = FINISH_OPTIONS.find((f) => f.id === selectedFinish)
-      let areaInSqFt: number
-      if (mainType === "corner") {
-        if (cornerVariant === "inside") {
-          areaInSqFt = (totalHeight * width + totalHeight * width2) / 144
-        } else {
-          areaInSqFt = (totalHeight * width + totalHeight * width2 - totalHeight * maxShelfDepth) / 144
-        }
-      } else if (mainType === "usurround") {
-        // Three walls: two returns + back wall, minus the two inside corner overlaps
-        const linearWidth = Math.max(0, uW1 + uW + uW2 - 2 * maxShelfDepth)
-        areaInSqFt = (totalHeight * linearWidth) / 144
-      } else if (mainType === "cathedral") {
-        // Sloped face: average of low and high height
-        areaInSqFt = (cathW * ((cathH + cathH1) / 2)) / 144
-      } else if (mainType === "portal") {
-        // Wall area minus the door/window opening
-        const wallArea = portalWallW * portalWallH
-        const openingArea = portalObjW * portalObjH
-        areaInSqFt = Math.max(0, wallArea - openingArea) / 144
-      } else {
-        areaInSqFt = (totalHeight * width) / 144
-      }
+      const areaInSqFt = computeAreaSqFt({
+        type: mainType,
+        totalHeight, width, width2, cornerVariant, maxShelfDepth,
+        uW1, uW, uW2, cathW, cathH, cathH1,
+      })
       const price = areaInSqFt * (finishOption?.price || 0)
       return { result: calcResult, totalPrice: price, totalArea: areaInSqFt }
     } catch {
       return { result: null, totalPrice: 0, totalArea: 0 }
     }
   }, [bookshelfType, width, width2, shelves, shelves2, selectedFinish, totalHeight, mainType, maxShelfDepth, cornerVariant,
-      uW1, uW, uW2, cathW, cathH, cathH1, portalWallW, portalWallH, portalObjW, portalObjH])
+      uW1, uW, uW2, cathW, cathH, cathH1])
 
 
   const discountAmount = useMemo(() => {
@@ -561,19 +443,14 @@ export function BookshelfConfigurator() {
     setUW1(50); setUW(70); setUW2(50)
     // Cathedral defaults
     setCathW(100); setCathH(60); setCathH1(96); setCathDir("left")
-    // Portal defaults
-    setPortalWallW(100); setPortalWallH(108)
-    setPortalObjW(36); setPortalObjH(82)
-    setPortalFloorToObj(0); setPortalRightGap(32)
-    setPortalObjType("door")
     setQuoteEmail("")
   }
 
-  // All types (including portal/cathedral/usurround) use the unified wizard layout.
+  // All types (including cathedral/usurround) use the unified wizard layout.
   // Runtime guard: assert we never delegate to a legacy *Configurator from here.
   if (import.meta.env.DEV) {
-    const LEGACY_TYPES = ["portal", "cathedral", "usurround"] as const
-    const renderingLegacy = false // legacy Portal/Cathedral/USurround configurator delegation removed
+    const LEGACY_TYPES = ["cathedral", "usurround"] as const
+    const renderingLegacy = false // legacy Cathedral/USurround configurator delegation removed
     console.assert(
       !renderingLegacy,
       `[BookshelfConfigurator] Legacy configurator rendered for type=${mainType} step=${stepIndex}`,
@@ -602,18 +479,6 @@ export function BookshelfConfigurator() {
     cathedral:
       mainType === "cathedral"
         ? { width: cathW, lowHeight: cathH, highHeight: cathH1, direction: cathDir }
-        : undefined,
-    portal:
-      mainType === "portal"
-        ? {
-            wallWidth: portalWallW,
-            wallHeight: portalWallH,
-            objectWidth: portalObjW,
-            objectHeight: portalObjH,
-            floorToObject: portalFloorToObj,
-            rightGap: portalRightGap,
-            objectType: portalObjType,
-          }
         : undefined,
   })
 
@@ -708,13 +573,11 @@ export function BookshelfConfigurator() {
     if (mainType === "corner") return `${toFraction(width)} × ${toFraction(width2)}`
     if (mainType === "usurround") return `${toFraction(uW1)} · ${toFraction(uW)} · ${toFraction(uW2)}`
     if (mainType === "cathedral") return `${toFraction(cathW)} × ${toFraction(cathH)}–${toFraction(cathH1)}`
-    if (mainType === "portal") return `Wall ${toFraction(portalWallW)} × ${toFraction(portalWallH)}`
     return `${toFeetAndInches(width)} wide`
   })()
 
   const widthStepDelta = (() => {
     if (mainType === "cathedral") return `${toFraction(cathH1 - cathH)} slope`
-    if (mainType === "portal") return `${portalObjType}`
     return `${toFraction(totalHeight)} tall`
   })()
 
@@ -729,8 +592,6 @@ export function BookshelfConfigurator() {
         ? "Three walls — left arm (W1), front (W), and right arm (W2). All share the same shelf layout."
         : mainType === "cathedral"
         ? "Set the wall width and the two heights — the low side (H) and the tall side (H1). Then pick the slope direction."
-        : mainType === "portal"
-        ? "Set the wall, then the object you're framing (door, window, TV, fireplace) and where it sits."
         : "Set the total width. Heights are determined by the shelves you add in the next step.",
     content:
       mainType === "usurround" ? (
@@ -740,17 +601,8 @@ export function BookshelfConfigurator() {
           W={cathW} setW={setCathW} H={cathH} setH={setCathH} H1={cathH1} setH1={setCathH1}
           direction={cathDir} setDirection={setCathDir}
         />
-      ) : mainType === "portal" ? (
-        <PortalDimsContent
-          wallW={portalWallW} setWallW={setPortalWallW}
-          wallH={portalWallH} setWallH={setPortalWallH}
-          objW={portalObjW} setObjW={setPortalObjW}
-          objH={portalObjH} setObjH={setPortalObjH}
-          floorToObj={portalFloorToObj} setFloorToObj={setPortalFloorToObj}
-          rightGap={portalRightGap} setRightGap={setPortalRightGap}
-          objType={portalObjType} setObjType={setPortalObjType}
-        />
       ) : (
+
         <div className="space-y-8">
           <div>
             <div className="flex items-baseline justify-between mb-3">
@@ -806,12 +658,9 @@ export function BookshelfConfigurator() {
       ? "Each tier sits across the full width available at its height. Higher tiers narrow automatically as the slope cuts in. Depth narrows as you go up."
       : mainType === "usurround"
       ? "Shelves are shared across all three walls (left, front, right). Each shelf has its own height and depth — depth narrows as you go up."
-      : mainType === "portal"
-      ? "Shelves run on both sides of the framed object. Each has its own height and depth — depth narrows as you go up."
       : "Each shelf has its own height and depth. Depth narrows as you go up — perfect for stepped, sculptural shelves."
   const typePrefix =
     mainType === "cathedral" ? "Cathedral · "
-    : mainType === "portal" ? "Portal · "
     : mainType === "usurround" ? "U-Surround · "
     : ""
   const numberLabel =
@@ -1004,18 +853,6 @@ export function BookshelfConfigurator() {
       <div className="space-y-8">
         {isLegacyType && (
           <div data-pbs-schematic className="border border-border p-4 bg-muted/20 flex items-center justify-center">
-            {mainType === "portal" && (
-              <PortalSchematic
-                wallWidth={portalWallW}
-                wallHeight={portalWallH}
-                objectWidth={portalObjW}
-                objectHeight={portalObjH}
-                floorToObject={portalFloorToObj}
-                rightGap={portalRightGap}
-                leftGap={Math.max(0, portalWallW - portalObjW - portalRightGap)}
-                topHeight={Math.max(0, portalWallH - portalFloorToObj - portalObjH)}
-              />
-            )}
             {mainType === "cathedral" && (
               <CathedralSchematic
                 W={cathW} H={cathH} H1={cathH1} direction={cathDir}
@@ -1179,67 +1016,11 @@ export function BookshelfConfigurator() {
   const preview = (
     <div ref={mainPreviewRef} className="relative w-full h-full min-h-[45vh] lg:min-h-screen flex items-center justify-center">
       {/* Dimension badge removed per request — keep canvas clean on all steps */}
-      {/* Portal debug + scenario runner */}
-      {mainType === "portal" && (
-        <div className="absolute bottom-4 right-4 z-20 max-w-[280px] bg-background/95 backdrop-blur border border-border rounded-md shadow-lg p-3 text-xs space-y-2">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Portal QA</span>
-            <label className="flex items-center gap-1 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={portalDebug}
-                onChange={(e) => setPortalDebug(e.target.checked)}
-                className="accent-primary"
-              />
-              <span className="text-[10px]">Debug overlay</span>
-            </label>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {portalScenarios.map((s, i) => (
-              <button
-                key={i}
-                onClick={() => runScenario(i)}
-                className={`text-[10px] px-2 py-1 rounded border ${scenarioIdx === i ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border hover:bg-muted"}`}
-                title={s.desc}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              onClick={() => {
-                if (scenarioIdx === null) { runScenario(0); return }
-                const next = (scenarioIdx + 1) % portalScenarios.length
-                runScenario(next)
-              }}
-              className="text-[10px] px-2 py-1 rounded border border-border bg-background hover:bg-muted font-semibold"
-            >
-              Run checks ▶
-            </button>
-          </div>
-          {scenarioIdx !== null && (
-            <div className="space-y-1 border-t border-border pt-2">
-              <div className="font-semibold text-[11px]">{scenarioIdx + 1}. {portalScenarios[scenarioIdx].name}</div>
-              <div className="text-[10px] text-muted-foreground">{portalScenarios[scenarioIdx].desc}</div>
-              <div className="text-[10px]"><span className="text-muted-foreground">Expect:</span> {portalScenarios[scenarioIdx].expect}</div>
-              <div className="text-[10px] italic text-muted-foreground">📸 Capture a screenshot, then click ▶ for the next scenario.</div>
-            </div>
-          )}
-        </div>
-      )}
       <div className="absolute inset-0">
         <React.Suspense fallback={<Preview3DFallback />}>
 
-        {mainType === "portal" ? (
-          <PortalLivePreview
-            finish={selectedFinish}
-            wallWidth={portalWallW} wallHeight={portalWallH}
-            objectWidth={portalObjW} objectHeight={portalObjH}
-            floorToObject={portalFloorToObj} rightGap={portalRightGap}
-            objectType={portalObjType}
-            shelves={shelves}
-            debug={portalDebug}
-          />
-        ) : mainType === "cathedral" ? (
+        {mainType === "cathedral" ? (
+
           <CathedralLivePreview
             ref={cathedral3DRef}
             finish={selectedFinish}
