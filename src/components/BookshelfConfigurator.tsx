@@ -430,6 +430,18 @@ export function BookshelfConfigurator() {
         } else {
           areaInSqFt = (totalHeight * width + totalHeight * width2 - totalHeight * maxShelfDepth) / 144
         }
+      } else if (mainType === "usurround") {
+        // Three walls: two returns + back wall, minus the two inside corner overlaps
+        const linearWidth = Math.max(0, uW1 + uW + uW2 - 2 * maxShelfDepth)
+        areaInSqFt = (totalHeight * linearWidth) / 144
+      } else if (mainType === "cathedral") {
+        // Sloped face: average of low and high height
+        areaInSqFt = (cathW * ((cathH + cathH1) / 2)) / 144
+      } else if (mainType === "portal") {
+        // Wall area minus the door/window opening
+        const wallArea = portalWallW * portalWallH
+        const openingArea = portalObjW * portalObjH
+        areaInSqFt = Math.max(0, wallArea - openingArea) / 144
       } else {
         areaInSqFt = (totalHeight * width) / 144
       }
@@ -438,7 +450,9 @@ export function BookshelfConfigurator() {
     } catch {
       return { result: null, totalPrice: 0, totalArea: 0 }
     }
-  }, [bookshelfType, width, width2, shelves, shelves2, selectedFinish, totalHeight, mainType, maxShelfDepth, cornerVariant])
+  }, [bookshelfType, width, width2, shelves, shelves2, selectedFinish, totalHeight, mainType, maxShelfDepth, cornerVariant,
+      uW1, uW, uW2, cathW, cathH, cathH1, portalWallW, portalWallH, portalObjW, portalObjH])
+
 
   const discountAmount = useMemo(() => {
     if (!appliedDiscount) return 0
