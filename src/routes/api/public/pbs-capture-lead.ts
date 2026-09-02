@@ -16,15 +16,14 @@ const API_VERSION = "2025-01"
 type OptInMode = "single" | "double"
 function resolveOptInMode(): OptInMode {
   const raw = process.env.MARKETING_OPT_IN_MODE
-  console.log("[pbs-capture-lead] MARKETING_OPT_IN_MODE raw value:", JSON.stringify(raw))
-  if (!raw || raw.trim() === "") {
-    throw new Error("MARKETING_OPT_IN_MODE is not configured. Set it to 'single' or 'double'.")
+  const normalized = (raw ?? "").trim().toLowerCase()
+  if (normalized === "single" || normalized === "double") return normalized
+  if (normalized) {
+    console.warn(
+      `[pbs-capture-lead] Invalid MARKETING_OPT_IN_MODE ${JSON.stringify(raw)} — falling back to 'single'.`,
+    )
   }
-  const normalized = raw.trim().toLowerCase()
-  if (normalized !== "single" && normalized !== "double") {
-    throw new Error(`Invalid MARKETING_OPT_IN_MODE value: ${JSON.stringify(raw)}. Must be 'single' or 'double'.`)
-  }
-  return normalized
+  return "single"
 }
 
 interface MarketingConsent {
