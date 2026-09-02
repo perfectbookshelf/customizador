@@ -440,6 +440,17 @@ export function BookshelfConfigurator() {
     }
   }, [bookshelfType, width, width2, shelves, shelves2, selectedFinish, totalHeight, mainType, maxShelfDepth, cornerVariant])
 
+  const discountAmount = useMemo(() => {
+    if (!appliedDiscount) return 0
+    const raw = Math.abs(Number.parseFloat(appliedDiscount.value))
+    if (!Number.isFinite(raw) || raw <= 0) return 0
+    return appliedDiscount.valueType === "percentage"
+      ? (totalPrice * raw) / 100
+      : Math.min(raw, totalPrice)
+  }, [appliedDiscount, totalPrice])
+  const discountedTotal = Math.max(0, totalPrice - discountAmount)
+
+
   const corner3DModules = useMemo(() => {
     if (mainType !== "corner") return { arm1: undefined, arm2: undefined }
     try {
@@ -1044,9 +1055,23 @@ export function BookshelfConfigurator() {
             </div>
           </button>
         )}
-        <div className="border-y border-border py-5 flex items-baseline justify-between">
-          <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
-          <span className="text-3xl font-display tracking-tight">${totalPrice.toFixed(2)}</span>
+        <div className="border-y border-border py-5 space-y-2">
+          {appliedDiscount && (
+            <>
+              <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span>${totalPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex items-baseline justify-between text-sm text-green-600">
+                <span>Discount ({appliedDiscount.code})</span>
+                <span>-${discountAmount.toFixed(2)}</span>
+              </div>
+            </>
+          )}
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
+            <span className="text-3xl font-display tracking-tight">${discountedTotal.toFixed(2)}</span>
+          </div>
         </div>
 
         <CouponField
