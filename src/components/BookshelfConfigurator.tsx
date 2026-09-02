@@ -1044,9 +1044,23 @@ export function BookshelfConfigurator() {
             </div>
           </button>
         )}
-        <div className="border-y border-border py-5 flex items-baseline justify-between">
-          <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
-          <span className="text-3xl font-display tracking-tight">${totalPrice.toFixed(2)}</span>
+        <div className="border-y border-border py-5 space-y-2">
+          {appliedDiscount && (
+            <>
+              <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+                <span>Subtotal</span>
+                <span>${totalPrice.toFixed(2)}</span>
+              </div>
+              <div className="flex items-baseline justify-between text-sm text-green-600">
+                <span>Discount ({appliedDiscount.code})</span>
+                <span>-${discountAmount.toFixed(2)}</span>
+              </div>
+            </>
+          )}
+          <div className="flex items-baseline justify-between">
+            <span className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Total</span>
+            <span className="text-3xl font-display tracking-tight">${discountedTotal.toFixed(2)}</span>
+          </div>
         </div>
 
         <CouponField
