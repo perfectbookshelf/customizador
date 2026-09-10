@@ -134,39 +134,49 @@ export const Route = createFileRoute("/api/pbs-create-checkout")({
             }
           }
 
-          const draftOrderPayload = {
+          const buildPayload = (withEmail: boolean) => ({
             draft_order: {
               line_items: [
                 {
                   title: "Custom Bookshelf - Configuration",
                   quantity: 1,
                   price: amount.toFixed(2),
+                  // Custom (non-variant) line items default to not requiring
+                  // shipping, which makes Shopify skip the address step.
+                  // Force it on so every order captures a shipping address.
+                  requires_shipping: true,
                   properties,
                 },
               ],
               note: `PBS Configurator | ${config?.finish || "N/A"} | ${width || "?"}" W x ${height || "?"}" H | ${shelvesCount} shelves${appliedDiscount ? ` | Coupon: ${cleanCode}` : ""}`,
               use_customer_default_address: true,
               ...(appliedDiscount ? { applied_discount: appliedDiscount } : {}),
-              // NOTE: we intentionally do NOT send `email` to Shopify here.
-              // Some domains are rejected by Shopify ("invalid domain name")
-              // and would break checkout. The email is preserved as a
-              // line-item property ("Quote Email") for our own records.
+              // Attaching the email links the draft order to a customer so any
+              // saved address is prefilled. Some domains are rejected by
+              // Shopify ("invalid domain name"), so we retry without it.
+              ...(withEmail && cleanEmail ? { email: cleanEmail } : {}),
             },
-          }
+          })
 
-          const createResponse = await fetch(
-            `https://${shopName}.myshopify.com/admin/api/2025-01/draft_orders.json`,
-            {
+          const postDraftOrder = (payload: unknown) =>
+            fetch(`https://${shopName}.myshopify.com/admin/api/2025-01/draft_orders.json`, {
               method: "POST",
               headers: {
                 "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify(draftOrderPayload),
-            },
-          )
+              body: JSON.stringify(payload),
+            })
 
-          const createText = await createResponse.text()
+          let createResponse = await postDraftOrder(buildPayload(true))
+          let createText = await createResponse.text()
+
+          if (!createResponse.ok && cleanEmail && createResponse.status >= 400 && createResponse.status < 500) {
+            console.warn("Draft order with email failed, retrying without email:", createText)
+            createResponse = await postDraftOrder(buildPayload(false))
+            createText = await createResponse.text()
+          }
+
           let createJson: any
           try {
             createJson = JSON.parse(createText)
