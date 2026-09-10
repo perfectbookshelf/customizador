@@ -1,5 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router"
 import { supabaseAdmin } from "@/integrations/supabase/client.server"
+import {
+  SHOPIFY_API_VERSION,
+  findCustomerByEmail,
+  mergeTags,
+  normalizeShopifyStore,
+  setEmailMarketingConsent,
+  shopifyHeaders,
+  type ConsentState,
+} from "@/lib/shopify-customers.server"
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,7 +17,6 @@ const corsHeaders = {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const API_VERSION = "2025-01"
 
 // Opt-in mode: "double" enables Shopify's confirmation email flow (leads land
 // as "pending" until they click the confirm link). Defaults to "single" so
@@ -47,12 +55,10 @@ function buildMarketingConsent(mode: OptInMode): MarketingConsent {
   return consent
 }
 
-function normalizeShopifyStore(store: string) {
-  return store
-    .trim()
-    .replace(/^https?:\/\//, "")
-    .replace(/\/.*$/, "")
-    .replace(/\.myshopify\.com$/i, "")
+interface ShopifyLeadResult {
+  customerId: string | null
+  /** State Shopify actually reports after the write — never assumed. */
+  state: ConsentState | null
 }
 
 async function upsertShopifyLead(
@@ -60,64 +66,28 @@ async function upsertShopifyLead(
   accessToken: string,
   email: string,
   consent: MarketingConsent,
-): Promise<string | null> {
-  const headers = {
-    "X-Shopify-Access-Token": accessToken,
-    "Content-Type": "application/json",
-  }
-  const findExisting = async (): Promise<{ id: number; tags?: string } | null> => {
-    const queries = [`email:${email}`, `email:"${email}"`, email]
-    for (const q of queries) {
-      const url = `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/search.json?query=${encodeURIComponent(q)}`
-      const r = await fetch(url, { headers })
-      if (!r.ok) continue
-      const j = (await r.json()) as {
-        customers?: Array<{ id: number; tags?: string; email?: string }>
-      }
-      const match = j.customers?.find((c) => (c.email || "").toLowerCase() === email)
-      if (match) return match
-    }
-    return null
-  }
-
-  const customerConsentPayload = {
-    accepts_marketing: consent.accepts_marketing,
-    accepts_marketing_updated_at: consent.consent_updated_at,
-    marketing_opt_in_level: consent.opt_in_level,
-    email_marketing_consent: {
-      state: consent.state,
-      opt_in_level: consent.opt_in_level,
-      consent_updated_at: consent.consent_updated_at,
-    },
-  }
-
+): Promise<ShopifyLeadResult> {
+  const headers = shopifyHeaders(accessToken)
   try {
-    const existing = await findExisting()
+    const existing = await findCustomerByEmail(shopName, accessToken, email)
     if (existing) {
-      const tags = (existing.tags || "")
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean)
-      if (!tags.includes("pbs-lead")) tags.push("pbs-lead")
-      await fetch(
-        `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers/${existing.id}.json`,
-        {
-          method: "PUT",
-          headers,
-          body: JSON.stringify({
-            customer: {
-              id: existing.id,
-              tags: tags.join(", "),
-              ...customerConsentPayload,
-            },
-          }),
-        },
-      )
-      return String(existing.id)
+      const res = await setEmailMarketingConsent(shopName, accessToken, existing.id, {
+        state: consent.state,
+        optInLevel: consent.opt_in_level,
+        consentUpdatedAt: consent.consent_updated_at,
+        tags: mergeTags(existing.tags, "pbs-lead"),
+      })
+      if (!res.ok) {
+        console.warn(
+          `[pbs-capture-lead] consent update did not take for customer ${existing.id}:`,
+          res.error ?? `state=${res.state}`,
+        )
+      }
+      return { customerId: String(existing.id), state: res.state }
     }
 
     const createRes = await fetch(
-      `https://${shopName}.myshopify.com/admin/api/${API_VERSION}/customers.json`,
+      `https://${shopName}.myshopify.com/admin/api/${SHOPIFY_API_VERSION}/customers.json`,
       {
         method: "POST",
         headers,
@@ -125,29 +95,62 @@ async function upsertShopifyLead(
           customer: {
             email,
             tags: "pbs-lead",
-            ...customerConsentPayload,
+            accepts_marketing: true,
+            accepts_marketing_updated_at: consent.consent_updated_at,
+            marketing_opt_in_level: consent.opt_in_level,
+            email_marketing_consent: {
+              state: consent.state,
+              opt_in_level: consent.opt_in_level,
+              consent_updated_at: consent.consent_updated_at,
+            },
           },
         }),
       },
     )
     if (!createRes.ok) {
       const errText = await createRes.text().catch(() => "")
-      console.warn("Shopify customer create failed", createRes.status, errText)
+      console.warn("[pbs-capture-lead] Shopify customer create failed", createRes.status, errText)
       if (createRes.status === 422 && /already.*taken/i.test(errText)) {
         await new Promise((r) => setTimeout(r, 600))
-        const retry = await findExisting()
-        if (retry) return String(retry.id)
+        const retry = await findCustomerByEmail(shopName, accessToken, email)
+        if (retry) {
+          const res = await setEmailMarketingConsent(shopName, accessToken, retry.id, {
+            state: consent.state,
+            optInLevel: consent.opt_in_level,
+            consentUpdatedAt: consent.consent_updated_at,
+            tags: mergeTags(retry.tags, "pbs-lead"),
+          })
+          return { customerId: String(retry.id), state: res.state }
+        }
       }
-      return null
+      return { customerId: null, state: null }
     }
-    const cj = (await createRes.json()) as { customer?: { id: number } }
-    return cj.customer?.id ? String(cj.customer.id) : null
+    const cj = (await createRes.json()) as {
+      customer?: { id: number; email_marketing_consent?: { state?: ConsentState } | null }
+    }
+    const created = cj.customer
+    const state = created?.email_marketing_consent?.state ?? null
+    if (created?.id && state !== consent.state) {
+      // Create didn't honor the consent block — force it with an explicit update.
+      const res = await setEmailMarketingConsent(shopName, accessToken, created.id, {
+        state: consent.state,
+        optInLevel: consent.opt_in_level,
+        consentUpdatedAt: consent.consent_updated_at,
+      })
+      if (!res.ok) {
+        console.warn(
+          `[pbs-capture-lead] consent not applied on new customer ${created.id}:`,
+          res.error ?? `state=${res.state}`,
+        )
+      }
+      return { customerId: String(created.id), state: res.state }
+    }
+    return { customerId: created?.id ? String(created.id) : null, state }
   } catch (err) {
-    console.warn("upsertShopifyLead error", err)
-    return null
+    console.warn("[pbs-capture-lead] upsertShopifyLead error", err)
+    return { customerId: null, state: null }
   }
 }
-
 
 export const Route = createFileRoute("/api/public/pbs-capture-lead")({
   server: {
@@ -176,30 +179,31 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
           const optInMode = resolveOptInMode()
           const consent = buildMarketingConsent(optInMode)
 
-          // 1. Best-effort: create / tag Shopify customer.
+          // 1. Best-effort: create / tag Shopify customer with marketing consent.
           let shopifyCustomerId: string | null = null
+          let shopifyState: ConsentState | null = null
           const SHOPIFY_STORE = process.env.SHOPIFY_STORE
           const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ACCESS_TOKEN
           if (SHOPIFY_STORE && SHOPIFY_ACCESS_TOKEN) {
-            shopifyCustomerId = await upsertShopifyLead(
+            const result = await upsertShopifyLead(
               normalizeShopifyStore(SHOPIFY_STORE),
               SHOPIFY_ACCESS_TOKEN,
               rawEmail,
               consent,
             )
+            shopifyCustomerId = result.customerId
+            shopifyState = result.state
           }
 
-          // 2. Upsert into quote_leads. Only set shopify_customer_id when we
-          // actually have one — never overwrite an existing id with null.
-          // Persist consent state so we always know if a lead is subscribed
-          // (single opt-in) or still pending confirmation (double opt-in).
+          // 2. Upsert into quote_leads. Record the state Shopify actually
+          // reports so a silent regression is visible in our own data.
           const row = {
             email: rawEmail,
             product_type: productType,
             step_reached: stepReached,
             last_config: lastConfig as never,
             marketing_opt_in_level: consent.opt_in_level,
-            marketing_consent_state: consent.state,
+            marketing_consent_state: shopifyState ?? consent.state,
             marketing_consent_updated_at: consent.consent_updated_at,
             updated_at: new Date().toISOString(),
             ...(shopifyCustomerId ? { shopify_customer_id: shopifyCustomerId } : {}),
@@ -220,7 +224,7 @@ export const Route = createFileRoute("/api/public/pbs-capture-lead")({
               ok: true,
               savedShopify: !!shopifyCustomerId,
               optInMode,
-              consentState: consent.state,
+              consentState: shopifyState ?? consent.state,
             },
             { headers: corsHeaders },
           )
