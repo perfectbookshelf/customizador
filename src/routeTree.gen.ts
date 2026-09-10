@@ -16,6 +16,7 @@ import { Route as ApiShopifyValidateCouponRouteImport } from './routes/api/shopi
 import { Route as ApiShopifyTestRouteImport } from './routes/api/shopify/test'
 import { Route as ApiShopifyCheckoutRouteImport } from './routes/api/shopify/checkout'
 import { Route as ApiPublicPbsCaptureLeadRouteImport } from './routes/api/public/pbs-capture-lead'
+import { Route as ApiPublicPbsBackfillConsentRouteImport } from './routes/api/public/pbs-backfill-consent'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -53,11 +54,18 @@ const ApiPublicPbsCaptureLeadRoute = ApiPublicPbsCaptureLeadRouteImport.update({
   path: '/api/public/pbs-capture-lead',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPbsBackfillConsentRoute =
+  ApiPublicPbsBackfillConsentRouteImport.update({
+    id: '/api/public/pbs-backfill-consent',
+    path: '/api/public/pbs-backfill-consent',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
+  '/api/public/pbs-backfill-consent': typeof ApiPublicPbsBackfillConsentRoute
   '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
+  '/api/public/pbs-backfill-consent': typeof ApiPublicPbsBackfillConsentRoute
   '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
+  '/api/public/pbs-backfill-consent': typeof ApiPublicPbsBackfillConsentRoute
   '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sitemap.xml'
     | '/api/pbs-create-checkout'
+    | '/api/public/pbs-backfill-consent'
     | '/api/public/pbs-capture-lead'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
@@ -97,6 +108,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sitemap.xml'
     | '/api/pbs-create-checkout'
+    | '/api/public/pbs-backfill-consent'
     | '/api/public/pbs-capture-lead'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
@@ -106,6 +118,7 @@ export interface FileRouteTypes {
     | '/'
     | '/sitemap.xml'
     | '/api/pbs-create-checkout'
+    | '/api/public/pbs-backfill-consent'
     | '/api/public/pbs-capture-lead'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
@@ -116,6 +129,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPbsCreateCheckoutRoute: typeof ApiPbsCreateCheckoutRoute
+  ApiPublicPbsBackfillConsentRoute: typeof ApiPublicPbsBackfillConsentRoute
   ApiPublicPbsCaptureLeadRoute: typeof ApiPublicPbsCaptureLeadRoute
   ApiShopifyCheckoutRoute: typeof ApiShopifyCheckoutRoute
   ApiShopifyTestRoute: typeof ApiShopifyTestRoute
@@ -173,6 +187,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPbsCaptureLeadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pbs-backfill-consent': {
+      id: '/api/public/pbs-backfill-consent'
+      path: '/api/public/pbs-backfill-consent'
+      fullPath: '/api/public/pbs-backfill-consent'
+      preLoaderRoute: typeof ApiPublicPbsBackfillConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -180,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPbsCreateCheckoutRoute: ApiPbsCreateCheckoutRoute,
+  ApiPublicPbsBackfillConsentRoute: ApiPublicPbsBackfillConsentRoute,
   ApiPublicPbsCaptureLeadRoute: ApiPublicPbsCaptureLeadRoute,
   ApiShopifyCheckoutRoute: ApiShopifyCheckoutRoute,
   ApiShopifyTestRoute: ApiShopifyTestRoute,
