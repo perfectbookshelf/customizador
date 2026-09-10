@@ -75,7 +75,7 @@ export const Route = createFileRoute("/api/public/pbs-backfill-consent")({
               continue
             }
             // Respect an explicit opt-out made after we captured the lead.
-            if (state === "unsubscribed") {
+            if (state === "unsubscribed" && !includeUnsubscribed) {
               skippedUnsubscribed++
               continue
             }
