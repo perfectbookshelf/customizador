@@ -83,26 +83,26 @@ const TYPE_OPTIONS: {
 ]
 
 const FINISH_OPTIONS = [
-  { id: "Oak/Oak", label: "White Oak", price: 73.63, color1: "#D4A574", color2: "#D4A574", comingSoon: false,
+  { id: "Oak/Oak", label: "White Oak", price: 94.13, color1: "#D4A574", color2: "#D4A574", comingSoon: false,
     description: "Quartersawn white oak. Open grain, honey tone, ages beautifully.",
   },
-  { id: "Maple/Maple", label: "Maple", price: 60.18, color1: "#E8D4B8", color2: "#E8D4B8", comingSoon: false,
+  { id: "Maple/Maple", label: "Maple", price: 67.97, color1: "#E8D4B8", color2: "#E8D4B8", comingSoon: false,
     description: "Pale, warm grain with a soft golden undertone. Reads modern and bright.",
   },
-  { id: "Oak/White", label: "White Oak / White", price: 72.57, color1: "#D4A574", color2: "#f5f5f5", comingSoon: false,
+  { id: "Oak/White", label: "White Oak / White", price: 95.36, color1: "#D4A574", color2: "#f5f5f5", comingSoon: false,
     description: "White oak fronts with a clean white interior — graphic, gallery-like contrast.",
   },
-  { id: "Maple/Black", label: "Maple / Black", price: 67.26, color1: "#E8D4B8", color2: "#1a1a1a", comingSoon: false, texture2: "/images/finishes/valchromat.png",
+  { id: "Maple/Black", label: "Maple / Black", price: 89.93, color1: "#E8D4B8", color2: "#1a1a1a", comingSoon: false, texture2: "/images/finishes/valchromat.png",
     description: "Maple fronts with deep matte-black Valchromat interiors. Theatrical and high-contrast.",
   },
-  { id: "Oak/Black", label: "White Oak / Black", price: 78.94, color1: "#D4A574", color2: "#1a1a1a", comingSoon: false, texture2: "/images/finishes/valchromat.png",
+  { id: "Oak/Black", label: "White Oak / Black", price: 107.73, color1: "#D4A574", color2: "#1a1a1a", comingSoon: false, texture2: "/images/finishes/valchromat.png",
     description: "White oak fronts with matte-black interiors. Quietly dramatic.",
   },
-  { id: "Walnut/Walnut", label: "Walnut", price: 85.67, color1: "#5D432C", color2: "#5D432C", comingSoon: false,
+  { id: "Walnut/Walnut", label: "Walnut", price: 108.02, color1: "#5D432C", color2: "#5D432C", comingSoon: false,
     description: "Rich American walnut — chocolate brown with violet undertones. The signature.",
   },
-  { id: "Black/Black", label: "Black", price: 77.88, color1: "#1a1a1a", color2: "#1a1a1a", comingSoon: true },
-  { id: "White/White", label: "White", price: 56.64, color1: "#f5f5f5", color2: "#f5f5f5", comingSoon: true },
+  { id: "Black/Black", label: "Black", price: 75.4, color1: "#1a1a1a", color2: "#1a1a1a", comingSoon: true },
+  { id: "White/White", label: "White", price: 69.68, color1: "#f5f5f5", color2: "#f5f5f5", comingSoon: true },
 ]
 
 function toFraction(decimal: number): string {
