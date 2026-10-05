@@ -211,6 +211,7 @@ export function BookshelfConfigurator() {
 
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
+  const [readyCheckoutUrl, setReadyCheckoutUrl] = useState<string | null>(null)
   const [appliedDiscount, setAppliedDiscount] = useState<AppliedDiscount | null>(null)
   const bookshelf3DRef = useRef<Bookshelf3DViewRef>(null)
   const cathedral3DRef = useRef<Cathedral3DViewRef>(null)
@@ -415,6 +416,10 @@ export function BookshelfConfigurator() {
           window.parent.postMessage({ type: "pbs-ga4-event", eventName: "begin_checkout", params: { currency: "USD", value: totalPrice } }, "*")
         } catch { /* ignore */ }
       }
+      // Browsers often block automatic navigation from inside an embedded
+      // frame after an async request. Always surface a clickable link as a
+      // guaranteed fallback (a real click is allowed to navigate the page).
+      setReadyCheckoutUrl(checkoutUrl)
       redirectToCheckout(checkoutUrl)
     } catch (err) {
       console.error("Checkout error:", err)
@@ -935,6 +940,17 @@ export function BookshelfConfigurator() {
           <div className="text-sm text-destructive border border-destructive/30 p-3">
             {checkoutError}
           </div>
+        )}
+
+        {readyCheckoutUrl && (
+          <a
+            href={readyCheckoutUrl}
+            target="_top"
+            rel="noopener"
+            className="block w-full text-center bg-primary text-primary-foreground py-4 text-sm font-semibold tracking-widest uppercase animate-pulse"
+          >
+            Your checkout is ready — click here to pay →
+          </a>
         )}
 
         <div className="flex flex-col gap-3 pt-2">
