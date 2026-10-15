@@ -271,6 +271,7 @@ export function BookshelfConfigurator() {
       cathW, cathH, cathH1, cathDir,
     }))
     setCheckoutError(null)
+    setReadyCheckoutUrl(null)
   }, [mainType, cornerVariant, width, width2, selectedFinish, shelves, shelves2,
       uW1, uW, uW2, cathW, cathH, cathH1, cathDir])
 
@@ -932,8 +933,8 @@ export function BookshelfConfigurator() {
 
         <CouponField
           appliedDiscount={appliedDiscount}
-          onApply={setAppliedDiscount}
-          onRemove={() => setAppliedDiscount(null)}
+          onApply={(d) => { setAppliedDiscount(d); setReadyCheckoutUrl(null) }}
+          onRemove={() => { setAppliedDiscount(null); setReadyCheckoutUrl(null) }}
         />
 
         {checkoutError && (
