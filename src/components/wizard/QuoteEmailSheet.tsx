@@ -4,6 +4,7 @@ import { X, ChevronRight } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { EmailSheetReview } from "./SocialProof"
 
 interface QuoteEmailSheetProps {
   open: boolean
@@ -135,6 +136,8 @@ export function QuoteEmailSheet({ open, onClose, initialEmail, onSubmit }: Quote
           </button>
         </div>
 
+        <EmailSheetReview />
+
         {/* Wood reassurance — pick comes next */}
         <div className="mb-4 p-3 border border-dashed border-brand-walnut/40 bg-secondary/40 space-y-2">
           <div className="flex items-baseline justify-between gap-2">
@@ -202,7 +205,8 @@ export function QuoteEmailSheet({ open, onClose, initialEmail, onSubmit }: Quote
           </Button>
 
           <p className="text-[11px] text-muted-foreground leading-relaxed text-center">
-            Your quote will be sent to your inbox so you can review it anytime. No spam.
+            We'll keep your design saved so you can pick up where you left off.
+            No spam — unsubscribe anytime.
           </p>
         </form>
       </div>

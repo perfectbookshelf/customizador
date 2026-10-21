@@ -55,3 +55,30 @@ export function computeAreaSqFt(input: AreaInput): number {
 export function computePrice(input: AreaInput, ratePerSqFt: number): number {
   return computeAreaSqFt(input) * ratePerSqFt
 }
+
+export interface PriceRange {
+  low: number
+  high: number
+}
+
+/**
+ * Early price estimate shown before the email gate: the same area priced at
+ * the cheapest and the most expensive available finish, rounded outwards to
+ * `roundTo` so the exact price (shown after the email) always falls inside.
+ * Returns null when there is nothing to price.
+ */
+export function computePriceRange(
+  areaSqFt: number,
+  ratesPerSqFt: number[],
+  roundTo = 50,
+): PriceRange | null {
+  const rates = ratesPerSqFt.filter((r) => Number.isFinite(r) && r > 0)
+  if (!Number.isFinite(areaSqFt) || areaSqFt <= 0 || rates.length === 0) return null
+  const low = Math.floor((areaSqFt * Math.min(...rates)) / roundTo) * roundTo
+  const high = Math.ceil((areaSqFt * Math.max(...rates)) / roundTo) * roundTo
+  return { low: Math.max(0, low), high }
+}
+
+export function formatUsd(value: number): string {
+  return `$${Math.round(value).toLocaleString("en-US")}`
+}

@@ -59,3 +59,31 @@ describe("area & price by product type", () => {
     expect(computePrice(input, WALNUT) / computePrice(input, OAK)).toBeCloseTo(WALNUT / OAK, 8)
   })
 })
+
+describe("computePriceRange (early estimate)", () => {
+  it("prices the area at the cheapest and priciest finish, rounded outwards to $50", async () => {
+    const { computePriceRange } = await import("../pricing")
+    const range = computePriceRange(20, [74.37, 99.24, 90.62])!
+    expect(range.low).toBe(1450) // 20 × 74.37 = 1487.4 → floor to 1450
+    expect(range.high).toBe(2000) // 20 × 99.24 = 1984.8 → ceil to 2000
+  })
+
+  it("always contains the exact price for any of the rates", async () => {
+    const { computePriceRange } = await import("../pricing")
+    const rates = [74.37, 88.01, 90.62, 91.38, 99.06, 99.24]
+    for (const area of [3.3, 16.8, 28.9, 51.5, 140]) {
+      const r = computePriceRange(area, rates)!
+      for (const rate of rates) {
+        expect(area * rate).toBeGreaterThanOrEqual(r.low)
+        expect(area * rate).toBeLessThanOrEqual(r.high)
+      }
+    }
+  })
+
+  it("returns null when there is nothing to price", async () => {
+    const { computePriceRange } = await import("../pricing")
+    expect(computePriceRange(0, [80])).toBeNull()
+    expect(computePriceRange(10, [])).toBeNull()
+    expect(computePriceRange(Number.NaN, [80])).toBeNull()
+  })
+})

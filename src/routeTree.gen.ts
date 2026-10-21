@@ -15,6 +15,7 @@ import { Route as ApiPbsCreateCheckoutRouteImport } from './routes/api/pbs-creat
 import { Route as ApiShopifyValidateCouponRouteImport } from './routes/api/shopify/validate-coupon'
 import { Route as ApiShopifyTestRouteImport } from './routes/api/shopify/test'
 import { Route as ApiShopifyCheckoutRouteImport } from './routes/api/shopify/checkout'
+import { Route as ApiPublicPbsFunnelEventRouteImport } from './routes/api/public/pbs-funnel-event'
 import { Route as ApiPublicPbsCaptureLeadRouteImport } from './routes/api/public/pbs-capture-lead'
 import { Route as ApiPublicPbsBackfillConsentRouteImport } from './routes/api/public/pbs-backfill-consent'
 
@@ -49,6 +50,11 @@ const ApiShopifyCheckoutRoute = ApiShopifyCheckoutRouteImport.update({
   path: '/api/shopify/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPbsFunnelEventRoute = ApiPublicPbsFunnelEventRouteImport.update({
+  id: '/api/public/pbs-funnel-event',
+  path: '/api/public/pbs-funnel-event',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPbsCaptureLeadRoute = ApiPublicPbsCaptureLeadRouteImport.update({
   id: '/api/public/pbs-capture-lead',
   path: '/api/public/pbs-capture-lead',
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/public/pbs-backfill-consent': typeof ApiPublicPbsBackfillConsentRoute
   '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
+  '/api/public/pbs-funnel-event': typeof ApiPublicPbsFunnelEventRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/public/pbs-backfill-consent': typeof ApiPublicPbsBackfillConsentRoute
   '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
+  '/api/public/pbs-funnel-event': typeof ApiPublicPbsFunnelEventRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/api/pbs-create-checkout': typeof ApiPbsCreateCheckoutRoute
   '/api/public/pbs-backfill-consent': typeof ApiPublicPbsBackfillConsentRoute
   '/api/public/pbs-capture-lead': typeof ApiPublicPbsCaptureLeadRoute
+  '/api/public/pbs-funnel-event': typeof ApiPublicPbsFunnelEventRoute
   '/api/shopify/checkout': typeof ApiShopifyCheckoutRoute
   '/api/shopify/test': typeof ApiShopifyTestRoute
   '/api/shopify/validate-coupon': typeof ApiShopifyValidateCouponRoute
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/api/pbs-create-checkout'
     | '/api/public/pbs-backfill-consent'
     | '/api/public/pbs-capture-lead'
+    | '/api/public/pbs-funnel-event'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
@@ -110,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/pbs-create-checkout'
     | '/api/public/pbs-backfill-consent'
     | '/api/public/pbs-capture-lead'
+    | '/api/public/pbs-funnel-event'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
@@ -120,6 +131,7 @@ export interface FileRouteTypes {
     | '/api/pbs-create-checkout'
     | '/api/public/pbs-backfill-consent'
     | '/api/public/pbs-capture-lead'
+    | '/api/public/pbs-funnel-event'
     | '/api/shopify/checkout'
     | '/api/shopify/test'
     | '/api/shopify/validate-coupon'
@@ -131,6 +143,7 @@ export interface RootRouteChildren {
   ApiPbsCreateCheckoutRoute: typeof ApiPbsCreateCheckoutRoute
   ApiPublicPbsBackfillConsentRoute: typeof ApiPublicPbsBackfillConsentRoute
   ApiPublicPbsCaptureLeadRoute: typeof ApiPublicPbsCaptureLeadRoute
+  ApiPublicPbsFunnelEventRoute: typeof ApiPublicPbsFunnelEventRoute
   ApiShopifyCheckoutRoute: typeof ApiShopifyCheckoutRoute
   ApiShopifyTestRoute: typeof ApiShopifyTestRoute
   ApiShopifyValidateCouponRoute: typeof ApiShopifyValidateCouponRoute
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiShopifyCheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pbs-funnel-event': {
+      id: '/api/public/pbs-funnel-event'
+      path: '/api/public/pbs-funnel-event'
+      fullPath: '/api/public/pbs-funnel-event'
+      preLoaderRoute: typeof ApiPublicPbsFunnelEventRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pbs-capture-lead': {
       id: '/api/public/pbs-capture-lead'
       path: '/api/public/pbs-capture-lead'
@@ -203,6 +223,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPbsCreateCheckoutRoute: ApiPbsCreateCheckoutRoute,
   ApiPublicPbsBackfillConsentRoute: ApiPublicPbsBackfillConsentRoute,
   ApiPublicPbsCaptureLeadRoute: ApiPublicPbsCaptureLeadRoute,
+  ApiPublicPbsFunnelEventRoute: ApiPublicPbsFunnelEventRoute,
   ApiShopifyCheckoutRoute: ApiShopifyCheckoutRoute,
   ApiShopifyTestRoute: ApiShopifyTestRoute,
   ApiShopifyValidateCouponRoute: ApiShopifyValidateCouponRoute,

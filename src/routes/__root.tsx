@@ -2,6 +2,22 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 
 import appCss from "../styles.css?url";
 
+/**
+ * Google Tag Manager — the same container the Shopify store uses, so GA4,
+ * Google Ads and Meta tags configured there also see the configurator.
+ * Only loaded when the configurator is the top-level page: inside an iframe
+ * the host page already runs GTM and receives events via postMessage
+ * (see src/lib/track.ts). Set VITE_GTM_ID=off to disable.
+ */
+const GTM_ID = (import.meta.env.VITE_GTM_ID as string | undefined) ?? "GTM-N4NTN29G";
+const GTM_SNIPPET = /^GTM-[A-Z0-9]+$/.test(GTM_ID)
+  ? `(function(){try{if(window.self!==window.top)return}catch(e){return}` +
+    `window.dataLayer=window.dataLayer||[];window.dataLayer.push({'gtm.start':new Date().getTime(),event:'gtm.js'});` +
+    `var f=document.getElementsByTagName('script')[0],j=document.createElement('script');` +
+    `j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id=${GTM_ID}';` +
+    `f&&f.parentNode?f.parentNode.insertBefore(j,f):document.head.appendChild(j)})();`
+  : null;
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -50,6 +66,7 @@ export const Route = createRootRoute({
       { rel: "preload", as: "image", href: "/textures/white.jpg" },
     ],
     scripts: [
+      ...(GTM_SNIPPET ? [{ children: GTM_SNIPPET }] : []),
       {
         type: "application/ld+json",
         children: JSON.stringify({

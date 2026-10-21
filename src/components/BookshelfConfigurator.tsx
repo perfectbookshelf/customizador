@@ -56,7 +56,20 @@ import { USurroundSchematic } from "./USurroundSchematic"
 import { computeCathedralRows, calculateCathedral } from "@/lib/cathedral-calculator"
 import { calculateUSurround } from "@/lib/usurround-calculator"
 import { cn } from "@/lib/utils"
-import { computeAreaSqFt } from "@/lib/pricing"
+import { computeAreaSqFt, computePriceRange, formatUsd, type PriceRange } from "@/lib/pricing"
+import { track } from "@/lib/track"
+import { ReviewCards, ReviewSummaryLine, TrustList } from "./wizard/SocialProof"
+
+/**
+ * Show an estimated price range from Step 2 on, before the email gate.
+ * The exact price and coupon still unlock only after the email.
+ * Flip to false to switch the test off; every funnel event records `pr`
+ * so before/after can be compared in funnel_events.
+ */
+const SHOW_PRICE_RANGE = true
+/** Index of the step where the exact price first appears (Finish). */
+const PRICE_STEP_INDEX = 3
+const CONSULTATION_URL = "https://www.perfectbookshelf.com/pages/book-a-consultation"
 
 type MainType = "rack" | "bookshelf" | "corner" | "cathedral" | "usurround"
 
@@ -104,6 +117,67 @@ const FINISH_OPTIONS = [
   { id: "Black/Black", label: "Black", price: 78.99, color1: "#1a1a1a", color2: "#1a1a1a", comingSoon: true },
   { id: "White/White", label: "White", price: 75.44, color1: "#f5f5f5", color2: "#f5f5f5", comingSoon: true },
 ]
+
+/** Rates of the finishes a customer can actually pick — bounds of the estimate. */
+const AVAILABLE_RATES = FINISH_OPTIONS.filter((f) => !f.comingSoon).map((f) => f.price)
+
+/**
+ * Popular starting points, modelled on what customers actually ordered
+ * through the configurator (Shopify orders, Jul–Oct 2026): low 2-shelf
+ * consoles around 70–100″, the classic 4-shelf ~70″ unit, slim 50″ towers
+ * with a stepped depth, and wide 6-shelf library walls.
+ */
+interface Preset {
+  id: string
+  name: string
+  blurb: string
+  mainType: "rack" | "bookshelf"
+  width: number
+  shelves: ShelfConfig[]
+}
+
+const shelvesOf = (spec: [height: number, depth: number][]): ShelfConfig[] =>
+  spec.map(([height, depth]) => ({ height, depth }))
+
+const PRESETS: Preset[] = [
+  {
+    id: "low-console",
+    name: "Low Console",
+    blurb: "Media wall or window seat",
+    mainType: "rack",
+    width: 80,
+    shelves: shelvesOf([[14, 14], [14, 14]]),
+  },
+  {
+    id: "classic",
+    name: "Classic",
+    blurb: "The everyday bookshelf",
+    mainType: "bookshelf",
+    width: 72,
+    shelves: shelvesOf([[14, 14], [14, 14], [14, 14], [14, 14]]),
+  },
+  {
+    id: "slim-tower",
+    name: "Slim Tower",
+    blurb: "Stepped depth, small footprint",
+    mainType: "bookshelf",
+    width: 50,
+    shelves: shelvesOf([[14, 14], [14, 14], [14, 14], [14, 10], [14, 10], [14, 10]]),
+  },
+  {
+    id: "library-wall",
+    name: "Library Wall",
+    blurb: "Floor-to-ceiling books",
+    mainType: "bookshelf",
+    width: 96,
+    shelves: shelvesOf([[12, 10], [12, 10], [12, 10], [12, 10], [12, 10], [12, 10]]),
+  },
+]
+
+function presetRange(p: Preset): PriceRange | null {
+  const area = computeAreaSqFt({ type: p.mainType, totalHeight: calculateTotalHeight(p.shelves), width: p.width })
+  return computePriceRange(area, AVAILABLE_RATES)
+}
 
 function toFraction(decimal: number): string {
   const whole = Math.floor(decimal)
@@ -173,7 +247,12 @@ export function BookshelfConfigurator() {
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const isValidQuoteEmail = EMAIL_RE.test(quoteEmail.trim()) && quoteEmail.trim().length <= 255
   const [emailSheetOpen, setEmailSheetOpen] = useState(false)
-  const openEmailSheet = () => setEmailSheetOpen(true)
+  // Lets handlers declared before mainType's useState read the current type.
+  const mainTypeRef = useRef<string>("bookshelf")
+  const openEmailSheet = () => {
+    setEmailSheetOpen(true)
+    track("email_sheet_open", { step: stepIndex, product_type: mainTypeRef.current, pr: SHOW_PRICE_RANGE })
+  }
   const saved = useMemo<any>(() => {
     const raw = safeGetItem("bookshelf-config")
     if (!raw) return {}
@@ -183,6 +262,7 @@ export function BookshelfConfigurator() {
   const [mainType, setMainType] = useState<MainType>(
     saved.mainType && saved.mainType !== "portal" ? saved.mainType : "bookshelf",
   )
+  mainTypeRef.current = mainType
   const isLegacyType = mainType === "cathedral" || mainType === "usurround"
   const [cornerVariant, setCornerVariant] = useState<CornerVariant>(saved.cornerVariant ?? "outside")
   const [width, setWidth] = useState<number>(saved.width ?? defaultWidth)
@@ -256,8 +336,11 @@ export function BookshelfConfigurator() {
 
   // Reset shelf count when user changes type (skip the very first mount so saved state survives)
   const didMountTypeRef = useRef(false)
+  // Set when a preset applies its own shelves, so the type-change reset below doesn't wipe them.
+  const skipShelfResetRef = useRef(false)
   useEffect(() => {
     if (!didMountTypeRef.current) { didMountTypeRef.current = true; return }
+    if (skipShelfResetRef.current) { skipShelfResetRef.current = false; return }
     const defaults: Record<MainType, number> = { rack: 2, bookshelf: 4, corner: 4, cathedral: 5, usurround: 4 }
     const count = defaults[mainType]
     setShelves(prev => prev.length === count ? prev : Array(count).fill(null).map(() => ({ height: 14, depth: 14 })))
@@ -348,6 +431,53 @@ export function BookshelfConfigurator() {
   }, [appliedDiscount, totalPrice])
   const discountedTotal = Math.max(0, totalPrice - discountAmount)
 
+  const priceRange = useMemo(
+    () => (SHOW_PRICE_RANGE ? computePriceRange(totalArea, AVAILABLE_RATES) : null),
+    [totalArea],
+  )
+
+  /* ─── Funnel tracking ─── */
+
+  const STEP_NAMES = ["type", "dimensions", "shelves", "finish", "review"] as const
+  useEffect(() => {
+    track("wizard_view", { pr: SHOW_PRICE_RANGE, returning: !!saved.mainType })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  useEffect(() => {
+    track("step_view", {
+      step: stepIndex,
+      step_name: STEP_NAMES[stepIndex] ?? String(stepIndex),
+      product_type: mainType,
+      pr: SHOW_PRICE_RANGE,
+      lead_known: isValidQuoteEmail,
+    })
+    // Only on step changes — not on every config tweak.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepIndex])
+
+  function openConsultation(source: string) {
+    track("book_consultation_click", {
+      source,
+      step: stepIndex,
+      product_type: mainType,
+      finish: selectedFinish,
+      value: stepIndex >= PRICE_STEP_INDEX ? totalPrice : undefined,
+      currency: "USD",
+    })
+    redirectToCheckout(CONSULTATION_URL)
+  }
+
+  function applyPreset(p: Preset) {
+    if (p.mainType !== mainType) skipShelfResetRef.current = true
+    setMainType(p.mainType)
+    setSubVariantConfirmed(true)
+    setWidth(p.width)
+    setShelves(p.shelves.map((s) => ({ ...s })))
+    setShelves2(p.shelves.map((s) => ({ ...s })))
+    track("preset_selected", { preset: p.id, product_type: p.mainType, pr: SHOW_PRICE_RANGE })
+    setStepIndex(1)
+  }
+
 
   const corner3DModules = useMemo(() => {
     if (mainType !== "corner") return { arm1: undefined, arm2: undefined }
@@ -384,6 +514,15 @@ export function BookshelfConfigurator() {
   async function handleAddToCart() {
     if (!result) return
     setIsAddingToCart(true)
+    const checkoutParams = {
+      product_type: mainType,
+      finish: selectedFinish,
+      value: discountedTotal,
+      currency: "USD",
+      coupon: appliedDiscount?.code,
+      pr: SHOW_PRICE_RANGE,
+    }
+    track("checkout_click", checkoutParams)
     const finishOption = FINISH_OPTIONS.find((f) => f.id === selectedFinish)
     const finishLabel = finishOption?.label || selectedFinish
     let imageDataUrl: string | null = null
@@ -411,12 +550,9 @@ export function BookshelfConfigurator() {
       _pbsSet("pbs_checkout_url", checkoutUrl)
       if (imageDataUrl) _pbsSet("pbs_cart_image", imageDataUrl)
 
-      if (window.self !== window.top) {
-        try {
-          window.parent.postMessage({ type: "pbs-ga4-event", eventName: "add_to_cart", params: { currency: "USD", value: totalPrice } }, "*")
-          window.parent.postMessage({ type: "pbs-ga4-event", eventName: "begin_checkout", params: { currency: "USD", value: totalPrice } }, "*")
-        } catch { /* ignore */ }
-      }
+      // GA4 / GTM / Meta / host page / funnel_events — see src/lib/track.ts.
+      track("add_to_cart", checkoutParams)
+      track("begin_checkout", checkoutParams)
       // Browsers often block automatic navigation from inside an embedded
       // frame after an async request. Always surface a clickable link as a
       // guaranteed fallback (a real click is allowed to navigate the page).
@@ -424,6 +560,7 @@ export function BookshelfConfigurator() {
       redirectToCheckout(checkoutUrl)
     } catch (err) {
       console.error("Checkout error:", err)
+      track("checkout_error", { product_type: mainType, pr: SHOW_PRICE_RANGE })
       setCheckoutError("Something went wrong. Please try again or contact us.")
     } finally {
       setIsAddingToCart(false)
@@ -488,6 +625,44 @@ export function BookshelfConfigurator() {
         : undefined,
   })
 
+  /* ─── Price estimate / "steps to price" callout (Steps 1–3) ─── */
+
+  const priceNotice = (idx: number): React.ReactNode => {
+    const left = PRICE_STEP_INDEX - idx
+    if (left <= 0) return undefined
+    const stepsLeft = `${left} step${left > 1 ? "s" : ""}`
+    if (idx === 0 || !priceRange) {
+      return (
+        <div className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground" data-testid="price-steps-left">
+          Your price is {stepsLeft} away
+        </div>
+      )
+    }
+    return (
+      <div className="border border-brand-walnut/40 bg-secondary/40 px-4 py-3" data-testid="price-estimate">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground">Estimate</span>
+          <span className="font-display text-lg tracking-tight text-foreground whitespace-nowrap">
+            {formatUsd(priceRange.low)} – {formatUsd(priceRange.high)}
+          </span>
+        </div>
+        <p className="text-[11px] text-muted-foreground leading-snug mt-1">
+          Depends on the wood you pick. Exact price in {stepsLeft}, before any discount.
+        </p>
+      </div>
+    )
+  }
+
+  const consultationLink = (source: string, text: string) => (
+    <button
+      type="button"
+      onClick={() => openConsultation(source)}
+      className="text-left text-xs text-muted-foreground hover:text-brand-walnut underline underline-offset-4 decoration-border hover:decoration-brand-walnut transition-colors"
+    >
+      {text}
+    </button>
+  )
+
   /* ─── Step content ─── */
 
   const needsSubVariant = mainType === "corner" || mainType === "cathedral"
@@ -497,10 +672,12 @@ export function BookshelfConfigurator() {
     selectionName: activeType.label,
     priceDelta: "+ $0",
     description: activeType.description,
+    notice: priceNotice(0),
     nextDisabled: needsSubVariant && !subVariantConfirmed,
     onNextBlocked: needsSubVariant ? flashSubOptions : undefined,
     content: (
       <div className="space-y-6">
+        <ReviewSummaryLine />
         <SwatchGrid cols={3}>
           {TYPE_OPTIONS.map(t => (
             <Swatch key={t.id} label={t.label} selected={mainType === t.id} onClick={() => setMainType(t.id)}>
@@ -571,6 +748,42 @@ export function BookshelfConfigurator() {
             )}
           </div>
         )}
+        <div className="pt-5 border-t border-border" data-testid="presets">
+          <div className="flex items-baseline justify-between mb-3">
+            <span className="text-[11px] tracking-[0.2em] uppercase font-semibold text-foreground">
+              Or start from a popular layout
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            {PRESETS.map((p) => {
+              const range = SHOW_PRICE_RANGE ? presetRange(p) : null
+              const icon = p.mainType === "rack" ? iconHorizontal : iconBookshelf
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => applyPreset(p)}
+                  aria-label={`Start from ${p.name}`}
+                  className="group text-left border border-border hover:border-brand-walnut p-3 transition-colors flex flex-col gap-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <img src={icon} alt="" aria-hidden className="h-6 w-6 object-contain opacity-80" />
+                    <span className="text-[11px] tracking-[0.15em] uppercase font-semibold text-foreground">{p.name}</span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground leading-snug">
+                    {p.blurb} · {toFraction(p.width)} wide · {p.shelves.length} shelves
+                  </span>
+                  {range && (
+                    <span className="text-[11px] text-foreground">
+                      Est. {formatUsd(range.low)} – {formatUsd(range.high)}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+          <p className="text-[11px] text-muted-foreground mt-2">You can change every detail on the next steps.</p>
+        </div>
       </div>
     ),
   }
@@ -589,6 +802,7 @@ export function BookshelfConfigurator() {
 
   const widthStep: WizardStep = {
     label: "Dimensions",
+    progressLabel: "Size",
     selectionName: widthStepSelectionName,
     priceDelta: widthStepDelta,
     description:
@@ -599,8 +813,10 @@ export function BookshelfConfigurator() {
         : mainType === "cathedral"
         ? "Set the wall width and the two heights — the low side (H) and the tall side (H1). Then pick the slope direction."
         : "Set the total width. Heights are determined by the shelves you add in the next step.",
-    content:
-      mainType === "usurround" ? (
+    notice: priceNotice(1),
+    content: (
+      <div className="space-y-8">
+      {mainType === "usurround" ? (
         <USurroundDimsContent w1={uW1} setW1={setUW1} w={uW} setW={setUW} w2={uW2} setW2={setUW2} />
       ) : mainType === "cathedral" ? (
         <CathedralDimsContent
@@ -638,7 +854,17 @@ export function BookshelfConfigurator() {
             </div>
           )}
         </div>
-      ),
+      )}
+        <div className="pt-4 border-t border-border">
+          {consultationLink(
+            "configurator_step2",
+            mainType === "bookshelf" || mainType === "rack"
+              ? "Not sure about your measurements? Book a free consultation →"
+              : "Tricky corner or sloped ceiling? Book a free consultation →",
+          )}
+        </div>
+      </div>
+    ),
   }
 
   // Cathedral tier rows (height per row is sliced by the slope ceiling).
@@ -677,6 +903,7 @@ export function BookshelfConfigurator() {
     selectionName: `${typePrefix}${visibleCount} ${shelvesStepUnit}`,
     priceDelta: `${toFraction(shelvesStepHeight)} tall`,
     description: shelvesStepDescription,
+    notice: priceNotice(2),
     nextLabel: "See Quote",
     nextDisabled: !isValidQuoteEmail,
     onNextBlocked: openEmailSheet,
@@ -796,7 +1023,11 @@ export function BookshelfConfigurator() {
             label={f.label.replace("/", " / ")}
             selected={selectedFinish === f.id}
             disabled={f.comingSoon}
-            onClick={() => !f.comingSoon && setSelectedFinish(f.id)}
+            onClick={() => {
+              if (f.comingSoon) return
+              setSelectedFinish(f.id)
+              if (f.id !== selectedFinish) track("finish_selected", { finish: f.id, product_type: mainType })
+            }}
             badge={f.comingSoon ? "Sold out" : undefined}
           >
             {f.color1 !== f.color2 ? (
@@ -933,7 +1164,11 @@ export function BookshelfConfigurator() {
 
         <CouponField
           appliedDiscount={appliedDiscount}
-          onApply={(d) => { setAppliedDiscount(d); setReadyCheckoutUrl(null) }}
+          onApply={(d) => {
+            setAppliedDiscount(d)
+            setReadyCheckoutUrl(null)
+            track("coupon_applied", { coupon: d.code, discount_type: d.valueType, product_type: mainType })
+          }}
           onRemove={() => { setAppliedDiscount(null); setReadyCheckoutUrl(null) }}
         />
 
@@ -966,51 +1201,7 @@ export function BookshelfConfigurator() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              const consultationUrl = "https://www.perfectbookshelf.com/pages/book-a-consultation"
-              try {
-                if (typeof window !== "undefined") {
-                  // GA4 via dataLayer (works when GTM/GA4 is loaded on the host page)
-                  const w = window as unknown as { dataLayer?: Array<Record<string, unknown>>; gtag?: (...args: unknown[]) => void }
-                  w.dataLayer = w.dataLayer || []
-                  w.dataLayer.push({
-                    event: "book_consultation_click",
-                    source: "configurator_step5",
-                    product: mainType,
-                    finish: selectedFinish,
-                    value: totalPrice,
-                    currency: "USD",
-                  })
-                  w.gtag?.("event", "book_consultation_click", {
-                    source: "configurator_step5",
-                    product: mainType,
-                    finish: selectedFinish,
-                    value: totalPrice,
-                    currency: "USD",
-                  })
-                  // Mirror the existing postMessage pattern used for begin_checkout
-                  if (window.parent && window.parent !== window) {
-                    window.parent.postMessage(
-                      {
-                        type: "pbs-ga4-event",
-                        eventName: "book_consultation_click",
-                        params: {
-                          source: "configurator_step5",
-                          product: mainType,
-                          finish: selectedFinish,
-                          value: totalPrice,
-                          currency: "USD",
-                        },
-                      },
-                      "*",
-                    )
-                  }
-                }
-              } catch {
-                /* analytics must never block the redirect */
-              }
-              redirectToCheckout(consultationUrl)
-            }}
+            onClick={() => openConsultation("configurator_step5")}
             className="w-full h-12 px-8 rounded-none border border-foreground bg-background hover:bg-foreground hover:text-background text-foreground tracking-[0.2em] uppercase text-[11px] font-semibold transition-colors"
           >
             Book a Free Consultation
@@ -1022,6 +1213,10 @@ export function BookshelfConfigurator() {
             ← Back
           </button>
         </div>
+
+        <TrustList total={discountedTotal} />
+
+        <ReviewCards />
       </div>
     ),
   }
@@ -1095,6 +1290,12 @@ export function BookshelfConfigurator() {
             productType: mainType,
             stepReached: "step-3-see-quote",
             lastConfig: quoteLeadConfig(),
+          })
+          track("generate_lead", {
+            product_type: mainType,
+            pr: SHOW_PRICE_RANGE,
+            value: priceRange ? Math.round((priceRange.low + priceRange.high) / 2) : undefined,
+            currency: "USD",
           })
           setEmailSheetOpen(false)
           setStepIndex((i) => i + 1)

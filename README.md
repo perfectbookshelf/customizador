@@ -58,6 +58,34 @@ the root uses `100svh` to stop the scroll bounce.
 - Coupons come from Shopify price rules: `src/routes/api/shopify/validate-coupon.ts` checks
   the code, the checkout route applies the discount, and the UI adds a discount line.
 
+## Conversion features
+
+- **Progress tracker** — `WizardProgress` in `src/components/wizard/WizardShell.tsx`. Done steps can be revisited.
+- **Early price estimate** — from Step 2 on, a range priced at the cheapest and the dearest available
+  finish (`computePriceRange` in `src/lib/pricing.ts`, rounded outwards to $50 so the exact price always
+  falls inside). Exact price and coupon still unlock only after the email. Toggle with
+  `SHOW_PRICE_RANGE` in `BookshelfConfigurator.tsx`; every event records `pr` so before/after can be compared.
+- **Popular layouts** — `PRESETS` in `BookshelfConfigurator.tsx`, modelled on real configurator orders.
+- **Reviews** — `src/lib/social-proof.ts`. Only real, authorised reviews. Blocks stay hidden while the
+  list is empty; the star line needs `REVIEW_SUMMARY` with at least `MIN_REVIEWS_FOR_SUMMARY` reviews.
+- **Store facts** (lead time, shipping, 24h changes) — `STORE_FACTS` in the same file, copied from the
+  Shopify Shipping and Refund policies. Keep them in sync.
+
+## Funnel tracking
+
+`track()` in `src/lib/track.ts` sends each event to:
+
+1. `funnel_events` (Supabase) through `/api/public/pbs-funnel-event` — anonymous per-tab session id,
+   UTM/referrer, device; never an email. Views `funnel_daily` and `funnel_sessions` summarise it.
+2. GTM `dataLayer` — the store's container (`GTM-N4NTN29G`, override with `VITE_GTM_ID`, `off` to disable)
+   loads in `__root.tsx` only when the configurator is the top-level page.
+3. Meta Pixel standard events if a pixel is present (`Lead`, `InitiateCheckout`, `Contact`).
+4. The host page via `pbs-ga4-event` postMessage when embedded in an iframe.
+
+Events: `wizard_view`, `step_view` (0–4), `preset_selected`, `email_sheet_open`, `generate_lead`,
+`finish_selected`, `coupon_applied`, `checkout_click`, `add_to_cart`, `begin_checkout`, `checkout_error`,
+`book_consultation_click`.
+
 ## Two-tone finishes
 
 `src/lib/finish.ts` is the single source of truth for which parts take the wood colour and
@@ -73,6 +101,7 @@ which take the baguette colour. **White has no entry in `src/lib/wood-textures.t
 | `src/routes/api/shopify/checkout.ts` | Returns the payment page URL |
 | `src/routes/api/shopify/validate-coupon.ts` | Checks a coupon against Shopify price rules |
 | `src/routes/api/public/pbs-capture-lead.ts` | Saves the lead, forces marketing opt-in, records the consent state Shopify actually returns |
+| `src/routes/api/public/pbs-funnel-event.ts` | Anonymous funnel events into `funnel_events`; schema-validated, rate-limited, rejects emails |
 | `src/routes/api/public/pbs-backfill-consent.ts` | One-off admin tool to re-subscribe contacts, guarded by `BACKFILL_ADMIN_SECRET` |
 
 Routes under `/api/public/` bypass site auth once published, so the handler itself must
