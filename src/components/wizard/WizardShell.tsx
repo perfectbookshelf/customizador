@@ -1,16 +1,20 @@
 import * as React from "react"
-import { ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface WizardStep {
   /** Short uppercase label, e.g. "TYPE", "WIDTH". */
   label: string
+  /** Shorter label for the progress tracker when `label` is too long for phones. */
+  progressLabel?: string
   /** Optional summary shown in the top-right header for the active step. */
   selectionName?: string
   /** Optional price delta shown in the top-right header. */
   priceDelta?: string
   /** Optional one-paragraph description below the selection name. */
   description?: React.ReactNode
+  /** Optional callout shown above the description (e.g. price estimate). */
+  notice?: React.ReactNode
   /** Step body — the actual swatches/sliders/etc. */
   content: React.ReactNode
   /** Hide the global Back/Next bar for this step (e.g. final review with its own CTA). */
@@ -88,8 +92,15 @@ export function WizardShell({
                 {step.priceDelta ?? ""}
               </span>
             </div>
+            <WizardProgress
+              labels={steps.map((s) => s.progressLabel ?? s.label)}
+              current={safeIndex}
+              onSelect={(i) => i < safeIndex && onIndexChange(i)}
+            />
           </div>
           <div className="flex-1 px-6 md:px-10 lg:px-12 pt-3 lg:pt-8 pb-32 configurator-config-inner overflow-y-auto">
+
+            {step.notice && <div className="mt-1 lg:mt-2">{step.notice}</div>}
 
             {/* Description */}
             {step.description && (
@@ -154,6 +165,67 @@ export function WizardShell({
         </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * Named step tracker under the pinned header. Done steps are marked and can
+ * be revisited; future steps are shown but not clickable.
+ */
+export function WizardProgress({
+  labels,
+  current,
+  onSelect,
+}: {
+  labels: string[]
+  current: number
+  onSelect: (index: number) => void
+}) {
+  return (
+    <nav aria-label="Progress" className="pt-2.5 lg:pt-4 pb-2">
+      <ol className="flex items-start gap-1.5">
+        {labels.map((label, i) => {
+          const done = i < current
+          const active = i === current
+          const body = (
+            <>
+              <span
+                className={cn(
+                  "block h-[3px] w-full transition-colors",
+                  done ? "bg-brand-walnut" : active ? "bg-foreground" : "bg-border",
+                )}
+              />
+              <span
+                className={cn(
+                  "mt-1.5 flex items-center gap-1 text-[9px] sm:text-[10px] tracking-[0.12em] uppercase truncate",
+                  active ? "text-foreground font-semibold" : done ? "text-brand-walnut" : "text-muted-foreground",
+                )}
+              >
+                {done && <Check className="h-2.5 w-2.5 shrink-0" aria-hidden />}
+                <span className="truncate">{label}</span>
+              </span>
+            </>
+          )
+          return (
+            <li key={label + i} className="flex-1 min-w-0" aria-current={active ? "step" : undefined}>
+              {done ? (
+                <button
+                  type="button"
+                  onClick={() => onSelect(i)}
+                  className="w-full text-left hover:opacity-80"
+                  aria-label={`Go back to ${label}`}
+                  data-progress-step={i + 1}
+                >
+                  {body}
+                </button>
+              ) : (
+                <div className="w-full">{body}</div>
+              )}
+            </li>
+          )
+        })}
+      </ol>
+    </nav>
   )
 }
 
